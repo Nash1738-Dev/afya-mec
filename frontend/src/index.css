@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+@theme {
+  /* AfyaMEC — Brand Colors */
+  --color-primary-50: #f0fdfa;
+  --color-primary-100: #ccfbf1;
+  --color-primary-200: #99f6e4;
+  --color-primary-300: #5eead4;
+  --color-primary-400: #2dd4bf;
+  --color-primary-500: #14b8a6;
+  --color-primary-600: #0d9488;
+  --color-primary-700: #0f766e;
+  --color-primary-800: #115e59;
+  --color-primary-900: #134e4a;
+
+  --color-brand-teal: #0d7377;
+  --color-brand-green: #14a044;
+  --color-brand-amber: #f59e0b;
+  --color-brand-dark: #1a202c;
+
+  /* MEC Category Colors */
+  --color-mec1: #059669;
+  --color-mec2: #d97706;
+  --color-mec3: #ea580c;
+  --color-mec4: #dc2626;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #f0fdfa;
+  color: #1a202c;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+/* Better touch targets */
+button, select, input, textarea {
+  touch-action: manipulation;
+}
+
+/* Prevent zoom on iOS */
+input, select, textarea {
+  font-size: 16px !important;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #f0fdfa; }
+::-webkit-scrollbar-thumb { background: #0d9488; border-radius: 4px; }
+
+/* Card hover effects */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(13, 115, 119, 0.15);
+}
+
+/* Gradient backgrounds */
+.gradient-teal {
+  background: linear-gradient(135deg, #0d7377 0%, #14a044 100%);
+}
+
+.gradient-card {
+  background: linear-gradient(135deg, #f0fdfa 0%, #ffffff 100%);
+}
+
+@media print {
+  header, footer, .print-hidden {
+    display: none !important;
+  }
+  body { background: white; }
+}
