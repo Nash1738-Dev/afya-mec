@@ -7,3 +7,4 @@ pydantic==2.6.4
 africastalking==2.0.2
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
+openpyxl==3.1.2
