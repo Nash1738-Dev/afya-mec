@@ -1,9 +1,11 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
-import { Activity, Home, Settings, BarChart3, Menu, X, Users, LogOut, BookOpen } from 'lucide-react'
+import { useEffect, useState, useRef } from 'react'
+import { Activity, Home, Settings, BarChart3, Menu, X, Users, LogOut, BookOpen, GraduationCap } from 'lucide-react'
 import { syncPendingSessions } from '../../utils/api.js'
 import { getPendingCount } from '../../utils/offlineQueue.js'
 import { logout, getCurrentUser } from '../../utils/auth.js'
+import FloatingActions from "../FloatingActions.jsx"
+import { getFacilitySettings } from '../../utils/facilitySettings.js'
 
 const steps = [
   { path: '/session/registration', label: 'Client', step: 1 },
@@ -22,6 +24,39 @@ export default function Layout() {
   const [pendingCount, setPendingCount] = useState(0)
   const [menuOpen, setMenuOpen] = useState(false)
   const currentUser = getCurrentUser()
+
+  const facilitySettings = getFacilitySettings()
+  const geminiApiKey = facilitySettings.gemini_api_key || ''
+
+  const [showTimeoutWarning, setShowTimeoutWarning] = useState(false)
+  const warningTimer = useRef(null)
+  const logoutTimer = useRef(null)
+
+  const resetTimers = () => {
+    clearTimeout(warningTimer.current)
+    clearTimeout(logoutTimer.current)
+    setShowTimeoutWarning(false)
+    // Show warning at 25 minutes
+    warningTimer.current = setTimeout(() => {
+      setShowTimeoutWarning(true)
+    }, 25 * 60 * 1000)
+    // Logout at 30 minutes
+    logoutTimer.current = setTimeout(() => {
+      logout()
+      window.location.href = '/login?reason=timeout'
+    }, 30 * 60 * 1000)
+  }
+
+  useEffect(() => {
+    resetTimers()
+    const events = ['mousedown', 'keydown', 'touchstart', 'scroll']
+    events.forEach(e => window.addEventListener(e, resetTimers, { passive: true }))
+    return () => {
+      clearTimeout(warningTimer.current)
+      clearTimeout(logoutTimer.current)
+      events.forEach(e => window.removeEventListener(e, resetTimers))
+    }
+  }, [])
 
   useEffect(() => {
     const checkPending = async () => {
@@ -58,8 +93,10 @@ export default function Layout() {
   const navItems = [
     { icon: <Home size={18}/>, label: 'Dashboard', path: '/' },
     { icon: <Users size={18}/>, label: 'Clients', path: '/clients' },
+    { icon: <BookOpen size={18}/>, label: 'Methods', path: '/methods' },
     { icon: <BarChart3 size={18}/>, label: 'Reports', path: '/reports' },
     { icon: <BookOpen size={18}/>, label: 'Resources', path: '/resources' },
+    { icon: <GraduationCap size={18}/>, label: 'Mentor', path: '/mentor' },
     { icon: <Settings size={18}/>, label: 'Settings', path: '/settings' },
   ]
 
@@ -202,12 +239,12 @@ export default function Layout() {
       </main>
 
       {/* Mobile Bottom Nav */}
-      <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
-        <div className="flex">
+      <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40 overflow-x-auto whitespace-nowrap">
+        <div className="flex w-max">
           {navItems.map(item => (
             <button key={item.path}
               onClick={() => navigate(item.path)}
-              className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-xs transition-colors
+              className={`px-4 flex flex-col items-center gap-0.5 py-2 text-xs transition-colors
                 ${location.pathname === item.path
                   ? 'text-blue-600'
                   : 'text-gray-400 hover:text-gray-600'}`}>
@@ -217,7 +254,7 @@ export default function Layout() {
           ))}
           <button
             onClick={() => { window.location.href = '/session/registration' }}
-            className="flex-1 flex flex-col items-center gap-0.5 py-2 text-xs text-blue-600 font-bold">
+            className="px-4 flex flex-col items-center gap-0.5 py-2 text-xs text-blue-600 font-bold sticky right-0 bg-white shadow-[-10px_0_10px_-10px_rgba(0,0,0,0.1)]">
             <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center -mt-4 shadow-lg">
               <span className="text-white text-lg font-bold">+</span>
             </div>
@@ -233,6 +270,28 @@ export default function Layout() {
       <footer className="hidden sm:block bg-gray-800 text-gray-400 text-center text-xs py-3">
         AfyaMEC Platform — Kenya MOH | WHO MEC 6th Edition (2025) | BCS+ Protocol
       </footer>
+
+      {/* Session Timeout Warning */}
+      {showTimeoutWarning && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full text-center">
+            <div className="text-4xl mb-3">⏰</div>
+            <h3 className="font-bold text-gray-800 text-lg mb-2">Session Expiring Soon</h3>
+            <p className="text-gray-500 text-sm mb-4">
+              You will be automatically logged out in <strong>5 minutes</strong> due to inactivity.
+            </p>
+            <button
+              onClick={() => { resetTimers(); setShowTimeoutWarning(false) }}
+              className="w-full text-white font-bold py-3 rounded-xl transition-colors"
+              style={{background: '#0d7377'}}>
+              I'm still here — Continue Session
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Action Buttons */}
+      <FloatingActions geminiApiKey={geminiApiKey}/>
     </div>
   )
 }

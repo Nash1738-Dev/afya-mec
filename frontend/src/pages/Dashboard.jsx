@@ -20,61 +20,96 @@ export default function Dashboard() {
   const facility = getFacilitySettings()
   const currentUser = getCurrentUser()
   const [stats, setStats] = useState({
-    total: 0, today: 0, thisWeek: 0, overdue: 0,
+    total: 0, today: 0, thisWeek: 0, thisMonth: 0, overdue: 0,
+    topMethod: '—', newThisMonth: 0, revisitsThisMonth: 0,
     methods: {}, recent: [], returning: []
   })
+  const [todaySessions, setTodaySessions] = useState([])
   const [loading, setLoading] = useState(true)
   const [backendOnline, setBackendOnline] = useState(true)
 
+  // Assuming completedModules could be pulled from local storage or an API later
+  const completedModules = parseInt(localStorage.getItem('afyamec_completed_modules') || '0', 10)
+
   useEffect(() => {
-    const load = async () => {
+    const loadStats = async () => {
+      setLoading(true)
       try {
-        const res = await fetch(`/api/clients/?t=${Date.now()}`)
-        if (!res.ok) throw new Error()
-        const clients = await res.json()
+        const [clientsRes, visitsRes] = await Promise.all([
+          fetch('/api/clients/', { headers: { Authorization: `Bearer ${localStorage.getItem('afyamec_auth_token')}` } }),
+          fetch('/api/visits/', { headers: { Authorization: `Bearer ${localStorage.getItem('afyamec_auth_token')}` } })
+        ])
+
+        const clients = clientsRes.ok ? await clientsRes.json() : []
+        const visits = visitsRes.ok ? await visitsRes.json() : []
         setBackendOnline(true)
 
         const today = new Date().toDateString()
-        const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+        const thisWeekStart = new Date()
+        thisWeekStart.setDate(thisWeekStart.getDate() - 7)
+        const thisMonthStart = new Date()
+        thisMonthStart.setDate(1)
 
-        const todayClients = clients.filter(c =>
-          c.last_visit && new Date(c.last_visit).toDateString() === today
+        const todayVisits = visits.filter(v =>
+          new Date(v.visit_date).toDateString() === today
         )
-        const weekClients = clients.filter(c =>
-          c.last_visit && new Date(c.last_visit) >= weekAgo
+        const weekVisits = visits.filter(v =>
+          new Date(v.visit_date) >= thisWeekStart
         )
-        const overdueClients = clients.filter(c => {
+        const monthVisits = visits.filter(v =>
+          new Date(v.visit_date) >= thisMonthStart
+        )
+        const overdue = clients.filter(c => {
           if (!c.last_visit) return false
           const weeks = (Date.now() - new Date(c.last_visit)) / (1000 * 60 * 60 * 24 * 7)
           return weeks >= 16
         })
-        const methods = {}
-        clients.forEach(c => {
-          if (c.last_method) methods[c.last_method] = (methods[c.last_method] || 0) + 1
+
+        // Method mix for this month
+        const methodCounts = {}
+        monthVisits.forEach(v => {
+          if (v.primary_method) {
+            methodCounts[v.primary_method] = (methodCounts[v.primary_method] || 0) + 1
+          }
         })
+        const topMethodEntry = Object.entries(methodCounts).sort((a,b) => b[1]-a[1])[0]
 
         setStats({
           total: clients.length,
-          today: todayClients.length,
-          thisWeek: weekClients.length,
-          overdue: overdueClients.length,
-          methods,
+          today: todayVisits.length,
+          thisWeek: weekVisits.length,
+          thisMonth: monthVisits.length,
+          overdue: overdue.length,
+          topMethod: topMethodEntry ? `${topMethodEntry[0]} (${topMethodEntry[1]})` : '—',
+          newThisMonth: monthVisits.filter(v => v.visit_type === 1).length,
+          revisitsThisMonth: monthVisits.filter(v => v.visit_type === 2).length,
+          methods: methodCounts,
           recent: clients.slice(0, 4),
-          returning: overdueClients.slice(0, 3),
+          returning: overdue.slice(0, 3)
         })
-      } catch {
+
+        setTodaySessions(todayVisits.slice(0, 5))
+      } catch (e) {
+        console.error('Stats error:', e)
         setBackendOnline(false)
       }
       setLoading(false)
     }
-    load()
-    const interval = setInterval(load, 30000)
+
+    loadStats()
+    const interval = setInterval(loadStats, 30000)
     return () => clearInterval(interval)
   }, [])
 
-  const topMethod = Object.entries(stats.methods).sort((a,b) => b[1]-a[1])[0]
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+
+  const statCards = [
+    { label: 'Today', value: loading ? '...' : stats.today, color: 'text-teal-600', bg: 'bg-teal-50', border: 'border-teal-100', icon: <Calendar size={18} className="text-teal-400"/> },
+    { label: 'This Month', value: loading ? '...' : stats.thisMonth, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-100', icon: <TrendingUp size={18} className="text-green-400"/> },
+    { label: 'Total Clients', value: loading ? '...' : stats.total, color: 'text-teal-700', bg: 'bg-teal-50', border: 'border-teal-100', icon: <Users size={18} className="text-teal-500"/> },
+    { label: 'Overdue', value: loading ? '...' : stats.overdue, color: stats.overdue > 0 ? 'text-amber-600' : 'text-gray-400', bg: stats.overdue > 0 ? 'bg-amber-50' : 'bg-gray-50', border: stats.overdue > 0 ? 'border-amber-100' : 'border-gray-100', icon: <Clock size={18} className={stats.overdue > 0 ? 'text-amber-400' : 'text-gray-300'}/> },
+  ]
 
   return (
     <div className="pb-4">
@@ -154,12 +189,7 @@ export default function Dashboard() {
 
       {/* KPI Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-        {[
-          { label: 'Today', value: loading ? '...' : stats.today, color: 'text-teal-600', bg: 'bg-teal-50', border: 'border-teal-100', icon: <Calendar size={18} className="text-teal-400"/> },
-          { label: 'This Week', value: loading ? '...' : stats.thisWeek, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-100', icon: <TrendingUp size={18} className="text-green-400"/> },
-          { label: 'Total Clients', value: loading ? '...' : stats.total, color: 'text-teal-700', bg: 'bg-teal-50', border: 'border-teal-100', icon: <Users size={18} className="text-teal-500"/> },
-          { label: 'Overdue', value: loading ? '...' : stats.overdue, color: stats.overdue > 0 ? 'text-amber-600' : 'text-gray-400', bg: stats.overdue > 0 ? 'bg-amber-50' : 'bg-gray-50', border: stats.overdue > 0 ? 'border-amber-100' : 'border-gray-100', icon: <Clock size={18} className={stats.overdue > 0 ? 'text-amber-400' : 'text-gray-300'}/> },
-        ].map(card => (
+        {statCards.map(card => (
           <div key={card.label} className={`${card.bg} rounded-xl p-4 border ${card.border}`}>
             <div className="flex items-center justify-between mb-1">
               {card.icon}
@@ -169,6 +199,45 @@ export default function Dashboard() {
           </div>
         ))}
       </div>
+
+      {/* Today's Activity */}
+      {todaySessions.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-bold text-gray-700 text-sm flex items-center gap-2">
+              📋 Today's Sessions ({todaySessions.length})
+            </h3>
+            <button onClick={() => navigate('/clients')}
+              className="text-xs text-teal-600 hover:underline">
+              View all →
+            </button>
+          </div>
+          <div className="space-y-2">
+            {todaySessions.map((v, i) => (
+              <div key={i} className="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                    style={{background: '#0d7377'}}>
+                    {i + 1}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">
+                      {v.client_name || 'Client'}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {v.primary_method || 'No method'} ·
+                      {v.visit_type === 1 ? ' New' : ' Revisit'}
+                    </p>
+                  </div>
+                </div>
+                <span className="text-xs text-gray-400">
+                  {new Date(v.visit_date).toLocaleTimeString('en-KE', {hour:'2-digit', minute:'2-digit'})}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Main Action */}
       <button
@@ -200,9 +269,43 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* Tools Quick Access */}
+      <div className="grid grid-cols-2 gap-3 mt-4">
+        <button onClick={() => navigate('/mec-wheel')}
+          className="flex items-center gap-2 p-3 rounded-xl text-white transition-all hover:shadow-md"
+          style={{background:'linear-gradient(135deg,#0d7377,#0f766e)'}}>
+          <span className="text-2xl">🎡</span>
+          <div className="text-left">
+            <p className="font-bold text-sm">MEC Wheel</p>
+            <p className="text-xs text-teal-100">WHO eligibility criteria</p>
+          </div>
+        </button>
+        <button onClick={() => navigate('/methods')}
+          className="flex items-center gap-2 p-3 rounded-xl text-white transition-all hover:shadow-md"
+          style={{background:'linear-gradient(135deg,#7c3aed,#2563eb)'}}>
+          <span className="text-2xl">📚</span>
+          <div className="text-left">
+            <p className="font-bold text-sm">Methods Library</p>
+            <p className="text-xs" style={{color:'#c4b5fd'}}>Full guide + switching</p>
+          </div>
+        </button>
+      </div>
+
+      <button onClick={() => navigate('/mentor')}
+        className="w-full flex items-center gap-3 p-4 rounded-2xl text-white mt-3 transition-all hover:shadow-lg"
+        style={{background:'linear-gradient(135deg,#0d7377 0%,#14a044 50%,#2563eb 100%)'}}>
+        <span className="text-3xl">🌿</span>
+        <div className="text-left">
+          <p className="font-bold">Afya Mentor — Provider Training</p>
+          <p className="text-xs opacity-80">
+            Microlearning · AI Simulations · Peer Learning · {completedModules || 0} modules completed
+          </p>
+        </div>
+      </button>
+
       {/* Overdue Alert */}
       {stats.overdue > 0 && (
-        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-4">
+        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-4 mt-4">
           <div className="flex items-center justify-between mb-2">
             <h3 className="font-bold text-orange-700 text-sm flex items-center gap-2">
               <Clock size={15}/> {stats.overdue} Overdue Client{stats.overdue !== 1 ? 's' : ''}
@@ -227,10 +330,10 @@ export default function Dashboard() {
 
       {/* Method Mix */}
       {Object.keys(stats.methods).length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mb-4">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mb-4 mt-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-bold text-gray-700 text-sm flex items-center gap-2">
-              <Pill size={15} className="text-blue-500"/> Method Mix
+              <Pill size={15} className="text-blue-500"/> Method Mix (This Month)
             </h3>
             <button onClick={() => navigate('/reports')}
               className="text-xs text-blue-500 flex items-center gap-1">
@@ -265,7 +368,7 @@ export default function Dashboard() {
 
       {/* Recent Clients */}
       {stats.recent.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mb-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-bold text-gray-700 text-sm flex items-center gap-2">
               <Users size={15} className="text-blue-500"/> Recent Clients
@@ -315,6 +418,7 @@ export default function Dashboard() {
             View full algorithm →
           </button>
         </div>
+
         <div className="grid grid-cols-2 gap-2 mb-3">
           {[
             { stage: '1', title: 'Pre-Choice', desc: 'Relationship, pregnancy check, display cards', color: 'blue' },

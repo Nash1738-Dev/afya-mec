@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { saveSessionOffline, getPendingSessions, markSynced } from './offlineQueue.js'
+import { getToken, logout } from './auth.js'
 import { getFacilitySettings as getFacility } from './facilitySettings.js'
 
 const API = axios.create({
@@ -7,6 +8,27 @@ const API = axios.create({
   timeout: 8000,
   headers: { 'Content-Type': 'application/json' }
 })
+
+// Attach JWT token to every request
+API.interceptors.request.use(config => {
+  const token = getToken()
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+// Handle 401 — redirect to login
+API.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response?.status === 401) {
+      logout()
+      window.location.href = '/login?reason=expired'
+    }
+    return Promise.reject(error)
+  }
+)
 
 export const saveSession = async (sessionData) => {
   const payload = {

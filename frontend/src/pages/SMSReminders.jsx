@@ -16,6 +16,9 @@ export default function SMSReminders() {
   const [bulkDays, setBulkDays] = useState(7)
   const [activeTab, setActiveTab] = useState('bulk')
 
+  // We need to fetch facility settings to pass to BulkReminders
+  const [facility, setFacility] = useState({})
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -27,6 +30,11 @@ export default function SMSReminders() {
         const cData = await cRes.json()
         setStatus(sData)
         setClients(cData.filter(c => c.telephone))
+
+        // Get local facility settings
+        const facSettings = localStorage.getItem('afyamec_facility')
+        if (facSettings) setFacility(JSON.parse(facSettings))
+
       } catch (e) {
         console.error(e)
       }
@@ -149,6 +157,23 @@ export default function SMSReminders() {
               </ol>
             </div>
           )}
+
+          {/* Callback URL info */}
+          <div className="mt-3 bg-gray-50 rounded-lg p-3 border border-gray-200">
+            <p className="text-xs font-bold text-gray-600 mb-1">
+              📡 Two-Way SMS Callback URL
+            </p>
+            <p className="text-xs text-gray-500 mb-2">
+              Set this URL in your Africa's Talking dashboard to receive incoming messages:
+            </p>
+            <div className="bg-gray-800 text-green-400 text-xs px-3 py-2 rounded font-mono break-all">
+              https://your-domain.com/api/sms/callback
+            </div>
+            <p className="text-xs text-gray-400 mt-1">
+              (Update with your actual deployed URL after deployment)
+            </p>
+          </div>
+
         </div>
       )}
 
@@ -369,6 +394,297 @@ export default function SMSReminders() {
             </details>
           )}
         </div>
+      )}
+
+      {/* SMS Inbox */}
+      <SMSInbox />
+
+      {/* Bulk Overdue Reminders */}
+      <BulkReminders facilityName={facility.facility_name} />
+
+      {/* DMPA-SC SI Reminders */}
+      <SIRemindersManager />
+    </div>
+  )
+}
+
+function SMSInbox() {
+  const [inbox, setInbox] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [open, setOpen] = useState(false)
+
+  const load = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/sms/inbox', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('afyamec_auth_token')}` }
+      })
+      if (res.ok) setInbox(await res.json())
+    } catch {}
+    setLoading(false)
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mt-4">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="font-bold text-gray-700 flex items-center gap-2">
+          📨 SMS Inbox
+          {inbox.length > 0 && (
+            <span className="bg-teal-100 text-teal-700 text-xs font-bold px-2 py-0.5 rounded-full">
+              {inbox.length}
+            </span>
+          )}
+        </h3>
+        <button
+          onClick={() => { setOpen(!open); if (!open) load() }}
+          className="text-xs text-teal-600 hover:underline">
+          {open ? 'Hide' : 'View Inbox'}
+        </button>
+      </div>
+      {open && (
+        <div className="space-y-2 max-h-64 overflow-y-auto">
+          {loading && <p className="text-gray-400 text-sm text-center py-3">Loading...</p>}
+          {!loading && inbox.length === 0 && (
+            <p className="text-gray-400 text-sm text-center py-3">No incoming messages yet</p>
+          )}
+          {inbox.map((msg, i) => (
+            <div key={i} className={`p-3 rounded-lg text-sm border
+              ${msg.action === 'opted_out' ? 'bg-red-50 border-red-200' :
+                msg.action === 'opted_in' ? 'bg-green-50 border-green-200' :
+                'bg-gray-50 border-gray-200'}`}>
+              <div className="flex justify-between items-start mb-1">
+                <span className="font-bold text-gray-700">{msg.from}</span>
+                <span className="text-xs text-gray-400">
+                  {new Date(msg.received_at).toLocaleString('en-KE')}
+                </span>
+              </div>
+              <p className="text-gray-600">"{msg.text}"</p>
+              {msg.action && (
+                <span className={`text-xs font-bold mt-1 inline-block
+                  ${msg.action === 'opted_out' ? 'text-red-600' :
+                    msg.action === 'opted_in' ? 'text-green-600' : 'text-gray-500'}`}>
+                  Action: {msg.action.replace('_', ' ')}
+                </span>
+              )}
+              {msg.auto_response && (
+                <p className="text-xs text-teal-600 mt-1 italic">
+                  Auto-reply: "{msg.auto_response}"
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function BulkReminders({ facilityName }) {
+  const [sending, setSending] = useState(false)
+  const [result, setResult] = useState(null)
+  const [weeks, setWeeks] = useState(16)
+
+  const handleSend = async () => {
+    if (!confirm(`Send reminders to ALL overdue clients (${weeks}+ weeks since last visit)?`)) return
+    setSending(true)
+    try {
+      const res = await fetch('/api/sms/send-bulk', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('afyamec_auth_token')}`
+        },
+        body: JSON.stringify({ weeks_overdue: weeks, facility_name: facilityName || 'your health facility' })
+      })
+      if (res.ok) setResult(await res.json())
+    } catch (e) {
+      setResult({ success: false, message: e.message })
+    }
+    setSending(false)
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mt-4">
+      <h3 className="font-bold text-gray-700 mb-3 flex items-center gap-2">
+        📣 Bulk Overdue Reminders
+      </h3>
+      <p className="text-xs text-gray-500 mb-3">
+        Send appointment reminders to all clients who are overdue for their next visit.
+      </p>
+      <div className="flex items-center gap-3 mb-3">
+        <label className="text-xs font-medium text-gray-500 flex-shrink-0">
+          Overdue after:
+        </label>
+        <select
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+          value={weeks}
+          onChange={e => setWeeks(parseInt(e.target.value))}>
+          <option value={8}>8 weeks</option>
+          <option value={12}>12 weeks</option>
+          <option value={16}>16 weeks (default)</option>
+          <option value={20}>20 weeks</option>
+        </select>
+      </div>
+      <button
+        onClick={handleSend}
+        disabled={sending}
+        className={`w-full flex items-center justify-center gap-2 font-bold py-3 rounded-xl text-sm transition-colors
+          ${sending ? 'bg-gray-200 text-gray-400' : 'text-white'}`}
+        style={!sending ? { background: '#0d7377' } : {}}>
+        {sending ? '⏳ Sending...' : '📣 Send Bulk Reminders'}
+      </button>
+
+      {result && (
+        <div className={`mt-3 p-3 rounded-lg text-sm ${result.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+          {result.success ? (
+            <>
+              <p className="font-bold text-green-700 mb-1">
+                ✅ {result.sandbox ? 'Sandbox — ' : ''}Reminders processed
+              </p>
+              <p className="text-green-600">
+                Sent: {result.sent} | Failed: {result.failed} | Skipped: {result.skipped}
+              </p>
+            </>
+          ) : (
+            <p className="text-red-600">❌ {result.message}</p>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SIRemindersManager() {
+  const [reminders, setReminders] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [result, setResult] = useState(null)
+  const [open, setOpen] = useState(false)
+  const token = localStorage.getItem('afyamec_auth_token')
+
+  const load = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/sms/si-reminders', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.ok) setReminders(await res.json())
+    } catch {}
+    setLoading(false)
+  }
+
+  const sendDue = async () => {
+    setSending(true)
+    try {
+      const res = await fetch('/api/sms/send-due-reminders', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.ok) {
+        setResult(await res.json())
+        load()
+      }
+    } catch {}
+    setSending(false)
+  }
+
+  const pending = reminders.filter(r => !r.sent)
+  const sent = reminders.filter(r => r.sent)
+  const today = new Date()
+  const due = pending.filter(r =>
+    new Date(r.reminder_date) <= today
+  )
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mt-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-bold text-gray-700 flex items-center gap-2 text-sm">
+          💉 DMPA-SC SI Reminders
+          {due.length > 0 && (
+            <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full">
+              {due.length} due
+            </span>
+          )}
+        </h3>
+        <button
+          onClick={() => { setOpen(!open); if (!open) load() }}
+          className="text-xs text-teal-600 hover:underline">
+          {open ? 'Hide' : 'Manage'}
+        </button>
+      </div>
+
+      {open && (
+        <>
+          <div className="grid grid-cols-3 gap-2 mb-3 text-center">
+            {[
+              { label: 'Total scheduled', value: reminders.length, color: 'text-gray-700' },
+              { label: 'Due today', value: due.length, color: 'text-red-600' },
+              { label: 'Sent', value: sent.length, color: 'text-green-600' },
+            ].map((s, i) => (
+              <div key={i} className="bg-gray-50 rounded-lg p-2">
+                <p className={`text-lg font-bold ${s.color}`}>{s.value}</p>
+                <p className="text-xs text-gray-400">{s.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {due.length > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-3">
+              <p className="text-xs font-bold text-red-700 mb-1">
+                ⏰ {due.length} reminder(s) due to be sent
+              </p>
+              {due.slice(0,3).map((r, i) => (
+                <p key={i} className="text-xs text-red-600">
+                  • {r.client_name} — Dose {r.dose_number}/{r.total_doses} —
+                  inject {new Date(r.injection_date).toLocaleDateString('en-KE')}
+                </p>
+              ))}
+            </div>
+          )}
+
+          <button
+            onClick={sendDue}
+            disabled={sending || due.length === 0}
+            className={`w-full flex items-center justify-center gap-2 font-bold py-2.5 rounded-xl text-sm mb-3 transition-colors
+              ${due.length > 0 && !sending ? 'text-white' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+            style={due.length > 0 && !sending ? {background:'#0d7377'} : {}}>
+            {sending ? '⏳ Sending...' : `💌 Send ${due.length} Due Reminder(s)`}
+          </button>
+
+          {result && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-2 mb-3 text-xs text-green-700">
+              ✅ Sent {result.sent} reminder(s)
+              {result.sandbox && ' (sandbox mode)'}
+            </div>
+          )}
+
+          {/* Upcoming reminders list */}
+          {pending.length > 0 && (
+            <div className="max-h-40 overflow-y-auto space-y-1">
+              <p className="text-xs font-bold text-gray-500 mb-1">Upcoming:</p>
+              {pending.slice(0,10).map((r, i) => (
+                <div key={i}
+                  className="flex items-center justify-between text-xs py-1.5 border-b border-gray-50">
+                  <div>
+                    <span className="font-medium text-gray-700">{r.client_name}</span>
+                    <span className="text-gray-400 ml-1">
+                      Dose {r.dose_number}/{r.total_doses}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-gray-500">
+                      Inject: {new Date(r.injection_date).toLocaleDateString('en-KE')}
+                    </p>
+                    <p className={new Date(r.reminder_date) <= today
+                      ? 'text-red-500 font-bold' : 'text-gray-400'}>
+                      Remind: {new Date(r.reminder_date).toLocaleDateString('en-KE')}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   )

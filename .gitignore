@@ -42,3 +42,15 @@ Thumbs.db
 # Project Specific
 # =========================
 build-log.txt
+# Sensitive runtime files
+backend/users.json
+backend/pending_users.json
+backend/failed_attempts.json
+backend/feedback_log.json
+backend/si_reminders.json
+backend/deletion_audit.json
+backend/report_history.json
+backups/
+afyamec_test_report.json
+run_tests.bat
+test_requirements.txt

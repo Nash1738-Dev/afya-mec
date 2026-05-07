@@ -7,6 +7,15 @@ from pydantic import BaseModel
 from typing import Optional, List, Any, Dict
 import uuid
 from datetime import datetime
+import uuid as uuid_lib
+
+def validate_uuid(value: str) -> bool:
+    """Returns True if value is a valid UUID"""
+    try:
+        uuid_lib.UUID(str(value))
+        return True
+    except (ValueError, AttributeError):
+        return False
 
 router = APIRouter()
 
@@ -146,6 +155,7 @@ def save_session(data: SessionData, db: Session = Depends(get_db)):
         quantity_dispensed=safe_float(data.quantityDispensed),
         dmpa_sc_admin_type=safe_str(data.dmpaAdminType) or None,
         dmpa_sc_take_home_doses=safe_int(data.dmpaTakeHomeDoses),
+        dmpa_sc_mode=safe_str(c.get("dmpa_sc_mode")) or None,
         larc_removal_reason=safe_int(data.larcRemovalReason),
         hiv_counselled=safe_bool(s.get("hiv_counselled")),
         hiv_tested=safe_bool(s.get("hiv_tested")),
@@ -178,18 +188,23 @@ def save_session(data: SessionData, db: Session = Depends(get_db)):
 
 @router.get("/")
 def get_all_visits(db: Session = Depends(get_db)):
-    visits = db.query(Visit).order_by(Visit.visit_date.desc()).limit(500).all()
-    return [
-        {
+    """Get all visits with client names"""
+    from app.models.client import Client
+    visits = db.query(Visit).order_by(Visit.visit_date.desc()).limit(200).all()
+    result = []
+    for v in visits:
+        client = db.query(Client).filter(Client.id == v.client_id).first()
+        result.append({
             "id": str(v.id),
             "client_id": str(v.client_id),
+            "client_name": f"{client.first_name} {client.last_name}" if client else "Unknown",
             "visit_date": v.visit_date.isoformat(),
-            "primary_method": v.primary_method,
             "visit_type": v.visit_type,
-            "return_date": v.return_date.isoformat() if v.return_date else None,
-        }
-        for v in visits
-    ]
+            "primary_method": v.primary_method,
+            "is_anonymous": getattr(v, 'is_anonymous', False),
+            "facility_code": getattr(v, 'facility_code', ''),
+        })
+    return result
 
 class AnonymousVisitData(BaseModel):
     client: Dict[str, Any] = {}
@@ -273,6 +288,7 @@ def save_anonymous_visit(data: AnonymousVisitData, db: Session = Depends(get_db)
         primary_method=safe_str(data.selectedMethod) or None,
         method_visit_category=safe_int(data.methodVisitCategory),
         quantity_dispensed=safe_float(data.quantityDispensed),
+        dmpa_sc_mode=safe_str(data.client.get('dmpa_sc_mode')) or None,
         fp_counselled=True,
         natural_fp_counselled=safe_bool(s.get('natural_fp_counselled')),
         cycle_beads_given=safe_bool(s.get('cycle_beads_given')),
@@ -290,3 +306,108 @@ def save_anonymous_visit(data: AnonymousVisitData, db: Session = Depends(get_db)
         "reg_number": anon_reg,
         "message": "Anonymous entry recorded"
     }
+
+@router.get("/disc-stats")
+def get_disc_stats(year: int, month: int, db: Session = Depends(get_db)):
+    """Get full DISC Section 2 data for a month"""
+    from sqlalchemy import extract
+    from app.models.client import Client
+
+    visits = db.query(Visit).filter(
+        extract('year', Visit.visit_date) == year,
+        extract('month', Visit.visit_date) == month,
+        Visit.primary_method == 'DMPA_SC'
+    ).all()
+
+    # Aggregate all DISC Section 2 indicators
+    stats = {
+        # Total DMPA-SC
+        "total_dmpa_sc_new": 0,
+        "total_dmpa_sc_revisit": 0,
+        "total_dmpa_sc": 0,
+
+        # SI disaggregated
+        "si_new": 0,
+        "si_revisit": 0,
+        "si_total": 0,
+        "si_doses_new": 0,
+        "si_doses_revisit": 0,
+        "si_doses_total": 0,
+
+        # PA disaggregated
+        "pa_new": 0,
+        "pa_revisit": 0,
+        "pa_total": 0,
+
+        # New/lapsed SI users
+        "si_new_lapsed": 0,
+
+        # Take-home doses
+        "takehome_doses": 0,
+    }
+
+    for v in visits:
+        is_new = v.visit_type == 1
+        mode = getattr(v, 'dmpa_sc_mode', None)
+
+        # Total DMPA-SC
+        if is_new:
+            stats["total_dmpa_sc_new"] += 1
+        else:
+            stats["total_dmpa_sc_revisit"] += 1
+        stats["total_dmpa_sc"] += 1
+
+        if mode == 'SI':
+            # SI client
+            if is_new:
+                stats["si_new"] += 1
+                stats["si_doses_new"] += 1  # 1 dose minimum
+            else:
+                stats["si_revisit"] += 1
+                # Take-home doses for revisits
+                takehome = getattr(v, 'takehome_doses', 0) or 0
+                doses = 1 + takehome
+                stats["si_doses_revisit"] += doses
+                stats["takehome_doses"] += takehome
+            stats["si_total"] += 1
+
+            # New/lapsed = first ever user or new visit
+            if is_new or getattr(v, 'first_ever_user', False):
+                stats["si_new_lapsed"] += 1
+
+        elif mode == 'PA':
+            # PA client
+            if is_new:
+                stats["pa_new"] += 1
+            else:
+                stats["pa_revisit"] += 1
+            stats["pa_total"] += 1
+        else:
+            # Mode not recorded — count as PA
+            if is_new:
+                stats["pa_new"] += 1
+            else:
+                stats["pa_revisit"] += 1
+            stats["pa_total"] += 1
+
+    stats["si_doses_total"] = stats["si_doses_new"] + stats["si_doses_revisit"]
+
+    # Percentages
+    stats["pct_si"] = round(
+        (stats["si_total"] / stats["total_dmpa_sc"] * 100), 1
+    ) if stats["total_dmpa_sc"] > 0 else 0
+
+    stats["pct_si_new_lapsed"] = round(
+        (stats["si_new_lapsed"] / stats["si_total"] * 100), 1
+    ) if stats["si_total"] > 0 else 0
+
+    return stats
+
+@router.get("/client/{client_id}")
+def get_client_visits(client_id: str, db: Session = Depends(get_db)):
+    """Get all visits for a specific client safely validating UUID"""
+    if not validate_uuid(client_id):
+        raise HTTPException(status_code=404, detail="Client not found")
+        
+    visits = db.query(Visit).filter(Visit.client_id == client_id).order_by(Visit.visit_date.desc()).all()
+    return visits

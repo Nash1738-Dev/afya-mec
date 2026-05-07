@@ -25,6 +25,10 @@ import MOH711Report from './pages/MOH711Report'
 import DISCProject from './pages/DISCProject'
 import DHIS2Integration from './pages/DHIS2Integration'
 import MOH747A from './pages/MOH747A'
+import NotFound from './pages/NotFound'
+import MethodsResource from './pages/MethodsResource'
+import MECWheel from './pages/MECWheel'
+import AfyaMentor from './pages/AfyaMentor'
 
 export default function App() {
   return (
@@ -49,6 +53,9 @@ export default function App() {
           <Route path="reports/disc" element={<DISCProject />} />
           <Route path="reports/moh747a" element={<MOH747A />} />
           <Route path="resources" element={<Resources />} />
+          <Route path="methods" element={<MethodsResource />} />
+          <Route path="mec-wheel" element={<MECWheel />} />
+          <Route path="mentor" element={<AfyaMentor />} />
           <Route path="bcs-algorithm" element={<BCSAlgorithm />} />
           <Route path="anonymous-entry" element={<AnonymousEntry />} />
           <Route path="session/registration" element={<Registration />} />
@@ -58,7 +65,7 @@ export default function App() {
           <Route path="session/counselling" element={<PostChoice />} />
           <Route path="session/summary" element={<SessionSummary />} />
           <Route path="session/print" element={<PrintReport />} />
-          <Route path="*" element={<Navigate to="/" />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
     </SessionProvider>

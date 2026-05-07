@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, RefreshCw, Download, Eye, ChevronLeft, ChevronRight, FileText } from 'lucide-react'
 import { getFacilitySettings } from '../utils/facilitySettings.js'
 import * as XLSX from 'xlsx'
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
+         XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+         ResponsiveContainer, ComposedChart } from 'recharts'
 
 const MONTHS = ['January','February','March','April','May','June',
   'July','August','September','October','November','December']
@@ -16,6 +19,7 @@ export default function MOH711Report() {
   const [report, setReport] = useState(null)
   const [loading, setLoading] = useState(false)
   const [history, setHistory] = useState([])
+  const [activeTab, setActiveTab] = useState('table') // 'table' | 'charts'
 
   const period = `${year}${String(month).padStart(2,'0')}`
 
@@ -124,6 +128,40 @@ export default function MOH711Report() {
     XLSX.writeFile(wb, `MOH711_${facility.facility_name || 'Facility'}_${MONTHS[month-1]}_${year}.xlsx`)
   }
 
+  const validateReport = (fp) => {
+    const warnings = []
+
+    if ((fp.iud_removals || 0) > (fp.iud_non_hormonal_new || 0) + (fp.iud_hormonal_new || 0) + 50) {
+      warnings.push('⚠️ IUD removals exceed cumulative insertions — verify data')
+    }
+    if ((fp.implant_removals || 0) > (fp.implant_1rod_new || 0) + (fp.implant_2rod_new || 0) + 50) {
+      warnings.push('⚠️ Implant removals exceed insertions — verify data')
+    }
+    if (fp.total_fp_clients > 500) {
+      warnings.push('ℹ️ Total FP clients >500 for the month — please verify this is correct')
+    }
+    const methodTotal = (fp.pop_new || 0) + (fp.pop_revisit || 0) +
+      (fp.coc_new || 0) + (fp.coc_revisit || 0) +
+      (fp.dmpa_im_new || 0) + (fp.dmpa_im_revisit || 0) +
+      (fp.dmpa_sc_new || 0) + (fp.dmpa_sc_revisit || 0) +
+      (fp.implant_1rod_new || 0) + (fp.implant_2rod_new || 0) +
+      (fp.iud_non_hormonal_new || 0) + (fp.iud_hormonal_new || 0) +
+      (fp.condom_m || 0) + (fp.condom_f || 0) + (fp.btl_new || 0)
+
+    if (fp.total_fp_clients > 0 && methodTotal === 0) {
+      warnings.push('⚠️ Total FP clients recorded but no method counts — check individual method entries')
+    }
+    if ((fp.adolescent_10_14 || 0) + (fp.adolescent_15_19 || 0) +
+        (fp.youth_20_24 || 0) + (fp.adults_25_plus || 0) > fp.total_fp_clients + 10) {
+      warnings.push('⚠️ Age group totals exceed total FP clients — verify age data')
+    }
+    if (fp.first_ever_users > (fp.total_fp_clients || 0)) {
+      warnings.push('⚠️ First-ever users exceed total clients — verify data')
+    }
+
+    return warnings
+  }
+
   const Row = ({ label, newVal, revisitVal, indent = false, bold = false, section = false }) => {
     if (section) return (
       <tr>
@@ -223,6 +261,25 @@ export default function MOH711Report() {
         </div>
       </div>
 
+      {report && (
+        <div className="flex gap-2 mb-4">
+          {[
+            { key: 'table', label: '📋 Data Table' },
+            { key: 'charts', label: '📊 Charts & Analysis' }
+          ].map(tab => (
+            <button key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-colors
+                ${activeTab === tab.key
+                  ? 'text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              style={activeTab === tab.key ? {background:'#0d7377'} : {}}>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Previous Reports */}
       {history.length > 0 && (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mb-4">
@@ -244,7 +301,7 @@ export default function MOH711Report() {
       )}
 
       {/* Report Display */}
-      {report && (
+      {report && activeTab === 'table' && (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           {/* Report Header */}
           <div className="p-4 text-white" style={{background: 'linear-gradient(135deg, #0d7377 0%, #0f766e 100%)'}}>
@@ -268,6 +325,32 @@ export default function MOH711Report() {
               </div>
             </div>
           </div>
+
+          {/* Validation Warnings */}
+          {(() => {
+            const warnings = validateReport(report.fp_section)
+            if (warnings.length === 0) return (
+              <div className="mx-4 mt-3 bg-green-50 border border-green-200 rounded-lg p-3">
+                <p className="text-green-700 text-sm font-semibold flex items-center gap-2">
+                  ✅ Data validation passed — no issues found
+                </p>
+              </div>
+            )
+            return (
+              <div className="mx-4 mt-3 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <p className="font-bold text-amber-700 text-sm mb-2">
+                  ⚠️ Data Quality Warnings ({warnings.length})
+                </p>
+                {warnings.map((w, i) => (
+                  <p key={i} className="text-amber-600 text-xs mb-1">{w}</p>
+                ))}
+                <p className="text-amber-500 text-xs mt-2 italic">
+                  These are warnings only — you can still export the report.
+                  Please review the data before submitting to sub-county.
+                </p>
+              </div>
+            )
+          })()}
 
           {/* Section D Table */}
           <div className="overflow-x-auto">
@@ -350,6 +433,318 @@ export default function MOH711Report() {
           </div>
         </div>
       )}
+
+      {report && activeTab === 'charts' && (
+        <MOH711Charts report={report} month={month} year={year} months={MONTHS}/>
+      )}
+    </div>
+  )
+}
+
+function MOH711Charts({ report, month, year, months }) {
+  const fp = report.fp_section
+  const cerv = report.cervical || {}
+  const TEAL = '#0d7377'
+  const GREEN = '#14a044'
+  const AMBER = '#f59e0b'
+  const PURPLE = '#7c3aed'
+  const BLUE = '#2563eb'
+  const RED = '#dc2626'
+
+  // Method mix data for pie chart
+  const methodMixData = [
+    { name: 'COC', value: (fp.coc_new||0)+(fp.coc_revisit||0), color: '#0d7377' },
+    { name: 'POP', value: (fp.pop_new||0)+(fp.pop_revisit||0), color: '#14a044' },
+    { name: 'DMPA-IM', value: (fp.dmpa_im_new||0)+(fp.dmpa_im_revisit||0), color: '#2563eb' },
+    { name: 'DMPA-SC', value: (fp.dmpa_sc_new||0)+(fp.dmpa_sc_revisit||0), color: '#7c3aed' },
+    { name: 'NET-EN', value: (fp.net_en_new||0)+(fp.net_en_revisit||0), color: '#f59e0b' },
+    { name: 'Implant', value: (fp.implant_1rod_new||0)+(fp.implant_2rod_new||0)+(fp.implant_1rod_revisit||0)+(fp.implant_2rod_revisit||0), color: '#ec4899' },
+    { name: 'Cu-IUD', value: (fp.iud_non_hormonal_new||0)+(fp.iud_non_hormonal_revisit||0), color: '#f97316' },
+    { name: 'LNG-IUS', value: (fp.iud_hormonal_new||0)+(fp.iud_hormonal_revisit||0), color: '#06b6d4' },
+    { name: 'Condoms', value: (fp.condom_m||0)+(fp.condom_f||0)+(fp.condom_both||0), color: '#84cc16' },
+    { name: 'Natural FP', value: (fp.natural_fp||0), color: '#a3a3a3' },
+    { name: 'Permanent', value: (fp.btl_new||0)+(fp.vasectomy_new||0), color: '#dc2626' },
+  ].filter(d => d.value > 0)
+
+  // New vs Revisit by method
+  const newVsRevisit = [
+    { method: 'COC', new: fp.coc_new||0, revisit: fp.coc_revisit||0 },
+    { method: 'POP', new: fp.pop_new||0, revisit: fp.pop_revisit||0 },
+    { method: 'DMPA-IM', new: fp.dmpa_im_new||0, revisit: fp.dmpa_im_revisit||0 },
+    { method: 'DMPA-SC', new: fp.dmpa_sc_new||0, revisit: fp.dmpa_sc_revisit||0 },
+    { method: 'NET-EN', new: fp.net_en_new||0, revisit: fp.net_en_revisit||0 },
+    { method: 'Implant', new: (fp.implant_1rod_new||0)+(fp.implant_2rod_new||0), revisit: (fp.implant_1rod_revisit||0)+(fp.implant_2rod_revisit||0) },
+    { method: 'Cu-IUD', new: fp.iud_non_hormonal_new||0, revisit: fp.iud_non_hormonal_revisit||0 },
+    { method: 'LNG-IUS', new: fp.iud_hormonal_new||0, revisit: fp.iud_hormonal_revisit||0 },
+  ].filter(d => d.new > 0 || d.revisit > 0)
+
+  // Age group distribution
+  const ageData = [
+    { group: '10-14 yrs', count: fp.adolescent_10_14||0, color: '#f59e0b' },
+    { group: '15-19 yrs', count: fp.adolescent_15_19||0, color: '#f97316' },
+    { group: '20-24 yrs', count: fp.youth_20_24||0, color: '#14a044' },
+    { group: '25+ yrs', count: fp.adults_25_plus||0, color: '#0d7377' },
+  ]
+
+  // PPFP data
+  const ppfpData = [
+    { name: 'PPFP <48hrs', value: fp.ppfp_48hrs||0 },
+    { name: 'PPFP 3d-6wks', value: fp.ppfp_3days_6wks||0 },
+    { name: 'Post-abortion FP', value: fp.post_abortion_fp||0 },
+  ].filter(d => d.value > 0)
+
+  // Cervical cancer screening
+  const cervData = [
+    { name: '<25 yrs', value: cerv.via_lt25||0 },
+    { name: '25-49 yrs', value: cerv.via_25_49||0 },
+    { name: '50+ yrs', value: cerv.via_50plus||0 },
+  ]
+
+  const RADIAN = Math.PI / 180
+  const renderPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, name, value, percent }) => {
+    if (percent < 0.05) return null
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5
+    const x = cx + radius * Math.cos(-midAngle * RADIAN)
+    const y = cy + radius * Math.sin(-midAngle * RADIAN)
+    return (
+      <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={10} fontWeight="bold">
+        {`${name}\n${value}`}
+      </text>
+    )
+  }
+
+  const totalFP = fp.total_fp_clients || 0
+  const totalNew = (fp.coc_new||0)+(fp.pop_new||0)+(fp.dmpa_im_new||0)+(fp.dmpa_sc_new||0)+(fp.net_en_new||0)+(fp.implant_1rod_new||0)+(fp.implant_2rod_new||0)+(fp.iud_non_hormonal_new||0)+(fp.iud_hormonal_new||0)+(fp.btl_new||0)+(fp.vasectomy_new||0)
+  const totalRevisit = totalFP - totalNew
+
+  return (
+    <div className="space-y-4">
+      {/* Summary KPIs */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: 'Total FP Clients', value: totalFP, color: TEAL, icon: '👥' },
+          { label: 'New Acceptors', value: totalNew, color: GREEN, icon: '🆕' },
+          { label: 'Revisits', value: totalRevisit, color: BLUE, icon: '🔄' },
+          { label: '1st Ever Users', value: fp.first_ever_users||0, color: PURPLE, icon: '⭐' },
+        ].map((k,i) => (
+          <div key={i} className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+            <div className="text-xl mb-1">{k.icon}</div>
+            <p className="text-2xl font-bold" style={{color:k.color}}>{k.value}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{k.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Method Mix Pie */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <h3 className="font-bold text-gray-700 text-sm mb-4">
+          🥧 Method Mix — {months[month-1]} {year}
+        </h3>
+        {methodMixData.length === 0 ? (
+          <p className="text-gray-400 text-sm text-center py-6">No method data for this period</p>
+        ) : (
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie
+                  data={methodMixData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={90}
+                  dataKey="value"
+                  labelLine={false}
+                  label={renderPieLabel}>
+                  {methodMixData.map((entry, index) => (
+                    <Cell key={index} fill={entry.color}/>
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(val, name) => [val, name]}
+                  contentStyle={{fontSize:12, borderRadius:8}}/>
+              </PieChart>
+            </ResponsiveContainer>
+            {/* Legend */}
+            <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+              {methodMixData.map((d, i) => (
+                <div key={i} className="flex items-center gap-1.5 text-xs">
+                  <div className="w-3 h-3 rounded-sm flex-shrink-0" style={{background:d.color}}/>
+                  <span className="text-gray-600">{d.name}: <strong>{d.value}</strong></span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* New vs Revisit Bar Chart */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <h3 className="font-bold text-gray-700 text-sm mb-4">
+          📊 New Clients vs Revisits by Method
+        </h3>
+        {newVsRevisit.length === 0 ? (
+          <p className="text-gray-400 text-sm text-center py-6">No data for this period</p>
+        ) : (
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={newVsRevisit} margin={{top:0,right:10,left:-20,bottom:0}}
+              barCategoryGap="25%">
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
+              <XAxis dataKey="method" tick={{fontSize:10, fill:'#9ca3af'}}/>
+              <YAxis tick={{fontSize:11, fill:'#9ca3af'}}/>
+              <Tooltip contentStyle={{fontSize:12, borderRadius:8, border:'1px solid #e5e7eb'}}/>
+              <Legend wrapperStyle={{fontSize:12}}/>
+              <Bar dataKey="new" name="New clients" fill={TEAL} radius={[3,3,0,0]}/>
+              <Bar dataKey="revisit" name="Revisits" fill="#5eead4" radius={[3,3,0,0]}/>
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+
+      {/* Age Group Distribution */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+          <h3 className="font-bold text-gray-700 text-sm mb-4">
+            👥 Age Group Distribution
+          </h3>
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart data={ageData} margin={{top:0,right:10,left:-25,bottom:0}}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
+              <XAxis dataKey="group" tick={{fontSize:10, fill:'#9ca3af'}}/>
+              <YAxis tick={{fontSize:10, fill:'#9ca3af'}}/>
+              <Tooltip contentStyle={{fontSize:12, borderRadius:8}}/>
+              {ageData.map((entry, i) => null)}
+              <Bar dataKey="count" name="Clients" radius={[3,3,0,0]}>
+                {ageData.map((entry, i) => (
+                  <Cell key={i} fill={entry.color}/>
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+          {/* Adolescent alert */}
+          {((fp.adolescent_10_14||0) + (fp.adolescent_15_19||0)) > 0 && (
+            <div className="mt-2 bg-purple-50 rounded-lg p-2 text-xs text-purple-700">
+              👤 {(fp.adolescent_10_14||0) + (fp.adolescent_15_19||0)} adolescent clients (10-19 yrs)
+              — ARSH guidelines apply
+            </div>
+          )}
+        </div>
+
+        {/* PPFP / Special Groups */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+          <h3 className="font-bold text-gray-700 text-sm mb-4">
+            🤱 PPFP & Special Groups
+          </h3>
+          {ppfpData.length === 0 ? (
+            <p className="text-gray-400 text-sm text-center py-6">No PPFP data recorded</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={ppfpData} margin={{top:0,right:10,left:-25,bottom:0}}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
+                <XAxis dataKey="name" tick={{fontSize:9, fill:'#9ca3af'}}/>
+                <YAxis tick={{fontSize:10, fill:'#9ca3af'}}/>
+                <Tooltip contentStyle={{fontSize:12, borderRadius:8}}/>
+                <Bar dataKey="value" fill={AMBER} radius={[3,3,0,0]}/>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </div>
+
+      {/* Cervical Cancer Screening */}
+      {(cerv.via_lt25||0)+(cerv.via_25_49||0)+(cerv.via_50plus||0) > 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+          <h3 className="font-bold text-gray-700 text-sm mb-4">
+            🔬 Section G — Cervical Cancer Screening
+          </h3>
+          <div className="grid grid-cols-2 gap-4">
+            <ResponsiveContainer width="100%" height={160}>
+              <BarChart data={cervData} margin={{top:0,right:10,left:-25,bottom:0}}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
+                <XAxis dataKey="name" tick={{fontSize:10, fill:'#9ca3af'}}/>
+                <YAxis tick={{fontSize:10, fill:'#9ca3af'}}/>
+                <Tooltip contentStyle={{fontSize:12, borderRadius:8}}/>
+                <Bar dataKey="value" name="Screened" fill={PURPLE} radius={[3,3,0,0]}/>
+              </BarChart>
+            </ResponsiveContainer>
+            <div className="space-y-2">
+              {[
+                { label: 'Positive VIA/VILI', val: cerv.positive_via||0, color: RED },
+                { label: 'Positive HPV', val: cerv.positive_hpv||0, color: PURPLE },
+                { label: 'Treated — Cryotherapy', val: cerv.cryotherapy||0, color: AMBER },
+                { label: 'Treated — LEEP', val: cerv.leep||0, color: BLUE },
+                { label: 'HIV+ screened', val: cerv.hiv_positive_screened||0, color: GREEN },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center justify-between text-xs">
+                  <span className="text-gray-600">{item.label}</span>
+                  <span className="font-bold px-2 py-0.5 rounded"
+                    style={{background:`${item.color}20`, color: item.color}}>
+                    {item.val}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* LARC vs Short-acting */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <h3 className="font-bold text-gray-700 text-sm mb-4">
+          ⚖️ LARC vs Short-Acting Methods Ratio
+        </h3>
+        {(() => {
+          const larc = (fp.implant_1rod_new||0)+(fp.implant_2rod_new||0)+
+            (fp.iud_non_hormonal_new||0)+(fp.iud_hormonal_new||0)+
+            (fp.implant_1rod_revisit||0)+(fp.implant_2rod_revisit||0)+
+            (fp.iud_non_hormonal_revisit||0)+(fp.iud_hormonal_revisit||0)
+          const shortActing = (fp.coc_new||0)+(fp.coc_revisit||0)+
+            (fp.pop_new||0)+(fp.pop_revisit||0)+
+            (fp.dmpa_im_new||0)+(fp.dmpa_im_revisit||0)+
+            (fp.dmpa_sc_new||0)+(fp.dmpa_sc_revisit||0)+
+            (fp.net_en_new||0)+(fp.net_en_revisit||0)
+          const permanent = (fp.btl_new||0)+(fp.vasectomy_new||0)
+          const total = larc + shortActing + permanent
+          const data = [
+            { name: 'LARC', value: larc, color: TEAL },
+            { name: 'Short-acting', value: shortActing, color: AMBER },
+            { name: 'Permanent', value: permanent, color: RED },
+          ].filter(d => d.value > 0)
+
+          return (
+            <div className="flex items-center gap-6">
+              <ResponsiveContainer width="40%" height={140}>
+                <PieChart>
+                  <Pie data={data} cx="50%" cy="50%" outerRadius={60} dataKey="value">
+                    {data.map((entry, i) => <Cell key={i} fill={entry.color}/>)}
+                  </Pie>
+                  <Tooltip contentStyle={{fontSize:11, borderRadius:8}}/>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="space-y-2 flex-1">
+                {data.map((d, i) => (
+                  <div key={i}>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-gray-600 flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{background:d.color}}/>
+                        {d.name}
+                      </span>
+                      <span className="font-bold" style={{color:d.color}}>
+                        {d.value} ({total > 0 ? Math.round(d.value/total*100) : 0}%)
+                      </span>
+                    </div>
+                    <div className="bg-gray-100 rounded-full h-2">
+                      <div className="h-2 rounded-full transition-all"
+                        style={{width:`${total > 0 ? (d.value/total*100) : 0}%`, background:d.color}}/>
+                    </div>
+                  </div>
+                ))}
+                <p className="text-xs text-gray-400 mt-2">
+                  Total: {total} clients | {months[month-1]} {year}
+                </p>
+              </div>
+            </div>
+          )
+        })()}
+      </div>
     </div>
   )
 }

@@ -11,6 +11,8 @@ class Visit(Base):
     facility_code = Column(String, index=True)
     provider_name = Column(String)
     client_id = Column(UUID(as_uuid=True), ForeignKey("clients.id"), nullable=False)
+    provider_id = Column(String)
+    provider_name_recorded = Column(String)
     
     is_anonymous = Column(Boolean, default=False)
     anon_sex = Column(String(1))
@@ -43,6 +45,13 @@ class Visit(Base):
     quantity_dispensed = Column(Float)
     dmpa_sc_admin_type = Column(String)  # PA or SI
     dmpa_sc_take_home_doses = Column(Integer)
+    dmpa_sc_mode = Column(String(5))  # SI or PA
+    dmpa_sc_si_new = Column(Integer, default=0)
+    dmpa_sc_si_revisit = Column(Integer, default=0)
+    dmpa_sc_si_doses_new = Column(Integer, default=0)
+    dmpa_sc_si_doses_revisit = Column(Integer, default=0)
+    dmpa_sc_pa_new = Column(Integer, default=0)
+    dmpa_sc_pa_revisit = Column(Integer, default=0)
     larc_removal_reason = Column(Integer)
 
     # HIV/STI/Preventive

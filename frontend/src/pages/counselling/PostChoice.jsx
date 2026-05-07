@@ -42,7 +42,14 @@ export default function PostChoice() {
   const updateProv = (field, value) => setProvision(prev => ({ ...prev, [field]: value }))
 
   const handleNext = () => {
-    const takeHome = parseInt(provision.dmpa_takehome) || 0
+    // Determine take-home doses based on method
+    let takeHome = 0
+    if (method === 'DMPA_SC' && session.dmpa_sc_mode === 'SI') {
+      takeHome = Math.max(0, (session.dmpa_sc_si_doses || 1) - 1)
+    } else {
+      takeHome = parseInt(provision.dmpa_takehome) || 0
+    }
+
     const returnDate = calculateReturnDate(
       method,
       new Date(),
@@ -53,7 +60,7 @@ export default function PostChoice() {
       ...prev,
       quantityDispensed: provision.qty,
       dmpaAdminType: provision.dmpa_admin,
-      dmpaTakeHomeDoses: provision.dmpa_takehome,
+      dmpaTakeHomeDoses: takeHome,
       larcRemovalReason: provision.larc_removal_reason,
       counsellingDone: provision.counselling_done,
       comprehensionConfirmed: provision.comprehension,
@@ -101,6 +108,135 @@ export default function PostChoice() {
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-4">
         <h3 className="font-bold text-gray-700 mb-4 pb-2 border-b border-gray-100">💊 Method Provision</h3>
 
+        {/* DISC Section 2 — DMPA-SC Full Data Capture */}
+        {session.selectedMethod === 'DMPA_SC' && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 space-y-4">
+            <h3 className="font-bold text-blue-700 text-sm flex items-center gap-2">
+              💉 DMPA-SC — DISC Section 2 Data
+            </h3>
+
+            {/* SI vs PA Mode */}
+            <div>
+              <label className="block text-xs font-bold text-blue-600 mb-2">
+                Administration Mode *
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { val: 'SI', label: '🏠 Self-Injection (SI)', desc: 'Client self-injects at home' },
+                  { val: 'PA', label: '🏥 Provider-Administered (PA)', desc: 'Provider injects at clinic' }
+                ].map(opt => (
+                  <button key={opt.val}
+                    onClick={() => updateSession('dmpa_sc_mode', opt.val)}
+                    className={`p-3 rounded-xl border-2 text-left transition-colors
+                      ${session.dmpa_sc_mode === opt.val
+                        ? 'border-blue-500 bg-blue-600 text-white'
+                        : 'border-blue-200 hover:border-blue-300 bg-white'}`}>
+                    <p className={`font-bold text-xs ${session.dmpa_sc_mode === opt.val ? 'text-white' : 'text-gray-700'}`}>
+                      {opt.label}
+                    </p>
+                    <p className={`text-xs mt-0.5 ${session.dmpa_sc_mode === opt.val ? 'text-blue-100' : 'text-gray-400'}`}>
+                      {opt.desc}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* SI-specific fields */}
+            {session.dmpa_sc_mode === 'SI' && (
+              <div className="space-y-3 pt-2 border-t border-blue-200">
+                <p className="text-xs font-bold text-blue-600">
+                  Self-Injection (SI) Details — DISC Indicators
+                </p>
+
+                {/* Doses dispensed */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    DMPA-SC SI Doses Dispensed This Visit
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => updateSession('dmpa_sc_si_doses',
+                        Math.max(1, (session.dmpa_sc_si_doses || 1) - 1))}
+                      className="w-9 h-9 rounded-lg bg-white border border-blue-300 text-blue-600 font-bold text-lg flex items-center justify-center hover:bg-blue-50">
+                      −
+                    </button>
+                    <div className="text-center">
+                      <span className="text-2xl font-bold text-blue-700">
+                        {session.dmpa_sc_si_doses || 1}
+                      </span>
+                      <p className="text-xs text-gray-400">dose(s)</p>
+                    </div>
+                    <button
+                      onClick={() => updateSession('dmpa_sc_si_doses',
+                        Math.min(4, (session.dmpa_sc_si_doses || 1) + 1))}
+                      className="w-9 h-9 rounded-lg bg-white border border-blue-300 text-blue-600 font-bold text-lg flex items-center justify-center hover:bg-blue-50">
+                      +
+                    </button>
+                    <div className="text-xs text-gray-500">
+                      <p>1 = clinic only</p>
+                      <p>2-4 = take-home doses</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Take-home doses info */}
+                {(session.dmpa_sc_si_doses || 1) > 1 && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <p className="text-xs font-bold text-green-700 mb-1">
+                      📦 Take-home doses: {(session.dmpa_sc_si_doses || 1) - 1}
+                    </p>
+                    <p className="text-xs text-green-600">
+                      Client given {(session.dmpa_sc_si_doses || 1) - 1} take-home dose(s).
+                      Return date auto-adjusted by {((session.dmpa_sc_si_doses || 1) - 1) * 13} weeks.
+                    </p>
+                  </div>
+                )}
+
+                {/* Client trained? */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    SI Training Status
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { val: 'trained_today', label: '✅ Trained today' },
+                      { val: 'previously_trained', label: '📋 Previously trained' },
+                    ].map(opt => (
+                      <button key={opt.val}
+                        onClick={() => updateSession('si_training_status', opt.val)}
+                        className={`py-2 px-3 rounded-lg border-2 text-xs font-semibold transition-colors text-left
+                          ${session.si_training_status === opt.val
+                            ? 'border-green-500 bg-green-50 text-green-700'
+                            : 'border-gray-200 text-gray-500 hover:border-green-300'}`}>
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* DISC data confirmation */}
+            <div className="bg-white rounded-lg p-3 border border-blue-100">
+              <p className="text-xs font-bold text-gray-600 mb-1">📊 DISC Data Summary</p>
+              <div className="space-y-1 text-xs text-gray-500">
+                <p>Method: DMPA-SC | Mode: <strong className="text-blue-600">{session.dmpa_sc_mode || 'Not selected'}</strong></p>
+                <p>Visit type: <strong>{session.client?.visit_type === '1' ? 'New' : 'Revisit'}</strong></p>
+                {session.dmpa_sc_mode === 'SI' && (
+                  <>
+                    <p>Doses dispensed: <strong className="text-green-600">{session.dmpa_sc_si_doses || 1}</strong></p>
+                    <p>Take-home doses: <strong>{Math.max(0, (session.dmpa_sc_si_doses || 1) - 1)}</strong></p>
+                  </>
+                )}
+                <p className="text-teal-500 font-medium mt-1">
+                  ✅ This data will auto-populate your DISC monthly report
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Quantity */}
         {['COC','POP','NET_EN','CONDOM_M','CONDOM_F','EC_PILL'].includes(method) && (
           <div className="mb-4">
@@ -116,13 +252,12 @@ export default function PostChoice() {
         )}
 
         {/* DMPA specific */}
-        {['DMPA_IM','DMPA_SC','NET_EN'].includes(method) && (
+        {['DMPA_IM','NET_EN'].includes(method) && (
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-600 mb-2">Administration Type</label>
             <div className="flex gap-2">
               {[
                 { val: 'PA', label: '👩‍⚕️ Provider Administered (PA)' },
-                ...(method === 'DMPA_SC' ? [{ val: 'SI', label: '🏠 Self-Injection (SI)' }] : [])
               ].map(opt => (
                 <button key={opt.val}
                   onClick={() => updateProv('dmpa_admin', opt.val)}
@@ -132,26 +267,6 @@ export default function PostChoice() {
                 </button>
               ))}
             </div>
-          </div>
-        )}
-
-        {/* DMPA-SC take-home doses for SI */}
-        {method === 'DMPA_SC' && provision.dmpa_admin === 'SI' && (
-          <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <label className="block text-sm font-semibold text-blue-700 mb-2">
-              🏠 Take-Home Doses for Self-Injection
-            </label>
-            <div className="flex gap-2">
-              {['1','2','3'].map(n => (
-                <button key={n}
-                  onClick={() => updateProv('dmpa_takehome', n)}
-                  className={`flex-1 py-2 rounded-lg border-2 text-sm font-bold transition-colors
-                    ${provision.dmpa_takehome === n ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-blue-200 text-blue-600 hover:border-blue-400'}`}>
-                  {n} vial{n > 1 ? 's' : ''}
-                </button>
-              ))}
-            </div>
-            <p className="text-blue-600 text-xs mt-2">Ensure client has been trained on self-injection technique.</p>
           </div>
         )}
 

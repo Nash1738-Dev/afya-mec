@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { login, registerUser } from '../utils/auth.js'
+import { login, register } from '../utils/auth.js'
 import { getFacilitySettings } from '../utils/facilitySettings.js'
 import { Eye, EyeOff, Shield, UserPlus, ArrowLeft, CheckCircle } from 'lucide-react'
 
@@ -29,6 +29,9 @@ export default function Login() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  const params = new URLSearchParams(window.location.search)
+  const timeoutReason = params.get('reason')
+
   // Registration fields
   const [regData, setRegData] = useState({
     name: '', pin: '', confirmPin: '',
@@ -43,30 +46,29 @@ export default function Login() {
     setError('')
   }, [])
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!name.trim()) { setError('Please enter your name'); return }
     if (pin.length < 4) { setError('PIN must be at least 4 digits'); return }
     setLoading(true)
-    setTimeout(() => {
-      const result = login(name.trim(), pin)
-      if (result.success) {
-        navigate('/')
-      } else {
-        setError(result.error)
-        setPin('')
-      }
-      setLoading(false)
-    }, 400)
+    setError('')
+    const result = await login(name.trim(), pin)
+    if (result.success) {
+      navigate('/')
+    } else {
+      setError(result.error)
+      setPin('')
+    }
+    setLoading(false)
   }
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (!regData.name.trim()) { setError('Full name is required'); return }
     if (regData.pin.length < 4) { setError('PIN must be at least 4 digits'); return }
     if (regData.pin !== regData.confirmPin) { setError('PINs do not match'); return }
     if (!regData.cadre) { setError('Please select your cadre'); return }
     if (!regData.county) { setError('Please select your county'); return }
 
-    const result = registerUser(regData)
+    const result = await register(regData)
     if (result.success) {
       setMode('registered')
     } else {
@@ -111,6 +113,21 @@ export default function Login() {
             </div>
           )}
         </div>
+
+        {timeoutReason === 'timeout' && (
+          <div className="bg-amber-50 border border-amber-300 rounded-xl px-4 py-3 mb-4 text-center">
+            <p className="text-amber-700 text-sm font-medium">
+              ⏰ You were logged out due to 30 minutes of inactivity
+            </p>
+          </div>
+        )}
+        {timeoutReason === 'expired' && (
+          <div className="bg-red-50 border border-red-300 rounded-xl px-4 py-3 mb-4 text-center">
+            <p className="text-red-700 text-sm font-medium">
+              🔒 Your session expired — please login again
+            </p>
+          </div>
+        )}
 
         {/* Registration Success */}
         {mode === 'registered' && (

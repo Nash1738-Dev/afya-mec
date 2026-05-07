@@ -31,6 +31,38 @@ export default function SessionSummary() {
       })
     : '—'
 
+  const scheduleSIReminder = async (savedData) => {
+    if (session.selectedMethod !== 'DMPA_SC' || session.dmpa_sc_mode !== 'SI') return
+    if (!session.client?.telephone) return
+
+    const doses = session.dmpa_sc_si_doses || 1
+    const firstDate = session.returnDate || new Date(
+      Date.now() + 13 * 7 * 24 * 60 * 60 * 1000
+    ).toISOString()
+
+    try {
+      const facilitySettings = getFacilitySettings()
+      await fetch('/api/sms/schedule-si-reminder', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('afyamec_auth_token')}`
+        },
+        body: JSON.stringify({
+          client_id: savedData?.client_id || session.client?.id,
+          client_name: `${session.client.first_name} ${session.client.last_name}`,
+          phone: session.client.telephone,
+          doses,
+          first_injection_date: firstDate,
+          facility_name: facilitySettings.facility_name || 'AfyaMEC Facility'
+        })
+      })
+      console.log(`✅ SI reminders scheduled for ${doses} dose(s)`)
+    } catch (e) {
+      console.error('SI reminder scheduling failed:', e)
+    }
+  }
+
   // Auto-save once when component mounts
   useEffect(() => {
     if (saveAttempted.current) return
@@ -38,16 +70,29 @@ export default function SessionSummary() {
 
     const autoSave = async () => {
       setSaving(true)
-      const result = await saveSession(session)
+      
+      const sessionPayload = {
+        ...session,
+        client: {
+          ...session.client,
+          dmpa_sc_mode: session.dmpa_sc_mode || null,
+          dmpa_sc_si_doses: session.dmpa_sc_si_doses || 1,
+          si_training_status: session.si_training_status || null,
+          takehome_doses: session.dmpa_sc_mode === 'SI'  ? Math.max(0, (session.dmpa_sc_si_doses || 1) - 1)  : 0,
+        }
+      }
+
+      const result = await saveSession(sessionPayload)
       setSaving(false)
       if (result.success) {
         setSaved(result.offline ? 'offline' : 'online')
+        await scheduleSIReminder(result)
       } else {
         setSaved('error')
       }
     }
     autoSave()
-  }, [])
+  }, [session])
 
   const handleNewSession = () => {
     resetSession()
@@ -123,6 +168,9 @@ export default function SessionSummary() {
       'AP: Referral In': s.referral_in || '',
       'AQ: Referral Out': s.referral_out || '',
       'AR: Remarks': s.remarks || '',
+      'DISC: DMPA-SC Mode': session.dmpa_sc_mode || '',
+      'DISC: SI Doses Dispensed': session.dmpa_sc_si_doses || '',
+      'DISC: SI Training Status': session.si_training_status || '',
       'Return Date': session.returnDate
         ? new Date(session.returnDate).toLocaleDateString('en-KE')
         : '',
@@ -320,10 +368,21 @@ export default function SessionSummary() {
         <button
           onClick={async () => {
             setSaving(true)
-            const result = await saveSession(session)
+            const sessionPayload = {
+              ...session,
+              client: {
+                ...session.client,
+                dmpa_sc_mode: session.dmpa_sc_mode || null,
+                dmpa_sc_si_doses: session.dmpa_sc_si_doses || 1,
+                si_training_status: session.si_training_status || null,
+                takehome_doses: session.dmpa_sc_mode === 'SI'  ? Math.max(0, (session.dmpa_sc_si_doses || 1) - 1)  : 0,
+              }
+            }
+            const result = await saveSession(sessionPayload)
             setSaving(false)
             if (result.success) {
               setSaved(result.offline ? 'offline' : 'online')
+              await scheduleSIReminder(result)
               alert('✅ Session saved successfully!')
             } else {
               alert('❌ Save failed — check backend connection')
