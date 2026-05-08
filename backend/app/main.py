@@ -33,8 +33,12 @@ app.add_middleware(
 )
 
 # ── Public routes (no JWT required) ────────────────────────────────────────────
-PUBLIC_PATHS = {
+PUBLIC_PATHS = [
     "/",
+    "/health",
+    "/auth/login",
+    "/auth/register",
+    "/auth/feedback",
     "/api/health",
     "/api/auth/login",
     "/api/auth/register",
@@ -42,7 +46,7 @@ PUBLIC_PATHS = {
     "/docs",
     "/redoc",
     "/openapi.json",
-}
+]
 
 # ── Security headers middleware ─────────────────────────────────────────────────
 @app.middleware("http")
@@ -110,6 +114,7 @@ async def security_middleware(request: Request, call_next):
 
 # ── Routers ─────────────────────────────────────────────────────────────────────
 app.include_router(auth_router, prefix="/api/auth", tags=["Auth"])
+app.include_router(auth_router, prefix="/auth", tags=["Auth-Direct"])
 app.include_router(clients.router, prefix="/api/clients", tags=["Clients"])
 app.include_router(visits.router, prefix="/api/visits", tags=["Visits"])
 app.include_router(export.router, prefix="/api/export", tags=["Export"])
@@ -127,6 +132,13 @@ def health_check():
         "environment": ENVIRONMENT
     }
 
+@app.get("/health")
+def health_check_short():
+    return {
+        "status": "healthy", 
+        "version": "1.0.0", 
+        "app": "AfyaMEC"
+    }
 
 @app.get("/")
 def root():
