@@ -123,10 +123,10 @@ export default function Layout() {
             {navItems.map(item => (
               <button key={item.path}
                 onClick={() => navigate(item.path)}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-colors
+                className={`flex items-center gap-1 px-3 py-1.5 text-sm transition-colors
                   ${location.pathname === item.path
-                    ? 'bg-white bg-opacity-20 text-white'
-                    : 'text-blue-200 hover:text-white hover:bg-white hover:bg-opacity-10'}`}>
+                    ? 'border-b-2 border-white text-white font-bold'
+                    : 'text-teal-100 hover:text-white'}`}>
                 {item.icon} {item.label}
               </button>
             ))}
@@ -179,7 +179,10 @@ export default function Layout() {
             {navItems.map(item => (
               <button key={item.path}
                 onClick={() => { navigate(item.path); setMenuOpen(false) }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-blue-100 hover:bg-blue-700 hover:text-white">
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors
+                  ${location.pathname === item.path
+                    ? 'bg-white bg-opacity-20 text-white font-bold'
+                    : 'text-teal-100 hover:bg-blue-700 hover:text-white'}`}>
                 {item.icon} {item.label}
               </button>
             ))}
@@ -246,7 +249,7 @@ export default function Layout() {
               onClick={() => navigate(item.path)}
               className={`px-4 flex flex-col items-center gap-0.5 py-2 text-xs transition-colors
                 ${location.pathname === item.path
-                  ? 'text-blue-600'
+                  ? 'text-blue-600 font-bold'
                   : 'text-gray-400 hover:text-gray-600'}`}>
               {item.icon}
               <span>{item.label}</span>
