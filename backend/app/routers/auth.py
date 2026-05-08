@@ -16,17 +16,36 @@ USERS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "users.json")
 FAILED_ATTEMPTS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "failed_attempts.json")
 
 def load_users():
+    admin_name = os.getenv("ADMIN_NAME", "Admin")
+    admin_pin = os.getenv("ADMIN_PIN", "1234")
+
     if os.path.exists(USERS_FILE):
         try:
             with open(USERS_FILE, 'r') as f:
-                return json.load(f)
+                users = json.load(f)
+            if not any(u["name"].lower() == admin_name.lower() for u in users):
+                users.insert(0, {
+                    "id": "1",
+                    "name": admin_name,
+                    "pin_hash": hash_pin(admin_pin),
+                    "role": "admin",
+                    "status": "approved",
+                    "facility": "",
+                    "county": "",
+                    "sub_county": "",
+                    "cadre": "",
+                    "phone": "",
+                    "created_at": datetime.utcnow().isoformat()
+                })
+                save_users(users)
+            return users
         except:
             pass
-    # Default admin — PIN will be hashed on first run
+
     default = [{
         "id": "1",
-        "name": "Admin",
-        "pin_hash": hash_pin("1234"),
+        "name": admin_name,
+        "pin_hash": hash_pin(admin_pin),
         "role": "admin",
         "status": "approved",
         "facility": "",
