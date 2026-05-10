@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { exportMOH512 } from '../utils/api.js'
+import { exportMOH512, getClients } from '../utils/api.js'
 import { Users, Search, Download, RefreshCw, Pill, Filter, X, AlertCircle } from 'lucide-react'
 
 const METHOD_SHORT = {
@@ -47,15 +47,10 @@ export default function Clients() {
   const load = async () => {
     setLoading(true)
     setError(false)
-    try {
-      const res = await fetch(`/api/clients/?t=${Date.now()}`, {
-        cache: 'no-store',
-        headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
-      })
-      if (!res.ok) throw new Error('Failed')
-      const data = await res.json()
-      setClients(data)
-    } catch (e) {
+    const result = await getClients()
+    if (result.success) {
+      setClients(result.data)
+    } else {
       setError(true)
     }
     setLoading(false)
