@@ -19,24 +19,35 @@ export default function SMSReminders() {
   // We need to fetch facility settings to pass to BulkReminders
   const [facility, setFacility] = useState({})
 
+  // FIX: Grab the auth token so the backend doesn't block us!
+  const token = localStorage.getItem('afyamec_auth_token')
+  const authHeaders = { 'Authorization': `Bearer ${token}` }
+
   useEffect(() => {
     const load = async () => {
       try {
         const [sRes, cRes] = await Promise.all([
-          fetch('/api/sms/status'),
-          fetch(`/api/clients/?t=${Date.now()}`)
+          fetch('/api/sms/status', { headers: authHeaders }),
+          fetch(`/api/clients/?t=${Date.now()}`, { headers: authHeaders })
         ])
         const sData = await sRes.json()
         const cData = await cRes.json()
+        
         setStatus(sData)
-        setClients(cData.filter(c => c.telephone))
+        
+        // FIX: Ensure we handle the array properly and only show clients with phone numbers
+        if (Array.isArray(cData)) {
+          setClients(cData.filter(c => c.telephone))
+        } else if (cData.data && Array.isArray(cData.data)) {
+          setClients(cData.data.filter(c => c.telephone))
+        }
 
         // Get local facility settings
         const facSettings = localStorage.getItem('afyamec_facility')
         if (facSettings) setFacility(JSON.parse(facSettings))
 
       } catch (e) {
-        console.error(e)
+        console.error('Failed to load SMS data:', e)
       }
       setLoading(false)
     }
@@ -46,7 +57,9 @@ export default function SMSReminders() {
   const handlePreview = async () => {
     if (!selectedClient) return
     try {
-      const res = await fetch(`/api/sms/preview/${selectedClient}?message_type=${messageType}`)
+      const res = await fetch(`/api/sms/preview/${selectedClient}?message_type=${messageType}`, {
+        headers: authHeaders
+      })
       const data = await res.json()
       setPreview(data)
     } catch (e) {
@@ -60,7 +73,7 @@ export default function SMSReminders() {
     try {
       const res = await fetch('/api/sms/send', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({
           client_id: selectedClient,
           message_type: messageType,
@@ -81,7 +94,7 @@ export default function SMSReminders() {
     try {
       const res = await fetch('/api/sms/send-bulk', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({
           message_type: activeTab === 'overdue' ? 'overdue' : 'reminder',
           days_before: parseInt(bulkDays)
