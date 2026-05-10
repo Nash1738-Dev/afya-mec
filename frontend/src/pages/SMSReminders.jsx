@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MessageSquare, Send, Users, Clock, CheckCircle, AlertTriangle, ArrowLeft, RefreshCw, Eye } from 'lucide-react'
+import API, { getClients } from '../utils/api.js'
 
 export default function SMSReminders() {
   const navigate = useNavigate()
@@ -15,31 +16,23 @@ export default function SMSReminders() {
   const [customMessage, setCustomMessage] = useState('')
   const [bulkDays, setBulkDays] = useState(7)
   const [activeTab, setActiveTab] = useState('bulk')
-
-  // We need to fetch facility settings to pass to BulkReminders
   const [facility, setFacility] = useState({})
-
-  // FIX: Grab the auth token so the backend doesn't block us!
-  const token = localStorage.getItem('afyamec_auth_token')
-  const authHeaders = { 'Authorization': `Bearer ${token}` }
 
   useEffect(() => {
     const load = async () => {
       try {
+        // Use the built-in API tool so tokens are handled automatically!
         const [sRes, cRes] = await Promise.all([
-          fetch('/api/sms/status', { headers: authHeaders }),
-          fetch(`/api/clients/?t=${Date.now()}`, { headers: authHeaders })
+          API.get('/sms/status'),
+          getClients()
         ])
-        const sData = await sRes.json()
-        const cData = await cRes.json()
         
-        setStatus(sData)
+        setStatus(sRes.data)
         
-        // FIX: Ensure we handle the array properly and only show clients with phone numbers
-        if (Array.isArray(cData)) {
-          setClients(cData.filter(c => c.telephone))
-        } else if (cData.data && Array.isArray(cData.data)) {
-          setClients(cData.data.filter(c => c.telephone))
+        // getClients returns { success: true, data: [...] }
+        const clientsArray = cRes.data || []
+        if (Array.isArray(clientsArray)) {
+          setClients(clientsArray.filter(c => c.telephone))
         }
 
         // Get local facility settings
@@ -57,11 +50,8 @@ export default function SMSReminders() {
   const handlePreview = async () => {
     if (!selectedClient) return
     try {
-      const res = await fetch(`/api/sms/preview/${selectedClient}?message_type=${messageType}`, {
-        headers: authHeaders
-      })
-      const data = await res.json()
-      setPreview(data)
+      const res = await API.get(`/sms/preview/${selectedClient}?message_type=${messageType}`)
+      setPreview(res.data)
     } catch (e) {
       console.error(e)
     }
@@ -71,19 +61,14 @@ export default function SMSReminders() {
     if (!selectedClient) return
     setSending(true)
     try {
-      const res = await fetch('/api/sms/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders },
-        body: JSON.stringify({
-          client_id: selectedClient,
-          message_type: messageType,
-          custom_message: customMessage || null
-        })
+      const res = await API.post('/sms/send', {
+        client_id: selectedClient,
+        message_type: messageType,
+        custom_message: customMessage || null
       })
-      const data = await res.json()
-      setResults({ type: 'single', ...data })
+      setResults({ type: 'single', ...res.data })
     } catch (e) {
-      setResults({ type: 'single', success: false, error: e.message })
+      setResults({ type: 'single', success: false, error: e.response?.data?.detail || e.message })
     }
     setSending(false)
   }
@@ -92,18 +77,13 @@ export default function SMSReminders() {
     setSending(true)
     setResults(null)
     try {
-      const res = await fetch('/api/sms/send-bulk', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders },
-        body: JSON.stringify({
-          message_type: activeTab === 'overdue' ? 'overdue' : 'reminder',
-          days_before: parseInt(bulkDays)
-        })
+      const res = await API.post('/sms/send-bulk', {
+        message_type: activeTab === 'overdue' ? 'overdue' : 'reminder',
+        days_before: parseInt(bulkDays)
       })
-      const data = await res.json()
-      setResults({ type: 'bulk', ...data })
+      setResults({ type: 'bulk', ...res.data })
     } catch (e) {
-      setResults({ type: 'bulk', success: false, error: e.message })
+      setResults({ type: 'bulk', success: false, error: e.response?.data?.detail || e.message })
     }
     setSending(false)
   }
@@ -409,13 +389,8 @@ export default function SMSReminders() {
         </div>
       )}
 
-      {/* SMS Inbox */}
       <SMSInbox />
-
-      {/* Bulk Overdue Reminders */}
       <BulkReminders facilityName={facility.facility_name} />
-
-      {/* DMPA-SC SI Reminders */}
       <SIRemindersManager />
     </div>
   )
@@ -429,10 +404,8 @@ function SMSInbox() {
   const load = async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/sms/inbox', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('afyamec_auth_token')}` }
-      })
-      if (res.ok) setInbox(await res.json())
+      const res = await API.get('/sms/inbox')
+      setInbox(res.data)
     } catch {}
     setLoading(false)
   }
@@ -501,17 +474,13 @@ function BulkReminders({ facilityName }) {
     if (!confirm(`Send reminders to ALL overdue clients (${weeks}+ weeks since last visit)?`)) return
     setSending(true)
     try {
-      const res = await fetch('/api/sms/send-bulk', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('afyamec_auth_token')}`
-        },
-        body: JSON.stringify({ weeks_overdue: weeks, facility_name: facilityName || 'your health facility' })
+      const res = await API.post('/sms/send-bulk', {
+        weeks_overdue: weeks, 
+        facility_name: facilityName || 'your health facility'
       })
-      if (res.ok) setResult(await res.json())
+      setResult(res.data)
     } catch (e) {
-      setResult({ success: false, message: e.message })
+      setResult({ success: false, message: e.response?.data?.detail || e.message })
     }
     setSending(false)
   }
@@ -573,15 +542,12 @@ function SIRemindersManager() {
   const [sending, setSending] = useState(false)
   const [result, setResult] = useState(null)
   const [open, setOpen] = useState(false)
-  const token = localStorage.getItem('afyamec_auth_token')
 
   const load = async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/sms/si-reminders', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      if (res.ok) setReminders(await res.json())
+      const res = await API.get('/sms/si-reminders')
+      setReminders(res.data)
     } catch {}
     setLoading(false)
   }
@@ -589,14 +555,9 @@ function SIRemindersManager() {
   const sendDue = async () => {
     setSending(true)
     try {
-      const res = await fetch('/api/sms/send-due-reminders', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      if (res.ok) {
-        setResult(await res.json())
-        load()
-      }
+      const res = await API.post('/sms/send-due-reminders')
+      setResult(res.data)
+      load()
     } catch {}
     setSending(false)
   }
@@ -604,9 +565,7 @@ function SIRemindersManager() {
   const pending = reminders.filter(r => !r.sent)
   const sent = reminders.filter(r => r.sent)
   const today = new Date()
-  const due = pending.filter(r =>
-    new Date(r.reminder_date) <= today
-  )
+  const due = pending.filter(r => new Date(r.reminder_date) <= today)
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mt-4">
