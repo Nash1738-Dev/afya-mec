@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, RefreshCw, Download, Eye, ChevronLeft, ChevronRight, FileText } from 'lucide-react'
 import { getFacilitySettings } from '../utils/facilitySettings.js'
+import API from '../utils/api.js'
 import * as XLSX from 'xlsx'
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
          XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -29,23 +30,17 @@ export default function MOH711Report() {
 
   const loadHistory = async () => {
     try {
-      const res = await fetch('/api/reports/moh711/history')
-      if (res.ok) {
-        const data = await res.json()
-        setHistory(data)
-      }
+      const res = await API.get('/reports/moh711/history')
+      setHistory(res.data)
     } catch {}
   }
 
   const generateReport = async () => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/reports/moh711/${period}`)
-      if (res.ok) {
-        const data = await res.json()
-        setReport(data)
-        loadHistory()
-      }
+      const res = await API.get(`/reports/moh711/${period}`)
+      setReport(res.data)
+      loadHistory()
     } catch (e) {
       console.error(e)
     }
