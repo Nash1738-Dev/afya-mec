@@ -112,3 +112,100 @@ def export_moh512(db: Session = Depends(get_db)):
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
+
+@router.get("/moh512/report")
+def get_moh512_report(
+    month: int = None,
+    year: int = None,
+    db: Session = Depends(get_db)
+):
+    from sqlalchemy import extract
+
+    query = db.query(Visit)
+
+    if month and year:
+        query = query.filter(
+            extract('month', Visit.visit_date) == month,
+            extract('year', Visit.visit_date) == year
+        )
+    elif year:
+        query = query.filter(extract('year', Visit.visit_date) == year)
+
+    visits = query.order_by(Visit.visit_date.asc()).all()
+
+    clients_map = {}
+    result = []
+
+    for v in visits:
+        client_id = str(v.client_id)
+        if client_id not in clients_map:
+            c = db.query(Client).filter(Client.id == v.client_id).first()
+            clients_map[client_id] = c
+        c = clients_map[client_id]
+        if not c:
+            continue
+
+        result.append({
+            "visit_id": str(v.id),
+            "visit_date": v.visit_date.strftime('%d/%m/%Y') if v.visit_date else '',
+            "visit_date_iso": v.visit_date.isoformat() if v.visit_date else '',
+            "is_anonymous": getattr(v, 'is_anonymous', False) or False,
+            # Client info
+            "reg_number": c.service_registration_number or '',
+            "first_name": c.first_name or '',
+            "last_name": c.last_name or '',
+            "age": c.age or '',
+            "sex": c.sex or '',
+            "anon_age_bracket": getattr(v, 'anon_age_bracket', '') or '',
+            "anon_sex": getattr(v, 'anon_sex', '') or '',
+            "disability_status": c.disability_status or 0,
+            "telephone": c.telephone or '',
+            "location": c.location_landmark or '',
+            # Visit
+            "visit_type": v.visit_type or 1,
+            "first_ever_user": v.first_ever_user or False,
+            "provider_name": v.provider_name or '',
+            # Vitals
+            "weight_kg": v.weight_kg or '',
+            "height_cm": v.height_cm or '',
+            "bmi": v.bmi_calculated or '',
+            "bp_systolic": v.bp_systolic or '',
+            "bp_diastolic": v.bp_diastolic or '',
+            # Pregnancy
+            "pdt_done": v.pdt_done or False,
+            "pdt_result": v.pdt_result or '',
+            # MEC
+            "mec_conditions": v.mec_conditions or [],
+            # Method
+            "primary_method": v.primary_method or '',
+            "method_visit_category": v.method_visit_category or '',
+            "quantity_dispensed": v.quantity_dispensed or '',
+            "dmpa_sc_mode": v.dmpa_sc_mode or '',
+            "dmpa_take_home_doses": v.dmpa_sc_take_home_doses or '',
+            "larc_removal_reason": v.larc_removal_reason or '',
+            "return_date": v.return_date.strftime('%d/%m/%Y') if v.return_date else '',
+            # HIV/STI
+            "hiv_counselled": v.hiv_counselled or False,
+            "hiv_tested": v.hiv_tested or False,
+            "hiv_status": v.hiv_status or '',
+            "tb_status": v.tb_status or '',
+            "ipv_status": v.ipv_rc_status or '',
+            "cervical_method": v.cervical_screening_method or '',
+            "cervical_result": v.cervical_screening_result or '',
+            # Condoms & Natural FP
+            "condom_type": v.condoms_client_sex or '',
+            "condom_qty": v.condoms_qty_dispensed or '',
+            "natural_fp": v.natural_fp_counselled or False,
+            "cycle_beads": v.cycle_beads_given or False,
+            # PPFP & Referral
+            "ppfp_timing": v.ppfp_timing or '',
+            "referral_in": v.referral_in or '',
+            "referral_out": v.referral_out or '',
+            "remarks": v.remarks or '',
+        })
+
+    return {
+        "period": f"{year or 'all'}-{str(month).zfill(2) if month else 'all'}",
+        "total": len(result),
+        "visits": result
+    }

@@ -25,6 +25,7 @@ import MOH711Report from './pages/MOH711Report'
 import DISCProject from './pages/DISCProject'
 import DHIS2Integration from './pages/DHIS2Integration'
 import MOH747A from './pages/MOH747A'
+import MOH512Report from './pages/MOH512Report'
 import NotFound from './pages/NotFound'
 import MethodsResource from './pages/MethodsResource'
 import MECWheel from './pages/MECWheel'
@@ -52,6 +53,7 @@ export default function App() {
           <Route path="reports/moh711" element={<MOH711Report />} />
           <Route path="reports/disc" element={<DISCProject />} />
           <Route path="reports/moh747a" element={<MOH747A />} />
+          <Route path="reports/moh512" element={<MOH512Report />} />
           <Route path="resources" element={<Resources />} />
           <Route path="methods" element={<MethodsResource />} />
           <Route path="mec-wheel" element={<MECWheel />} />
