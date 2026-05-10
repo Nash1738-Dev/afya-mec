@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
-from app.database import get_db
+# from app.database import get_db # Assuming this is used elsewhere or will be used later
 from app.core.security import hash_pin, verify_pin, create_access_token, decode_token
 from pydantic import BaseModel
 from typing import Optional
@@ -436,4 +436,27 @@ def send_feedback(data: FeedbackData):
         "success": True,
         "email_sent": result.get("success", False),
         "message": "Feedback received and email sent" if result.get("success") else "Feedback logged (email failed)"
+    }
+
+@router.get("/feedback/debug")
+def debug_email():
+    """Temporary debug — remove after fixing"""
+    import os, httpx
+    key = os.getenv("BREVO_API_KEY", "NOT_SET")
+    support = os.getenv("SUPPORT_EMAIL", "NOT_SET")
+    
+    # Test connectivity to Brevo
+    try:
+        with httpx.Client(timeout=5) as client:
+            r = client.get("https://api.brevo.com/v3/account",
+                headers={"api-key": key, "Accept": "application/json"})
+            brevo_status = f"{r.status_code}: {r.text[:200]}"
+    except Exception as e:
+        brevo_status = f"CONNECTION FAILED: {str(e)}"
+    
+    return {
+        "api_key_set": key != "NOT_SET" and len(key) > 10,
+        "api_key_prefix": key[:15] + "..." if len(key) > 15 else key,
+        "support_email": support,
+        "brevo_connectivity": brevo_status
     }

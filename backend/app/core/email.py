@@ -2,10 +2,19 @@ import os
 import httpx
 from datetime import datetime
 
-BREVO_API_KEY = os.getenv("BREVO_API_KEY", "")
-BREVO_SENDER_EMAIL = os.getenv("BREVO_SENDER_EMAIL", "nashfelix2000@gmail.com")
-BREVO_SENDER_NAME = os.getenv("BREVO_SENDER_NAME", "AfyaMEC Platform")
-SUPPORT_EMAIL = os.getenv("SUPPORT_EMAIL", "felix_ontita@insupplyhealth.com")
+def _get_config():
+    return {
+        "api_key": os.getenv("BREVO_API_KEY", ""),
+        "sender_email": os.getenv("BREVO_SENDER_EMAIL", "nashfelix2000@gmail.com"),
+        "sender_name": os.getenv("BREVO_SENDER_NAME", "AfyaMEC Platform"),
+        "support_email": os.getenv("SUPPORT_EMAIL", "felix_ontita@insupplyhealth.com"),
+    }
+
+# Keep these for backward compat with build_feedback_html
+BREVO_API_KEY = ""
+BREVO_SENDER_EMAIL = "nashfelix2000@gmail.com"
+BREVO_SENDER_NAME = "AfyaMEC Platform"
+SUPPORT_EMAIL = "felix_ontita@insupplyhealth.com"
 
 
 def send_email(
@@ -16,15 +25,20 @@ def send_email(
     reply_to: str = None
 ) -> dict:
     """Send email via Brevo API"""
+    cfg = _get_config()
+    
+    # Update module-level vars so HTML templates stay current
+    global BREVO_API_KEY, BREVO_SENDER_EMAIL, BREVO_SENDER_NAME, SUPPORT_EMAIL
+    BREVO_API_KEY = cfg["api_key"]
+    BREVO_SENDER_EMAIL = cfg["sender_email"]
+    BREVO_SENDER_NAME = cfg["sender_name"]
+    SUPPORT_EMAIL = cfg["support_email"]
 
-    if not BREVO_API_KEY:
+    if not cfg["api_key"]:
         return {"success": False, "error": "Brevo API key not configured"}
 
     payload = {
-        "sender": {
-            "name": BREVO_SENDER_NAME,
-            "email": BREVO_SENDER_EMAIL
-        },
+        "sender": {"name": cfg["sender_name"], "email": cfg["sender_email"]},
         "to": [{"email": to_email}],
         "subject": subject,
         "textContent": text_body,
@@ -41,7 +55,7 @@ def send_email(
             res = client.post(
                 "https://api.brevo.com/v3/smtp/email",
                 headers={
-                    "api-key": BREVO_API_KEY,
+                    "api-key": cfg["api_key"],
                     "Content-Type": "application/json",
                     "Accept": "application/json"
                 },
@@ -82,7 +96,6 @@ def build_feedback_html(data: dict) -> str:
 <body style="font-family: Arial, sans-serif; background:#f8fafb; padding:20px; margin:0;">
   <div style="max-width:600px; margin:0 auto; background:white; border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
 
-    <!-- Header -->
     <div style="background:linear-gradient(135deg,#0d7377,#14a044); padding:24px; text-align:center;">
       <h1 style="color:white; margin:0; font-size:22px;">🌿 AfyaMEC</h1>
       <p style="color:rgba(255,255,255,0.8); margin:6px 0 0; font-size:14px;">
@@ -90,7 +103,6 @@ def build_feedback_html(data: dict) -> str:
       </p>
     </div>
 
-    <!-- Type Badge -->
     <div style="padding:20px 24px 0;">
       <div style="display:inline-block; background:{color}; color:white;
         padding:4px 14px; border-radius:20px; font-size:12px; font-weight:bold;">
@@ -102,13 +114,11 @@ def build_feedback_html(data: dict) -> str:
       </div>
     </div>
 
-    <!-- Content -->
     <div style="padding:20px 24px;">
       <h2 style="color:#1a202c; font-size:18px; margin:0 0 16px;">
         {data.get('subject', 'No Subject')}
       </h2>
 
-      <!-- From details -->
       <table style="width:100%; border-collapse:collapse; margin-bottom:16px;">
         <tr>
           <td style="padding:8px 12px; background:#f0fdfa; border-left:4px solid #0d7377;
@@ -121,14 +131,12 @@ def build_feedback_html(data: dict) -> str:
         </tr>
       </table>
 
-      <!-- Message body -->
       <div style="background:#f8fafb; border-radius:8px; padding:16px;
         font-size:14px; line-height:1.6; color:#374151; border:1px solid #e5e7eb;">
         {data.get('body', '').replace(chr(10), '<br/>')}
       </div>
     </div>
 
-    <!-- Footer -->
     <div style="padding:16px 24px; background:#f8fafb; border-top:1px solid #e5e7eb;
       text-align:center;">
       <p style="color:#9ca3af; font-size:12px; margin:0;">
