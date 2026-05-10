@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AfyaMEC End-User Clinical Manual</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* CORE STYLES & INSUPPLY PALETTE */
+        :root {
+            --insupply-red: #E73846;
+            --insupply-blue: #467C9E;
+            --insupply-orange: #F26522;
+            --insupply-navy: #1C3557;
+            --insupply-grey: #909A9B;
+            --bg-light: #f4f7f6;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: #e2e8f0;
+            display: grid;
+            gap: 50px;
+            grid-template-columns: 1fr;
+            padding: 50px 0;
+            place-items: center;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .slide {
+            background-color: #ffffff;
+            width: 1280px;
+            height: 720px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(28, 53, 87, 0.25);
+            display: flex;
+            flex-direction: column;
+            padding: 60px;
+        }
+
+        /* TYPOGRAPHY */
+        h1, h2, h3, .title-font {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--insupply-navy);
+        }
+
+        p, li, td, th {
+            font-size: 20px;
+            line-height: 1.5;
+            color: #334155;
+        }
+
+        .slide-title {
+            font-size: 42px;
+            font-weight: 800;
+            border-bottom: 5px solid var(--insupply-orange);
+            padding-bottom: 15px;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .slide-title i { color: var(--insupply-red); }
+
+        /* LAYOUTS */
+        .content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            align-items: center;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        /* COMPONENTS */
+        .card {
+            background: var(--bg-light);
+            border-left: 6px solid var(--insupply-blue);
+            padding: 25px;
+            border-radius: 0 12px 12px 0;
+            height: 100%;
+        }
+
+        .card h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: var(--insupply-navy);
+        }
+
+        .alert-box {
+            background-color: #fee2e2;
+            border: 2px solid #fca5a5;
+            padding: 20px;
+            border-radius: 12px;
+            color: #991b1b;
+        }
+
+        .alert-box h4 { font-family: 'Montserrat', sans-serif; font-size: 22px; margin-bottom: 8px;}
+
+        ul.styled-list { list-style: none; }
+        ul.styled-list li {
+            position: relative;
+            padding-left: 35px;
+            margin-bottom: 15px;
+        }
+        ul.styled-list li i {
+            position: absolute;
+            left: 0;
+            top: 5px;
+            color: var(--insupply-orange);
+        }
+
+        .img-placeholder {
+            background-color: var(--insupply-grey);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 350px;
+            border-radius: 16px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            text-align: center;
+            padding: 20px;
+            opacity: 0.8;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 30px;
+            left: 60px;
+            right: 60px;
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid var(--insupply-grey);
+            padding-top: 15px;
+            font-size: 14px;
+            color: var(--insupply-grey);
+        }
+        
+        .citation {
+            font-size: 14px;
+            color: var(--insupply-grey);
+            vertical-align: super;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="slide" style="justify-content: center; align-items: center; text-align: center; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);">
+        <div style="width: 120px; height: 120px; background: var(--insupply-navy); border-radius: 24px; display: flex; align-items: center; justify-content: center; font-size: 60px; margin-bottom: 30px;">
+            🌿
+        </div>
+        <h1 style="font-size: 72px; color: var(--insupply-navy); margin-bottom: 10px;">AfyaMEC</h1>
+        <h2 style="font-size: 36px; color: var(--insupply-red); font-weight: 400; margin-bottom: 40px;">Informed Choice · Better Health</h2>
+        <div style="width: 100px; height: 6px; background: var(--insupply-orange); margin: 0 auto 40px auto;"></div>
+        <p style="font-size: 28px; color: var(--insupply-blue); font-weight: 700;">End-User Clinical Manual</p>
+        <p style="font-size: 20px; color: var(--insupply-grey); mt-2">Based on WHO MEC 6th Edition & Kenya BCS+ Guidelines</p>
+    </div>
+
+    <div class="slide">
+        <h2 class="slide-title"><i class="fas fa-shield-alt"></i> 1. System Access & Security</h2>
+        <div class="content grid-2">
+            <div>
+                <p>AfyaMEC protects patient data through strict, multi-layered security protocols.</p>
+                <ul class="styled-list">
+                    <li><i class="fas fa-check"></i> <strong>Provider Registration:</strong> New accounts must be manually approved by a System Admin before login is permitted[cite: 814, 815].</li>
+                    <li><i class="fas fa-check"></i> <strong>PIN Authentication:</strong> Access is secured via a personal 4-to-6 digit numeric PIN[cite: 823, 843].</li>
+                    <li><i class="fas fa-check"></i> <strong>Auto-Logout:</strong> To protect unattended devices, the system issues a warning at 25 minutes and automatically logs you out after 30 minutes of inactivity[cite: 18, 19].</li>
+                    <li><i class="fas fa-check"></i> <strong>Offline Mode:</strong> If internet is lost, the system securely caches data locally and auto-syncs when reconnected[cite: 20, 21].</li>
+                </ul>
+            </div>
+            <div class="img-placeholder" style="background-color: var(--insupply-navy);">
+                            </div>
+        </div>
+        <div class="footer"><span>AfyaMEC Clinical Manual</span><span>Access & Security</span></div>
+    </div>
+
+    <div class="slide">
+        <h2 class="slide-title"><i class="fas fa-users"></i> 2. Dashboard & Client Registration</h2>
+        <div class="content grid-2">
+            <div class="img-placeholder" style="background-color: var(--insupply-blue);">
+                            </div>
+            <div>
+                <p>The dashboard is your central hub for tracking facility performance and starting sessions.</p>
+                <ul class="styled-list">
+                    <li><i class="fas fa-search"></i> <strong>Smart Phone Lookup:</strong> Enter a client's phone number to instantly pull up their visit history and prevent duplicate records[cite: 1792, 1793].</li>
+                    <li><i class="fas fa-user-secret"></i> <strong>Anonymous Entry:</strong> If a client declines biodata, use the "Anonymous Quick Entry" to record demographics and method issued for MOH 711 stats[cite: 293, 294].</li>
+                    <li><i class="fas fa-exclamation-circle"></i> <strong>Overdue Alerts:</strong> The system automatically flags clients who have not been seen in 16+ weeks[cite: 462, 528].</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer"><span>AfyaMEC Clinical Manual</span><span>Dashboard Overview</span></div>
+    </div>
+
+    <div class="slide">
+        <h2 class="slide-title"><i class="fas fa-heartbeat"></i> 3. Clinical Vitals & Triage</h2>
+        <div class="content">
+            <p style="margin-bottom: 30px;">Accurate vitals are critical. AfyaMEC automatically interprets readings to protect patient safety.</p>
+            <div class="grid-3">
+                <div class="card">
+                    <h3>BMI Calculation</h3>
+                    <p>Enter Weight and Height; the system auto-calculates BMI. A BMI ≥ 30 triggers an Obesity warning, mapping to MEC Category 3 for certain methods[cite: 1906, 1910].</p>
+                </div>
+                <div class="card">
+                    <h3>BP Categorization</h3>
+                    <p>Blood pressure is instantly categorized from "Normal" to "Severe HTN"[cite: 1787]. High readings automatically flag cardiovascular conditions for the MEC screener[cite: 1888].</p>
+                    <br>
+                    <p><em></em></p>
+                </div>
+                <div class="card" style="border-left-color: var(--insupply-red);">
+                    <h3 style="color: var(--insupply-red);">🚨 Crisis Alerts</h3>
+                    <p>If BP is ≥180/110, a hard stop alert fires: <em>"Hypertensive Crisis Detected. Do NOT initiate hormonal contraceptives. Refer for emergency management."</em> [cite: 1888, 1889]</p>
+                </div>
+            </div>
+        </div>
+        <div class="footer"><span>AfyaMEC Clinical Manual</span><span>Vitals & Triage</span></div>
+    </div>
+
+    <div class="slide">
+        <h2 class="slide-title"><i class="fas fa-baby"></i> 4. WHO Pregnancy Exclusion</h2>
+        <div class="content grid-2">
+            <div>
+                <p>Before issuing any method, pregnancy must be reasonably ruled out[cite: 1983, 1984].</p>
+                <ul class="styled-list">
+                    <li><i class="fas fa-vial"></i> <strong>PDT Entry:</strong> Record the result of a physical pregnancy test[cite: 1973, 1977].</li>
+                    <li><i class="fas fa-clipboard-list"></i> <strong>WHO 6-Question Checklist:</strong> If no PDT is available, ask the 6 standard WHO questions (e.g., LAM criteria, abstinence, recent delivery)[cite: 1967, 1968, 1969].</li>
+                    <li><i class="fas fa-check-double"></i> <strong>Automated Logic:</strong> A "YES" to any of the 6 questions safely rules out pregnancy to proceed[cite: 1993, 1994].</li>
+                </ul>
+            </div>
+            <div class="alert-box">
+                <h4>⚠️ Pregnancy Confirmed</h4>
+                <p>If a positive PDT is recorded, the system halts the family planning session and advises immediate referral to Antenatal Care (ANC)[cite: 1981, 1982].</p>
+            </div>
+        </div>
+        <div class="footer"><span>AfyaMEC Clinical Manual</span><span>Pregnancy Screening</span></div>
+    </div>
+
+    <div class="slide">
+        <h2 class="slide-title"><i class="fas fa-stethoscope"></i> 5. Medical Eligibility (MEC) Screening</h2>
+        <div class="content">
+            <p style="margin-bottom: 20px;">The screener asks targeted questions to build a comprehensive health profile[cite: 1927, 1931, 1934].</p>
+            <div class="grid-2">
+                <ul class="styled-list">
+                    <li><i class="fas fa-history"></i> <strong>Reproductive History:</strong> Breastfeeding timing, past ectopics, active PID/STIs[cite: 1927, 1929].</li>
+                    <li><i class="fas fa-brain"></i> <strong>Neurological:</strong> Differentiates between migraines <em>with</em> and <em>without</em> aura, checking patient age[cite: 1937, 1948].</li>
+                    <li><i class="fas fa-pills"></i> <strong>ARV Interactions:</strong> Specifically checks for Rifampicin and Efavirenz-based regimens, which reduce hormonal efficacy[cite: 1942, 1943].</li>
+                </ul>
+                <div class="card" style="background-color: var(--insupply-navy); color: white;">
+                    <h3 style="color: white;">Smart Detection</h3>
+                    <p style="color: #cbd5e1;">Any condition flagged "YES" automatically impacts the next stage. The system combines these answers with the auto-detected Vitals (BMI/BP) to generate a complete MEC profile[cite: 1944, 1945].</p>
+                </div>
+            </div>
+        </div>
+        <div class="footer"><span>AfyaMEC Clinical Manual</span><span>MEC Screening</span></div>
+    </div>
+
+    <div class="slide">
+        <h2 class="slide-title"><i class="fas fa-bullseye"></i> 6. Method Choice & The MEC Wheel</h2>
+        <div class="content grid-2">
+            <div class="img-placeholder" style="background-color: var(--insupply-orange);">
+                            </div>
+            <div>
+                <p>The system evaluates the client's conditions against WHO MEC guidelines to filter safe methods[cite: 1727, 1728].</p>
+                <ul class="styled-list">
+                    <li><i class="fas fa-circle" style="color: #22c55e;"></i> <strong>Category 1 & 2:</strong> Recommended and generally safe[cite: 1710, 1711].</li>
+                    <li><i class="fas fa-circle" style="color: #f97316;"></i> <strong>Category 3:</strong> Use with caution; risks usually outweigh benefits[cite: 1710, 1711].</li>
+                    <li><i class="fas fa-circle" style="color: #ef4444;"></i> <strong>Category 4:</strong> Contraindicated. The system strictly blocks selection of these methods[cite: 1710, 1711, 1713].</li>
+                    <li><i class="fas fa-sync"></i> <strong>Interactive Wheel:</strong> Use the digital MEC Wheel tool to manually explore interactions and teach clients[cite: 917, 918].</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer"><span>AfyaMEC Clinical Manual</span><span>Method Selection</span></div>
+    </div>
+
+    <div class="slide">
+        <h2 class="slide-title"><i class="fas fa-comments"></i> 7. Counselling & Provision (BCS+)</h2>
+        <div class="content grid-2">
+            <div>
+                <p>Record the exact clinical actions taken during provision:</p>
+                <ul class="styled-list">
+                    <li><i class="fas fa-check"></i> <strong>DISC DMPA-SC Tracking:</strong> Log whether the injection is Provider-Administered (PA) or Self-Injected (SI)[cite: 1619, 1620].</li>
+                    <li><i class="fas fa-home"></i> <strong>Take-Home Doses:</strong> Record SI training status and dispense up to 3 take-home vials[cite: 1634, 1635].</li>
+                    <li><i class="fas fa-ribbon"></i> <strong>STI/Cervical Screening:</strong> Log HIV testing, IPV screening, Cervical Cancer screening methods (VIA/PAP), and condom provision[cite: 1659, 1666, 1668].</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>Method Switch Guide</h3>
+                <p>If a client is changing methods, the built-in library provides step-by-step guidance (e.g., switching from COC to Implant seamlessly without losing protection)[cite: 966].</p>
+            </div>
+        </div>
+        <div class="footer"><span>AfyaMEC Clinical Manual</span><span>Counselling & Provision</span></div>
+    </div>
+
+    <div class="slide">
+        <h2 class="slide-title"><i class="fas fa-chart-bar"></i> 8. Automated Reporting & DHIS2</h2>
+        <div class="content">
+            <p style="margin-bottom: 20px;">AfyaMEC eliminates manual tallying by automatically compiling your session data into official Ministry of Health formats.</p>
+            <div class="grid-3">
+                <div class="card">
+                    <h3>MOH 512</h3>
+                    <p>The daily Family Planning Client Register. View pagination online or export the complete log to Excel[cite: 1045, 1083].</p>
+                </div>
+                <div class="card">
+                    <h3>MOH 711 & DHIS2</h3>
+                    <p>Generates the Section D (FP) and Section G (Cervical Cancer) monthly summary. Push data directly to KHIS via the DHIS2 integration[cite: 596, 1157, 1186].</p>
+                </div>
+                <div class="card">
+                    <h3>MOH 747A & DISC</h3>
+                    <p>Manage commodity stock levels (FCDRR) and push specialized DMPA-SC self-injection metrics directly to ONA Enketo[cite: 664, 1308].</p>
+                </div>
+            </div>
+        </div>
+        <div class="footer"><span>AfyaMEC Clinical Manual</span><span>Reporting Engine</span></div>
+    </div>
+
+    <div class="slide">
+        <h2 class="slide-title"><i class="fas fa-graduation-cap"></i> 9. Afya Mentor (AI Training)</h2>
+        <div class="content grid-2">
+            <div>
+                <p>Continuous professional development powered by Gemini AI[cite: 157, 222].</p>
+                <ul class="styled-list">
+                    <li><i class="fas fa-book"></i> <strong>Microlearning:</strong> Complete modules on WHO MEC, DMPA-SC Self-Injection, and Adolescent Friendly Services[cite: 57].</li>
+                    <li><i class="fas fa-robot"></i> <strong>AI Roleplay:</strong> Practice counselling against an AI "client" with diverse personas (e.g., anxious about side effects, HIV+ requesting implants)[cite: 125, 131, 142].</li>
+                    <li><i class="fas fa-star"></i> <strong>Scored Feedback:</strong> Receive instant feedback on your BCS+ approach, empathy, and clinical accuracy[cite: 167].</li>
+                </ul>
+            </div>
+            <div class="img-placeholder" style="background-color: var(--insupply-blue);">
+                            </div>
+        </div>
+        <div class="footer"><span>AfyaMEC Clinical Manual</span><span>Afya Mentor Training</span></div>
+    </div>
+
+</body>
+</html>

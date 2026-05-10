@@ -115,11 +115,6 @@ export default function FacilitySettings() {
     setSaved(false)
   }, [])
 
-  const handleGeminiKey = useCallback(e => {
-    setForm(p => ({ ...p, gemini_api_key: e.target.value }))
-    setSaved(false)
-  }, [])
-
   const handleSave = () => {
     saveFacilitySettings(form)
     setSaved(true)
@@ -261,29 +256,6 @@ export default function FacilitySettings() {
               value={form.provider_number}
               onChange={handleProviderNumber}
             />
-          </div>
-
-          {/* Gemini API Key for Ask Fahamu */}
-          <div className="mt-4 pt-4 border-t border-gray-100 col-span-2">
-            <label className="block text-xs font-medium text-gray-500 mb-1">
-              🤖 Gemini API Key (for Ask Fahamu)
-            </label>
-            <div className="relative">
-              <input
-                type="password"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 pr-24"
-                placeholder="AIza..."
-                value={form.gemini_api_key || ''}
-                onChange={handleGeminiKey}
-              />
-              <span className="absolute right-3 top-2 text-xs text-gray-400">
-                Google AI Studio
-              </span>
-            </div>
-            <p className="text-xs text-gray-400 mt-1">
-              Get free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer"
-                className="text-blue-600 hover:underline">aistudio.google.com/apikey</a>
-            </p>
           </div>
 
         </div>
