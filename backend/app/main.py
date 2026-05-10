@@ -113,16 +113,18 @@ async def security_middleware(request: Request, call_next):
 
 
 # ── Routers ─────────────────────────────────────────────────────────────────────
-app.include_router(auth_router, prefix="/api/auth", tags=["Auth"])
-app.include_router(auth_router, prefix="/auth", tags=["Auth-Direct"])
-app.include_router(clients.router, prefix="/api/clients", tags=["Clients"])
-app.include_router(visits.router, prefix="/api/visits", tags=["Visits"])
-app.include_router(export.router, prefix="/api/export", tags=["Export"])
-app.include_router(sms.router, prefix="/api/sms", tags=["SMS"])
-app.include_router(dhis2.router, prefix="/api/dhis2", tags=["DHIS2"])
-app.include_router(reports.router, prefix="/api/reports", tags=["Reports"])
+# Register with BOTH prefixes — handles Digital Ocean /api stripping
+for prefix in ["/api", ""]:
+    app.include_router(auth_router, prefix=f"{prefix}/auth", tags=["Auth"])
+    app.include_router(clients.router, prefix=f"{prefix}/clients", tags=["Clients"])
+    app.include_router(visits.router, prefix=f"{prefix}/visits", tags=["Visits"])
+    app.include_router(export.router, prefix=f"{prefix}/export", tags=["Export"])
+    app.include_router(sms.router, prefix=f"{prefix}/sms", tags=["SMS"])
+    app.include_router(dhis2.router, prefix=f"{prefix}/dhis2", tags=["DHIS2"])
+    app.include_router(reports.router, prefix=f"{prefix}/reports", tags=["Reports"])
 
 
+@app.get("/health")
 @app.get("/api/health")
 def health_check():
     return {
@@ -130,14 +132,6 @@ def health_check():
         "version": "1.0.0",
         "app": "AfyaMEC",
         "environment": ENVIRONMENT
-    }
-
-@app.get("/health")
-def health_check_short():
-    return {
-        "status": "healthy", 
-        "version": "1.0.0", 
-        "app": "AfyaMEC"
     }
 
 @app.get("/")
