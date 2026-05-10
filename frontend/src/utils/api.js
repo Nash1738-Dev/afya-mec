@@ -99,11 +99,8 @@ export const syncPendingSessions = async () => {
 
 export const getClients = async () => {
   try {
-    const response = await fetch(`/api/clients/?t=${Date.now()}`, {
-      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
-    })
-    const data = await response.json()
-    return { success: true, data }
+    const response = await API.get('/clients/')
+    return { success: true, data: response.data }
   } catch (error) {
     return { success: false, data: [] }
   }
