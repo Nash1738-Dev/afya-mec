@@ -918,18 +918,17 @@ export default function AfyaMentor() {
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3 mt-4">
-          <div className="bg-white bg-opacity-15 rounded-lg p-2 text-center">
-            <p className="text-xl font-bold">{totalPoints}</p>
-            <p className="text-xs text-teal-100">Points</p>
-          </div>
-          <div className="bg-white bg-opacity-15 rounded-lg p-2 text-center">
-            <p className="text-xl font-bold">{completedModules}/{MODULES.length}</p>
-            <p className="text-xs text-teal-100">Modules</p>
-          </div>
-          <div className="bg-white bg-opacity-15 rounded-lg p-2 text-center">
-            <p className="text-xl font-bold">{completedSims}/{SIMULATION_SCENARIOS.length}</p>
-            <p className="text-xs text-teal-100">Simulations</p>
-          </div>
+          {[
+            { value: totalPoints, label: 'Points' },
+            { value: `${completedModules}/${MODULES.length}`, label: 'Modules' },
+            { value: `${completedSims}/${SIMULATION_SCENARIOS.length}`, label: 'Simulations' },
+          ].map((stat, i) => (
+            <div key={i} className="rounded-lg p-2 text-center"
+              style={{background:'rgba(255,255,255,0.15)'}}>
+              <p className="text-xl font-bold" style={{color:'white'}}>{stat.value}</p>
+              <p className="text-xs" style={{color:'rgba(204,251,241,0.9)'}}>{stat.label}</p>
+            </div>
+          ))}
         </div>
       </div>
 
