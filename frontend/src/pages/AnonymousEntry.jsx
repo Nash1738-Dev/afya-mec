@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { UserX, ChevronRight, CheckCircle, ArrowLeft } from 'lucide-react'
 import { getFacilitySettings } from '../utils/facilitySettings.js'
+import API from '../utils/api.js'
 import { METHOD_DETAILS } from '../data/methodDetails.js'
 
 const AGE_BRACKETS = [
@@ -92,20 +93,12 @@ export default function AnonymousEntry() {
         returnDate: null,
       }
 
-      const res = await fetch('/api/visits/save-anonymous', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-
-      if (res.ok) {
+      const res = await API.post('/visits/save-anonymous', payload)
+      if (res.data) {
         setSubmitted(true)
-      } else {
-        const data = await res.json()
-        setError(data.detail || 'Submission failed')
       }
     } catch (e) {
-      setError('Network error — check backend connection')
+      setError(e.response?.data?.detail || 'Network error — check backend connection')
     }
     setSubmitting(false)
   }
