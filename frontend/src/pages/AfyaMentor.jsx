@@ -936,25 +936,29 @@ export default function AfyaMentor() {
       {/* Tabs */}
       <div className="grid grid-cols-3 gap-2 mb-5">
         {[
-          { key: 'learn', label: '📚 Learn', desc: 'Modules' },
+          { key: 'learn', label: '📖 Learn', desc: 'Modules' },
           { key: 'simulate', label: '🎭 Simulate', desc: 'Practice' },
           { key: 'peers', label: '👥 Peers', desc: 'Discuss' },
-        ].map(tab => (
-          <button key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`p-3 rounded-xl border-2 transition-colors
-              ${activeTab === tab.key
-                ? 'text-white border-transparent'
-                : 'border-gray-200 bg-white hover:border-teal-300'}`}
-            style={activeTab === tab.key ? {background:'#0d7377'} : {}}>
-            <p className={`font-bold text-sm ${activeTab === tab.key ? 'text-white' : 'text-gray-700'}`}>
-              {tab.label}
-            </p>
-            <p className={`text-xs ${activeTab === tab.key ? 'text-teal-100' : 'text-gray-400'}`}>
-              {tab.desc}
-            </p>
-          </button>
-        ))}
+        ].map(tab => {
+          const isActive = activeTab === tab.key
+          return (
+            <button key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className="p-3 rounded-xl border-2 transition-colors"
+              style={isActive
+                ? {background:'#0d7377', borderColor:'#0d7377'}
+                : {background:'white', borderColor:'#e5e7eb'}}>
+              <p style={{color: isActive ? 'white' : '#374151'}}
+                className="font-bold text-sm">
+                {tab.label}
+              </p>
+              <p style={{color: isActive ? '#99f6e4' : '#9ca3af'}}
+                className="text-xs">
+                {tab.desc}
+              </p>
+            </button>
+          )
+        })}
       </div>
 
       {/* ── LEARN TAB ── */}
