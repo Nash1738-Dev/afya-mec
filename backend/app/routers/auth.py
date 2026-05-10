@@ -435,7 +435,9 @@ def send_feedback(data: FeedbackData):
     return {
         "success": True,
         "email_sent": result.get("success", False),
-        "message": "Feedback received and email sent" if result.get("success") else "Feedback logged (email failed)"
+        "email_error": result.get("error", ""),
+        "email_status_code": result.get("status_code", ""),
+        "message": "Feedback received and email sent" if result.get("success") else f"Feedback logged — email failed: {result.get('error', 'unknown')}"
     }
 
 @router.get("/feedback/debug")

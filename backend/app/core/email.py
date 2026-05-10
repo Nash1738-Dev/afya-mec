@@ -64,8 +64,10 @@ def send_email(
             if res.status_code == 201:
                 return {"success": True, "message_id": res.json().get("messageId")}
             else:
+                print(f"BREVO ERROR {res.status_code}: {res.text}")
                 return {
                     "success": False,
+                    "status_code": res.status_code,
                     "error": f"Brevo error {res.status_code}: {res.text}"
                 }
     except Exception as e:
