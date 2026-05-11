@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, BookOpen, Play, CheckCircle, RefreshCw,
          MessageCircle, Trophy, ChevronRight, Send,
          RotateCcw, Mic, MicOff, Volume2, VolumeX, History,
-         Globe, Trash2, ChevronDown, ChevronUp, Zap } from 'lucide-react'
+         Globe, Trash2, ChevronDown, ChevronUp, Zap, Users, Plus } from 'lucide-react'
 import { getFacilitySettings } from '../utils/facilitySettings.js'
 
 const GEMINI_MODEL = 'gemini-2.5-flash'
@@ -195,7 +195,7 @@ const MODULES = [
 ]
 
 // ── SIMULATION SCENARIOS ───────────────────────────────────────────────────────
-const SIMULATION_SCENARIOS = [
+const STATIC_SCENARIOS = [
   {
     id: 'sim_new_si_client',
     title: 'New DMPA-SC Client — SI-First Approach',
@@ -282,6 +282,162 @@ const loadHistory = () => {
 const saveHistory = (history) => {
   try { localStorage.setItem(MEMORY_KEY, JSON.stringify(history.slice(0, 20))) }
   catch {}
+}
+
+// ── OPEN CONVERSATION (ASK MENTOR) COMPONENT ──────────────────────────────────
+function OpenMentorChat({ apiKey, language, langConfig }) {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [chatHistory, setChatHistory] = useState(() => JSON.parse(localStorage.getItem('afyamentor_open_chats') || '[]'));
+  const [showHistory, setShowHistory] = useState(false);
+  const messagesEndRef = useRef(null);
+
+  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages]);
+
+  const saveToHistory = (newMessages) => {
+    if (newMessages.length < 2) return;
+    const title = newMessages[0].content.substring(0, 30) + '...';
+    const newEntry = { id: Date.now(), title, date: new Date().toISOString(), messages: newMessages };
+    const updatedHistory = [newEntry, ...chatHistory.filter(c => c.id !== newEntry.id)].slice(0, 10);
+    setChatHistory(updatedHistory);
+    localStorage.setItem('afyamentor_open_chats', JSON.stringify(updatedHistory));
+  };
+
+  const loadChat = (chat) => {
+    setMessages(chat.messages);
+    setShowHistory(false);
+  };
+
+  const getSystemPrompt = () => `You are "Afya Mentor", an expert clinical trainer and supervisor for Family Planning in Kenya/East Africa. 
+  You assist healthcare providers. Be highly encouraging, clinically accurate (WHO MEC 6th Ed), and practical. 
+  CRITICAL INSTRUCTION FOR LANGUAGE/DIALECT: ${LANG_INSTRUCTIONS[language]}
+  If Sheng or a local dialect is selected, immerse yourself fully in that dialect while maintaining professional clinical advice.
+  COUNSELLING FRAMEWORKS: Always use and reference the REDI counseling framework (Rapport, Explore, Decide, Implement) and the MAPS technique (Mix, Activate, Pinch, Self-inject) when relevant.`;
+
+  const sendMessage = async (presetInput = null) => {
+    const textToSend = presetInput || input;
+    if (!textToSend.trim() || loading) return;
+    setInput('');
+    const newMessages = [...messages, { role: 'user', content: textToSend }];
+    setMessages(newMessages);
+    setLoading(true);
+
+    try {
+      const history = newMessages.map(m => ({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: m.content }] }));
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: getSystemPrompt() }] },
+            contents: history,
+            generation_config: { temperature: 0.7 }
+          })
+        }
+      );
+      const data = await res.json();
+      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Error generating response.';
+      const finalMessages = [...newMessages, { role: 'assistant', content: reply }];
+      setMessages(finalMessages);
+      saveToHistory(finalMessages);
+    } catch (e) {
+      setMessages([...newMessages, { role: 'assistant', content: 'Network error. Please try again.' }]);
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col" style={{height: '600px'}}>
+      {/* Header */}
+      <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50 flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <MessageCircle size={18} className="text-teal-600"/>
+          <span className="font-bold text-gray-700 text-sm">Ask Mentor ({langConfig.label})</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <button onClick={() => setShowHistory(!showHistory)} className="flex items-center gap-1 text-xs text-gray-500 hover:text-teal-600">
+            <History size={14}/> {showHistory ? 'Close History' : 'View History'}
+          </button>
+          <button onClick={() => setMessages([])} className="text-gray-500 hover:text-teal-600" title="New Chat">
+            <RefreshCw size={14}/>
+          </button>
+        </div>
+      </div>
+
+      {/* Body */}
+      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 relative">
+        {showHistory ? (
+          <div className="absolute inset-0 bg-white z-10 p-4 overflow-y-auto">
+            <h3 className="font-bold text-gray-700 mb-3">Previous Chats</h3>
+            {chatHistory.length === 0 ? <p className="text-sm text-gray-400">No history yet.</p> : 
+              chatHistory.map(chat => (
+                <div key={chat.id} onClick={() => loadChat(chat)} className="p-3 border-b border-gray-100 hover:bg-teal-50 cursor-pointer">
+                  <p className="text-sm font-semibold text-gray-700">{chat.title}</p>
+                  <p className="text-xs text-gray-400">{new Date(chat.date).toLocaleString()}</p>
+                </div>
+              ))
+            }
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center">
+            <p className="text-sm text-gray-500 font-bold mb-4 uppercase">Prompt Formula: Action + Topic + Context</p>
+            <div className="grid grid-cols-2 gap-2 w-full max-w-md">
+              <button onClick={() => sendMessage("Teach me step-by-step how to give a DMPA-SC injection.")} className="p-3 border rounded-xl text-left hover:border-teal-400 hover:bg-teal-50">
+                <p className="text-xs font-bold text-teal-700">📚 Learning Mode</p>
+                <p className="text-xs text-gray-500 mt-1">"Teach me step-by-step how to give DMPA-SC..."</p>
+              </button>
+              <button onClick={() => sendMessage("Guide me through managing a client who is late for her injection.")} className="p-3 border rounded-xl text-left hover:border-teal-400 hover:bg-teal-50">
+                <p className="text-xs font-bold text-blue-700">⚕️ Clinical Support</p>
+                <p className="text-xs text-gray-500 mt-1">"Guide me through managing a late client..."</p>
+              </button>
+              <button onClick={() => sendMessage("What should I say to a client who fears side effects? Use the REDI framework.")} className="p-3 border rounded-xl text-left hover:border-teal-400 hover:bg-teal-50">
+                <p className="text-xs font-bold text-purple-700">🗣️ Counseling Mode</p>
+                <p className="text-xs text-gray-500 mt-1">"What should I say to a nervous client?..."</p>
+              </button>
+              <button onClick={() => sendMessage("Give me a provider competency checklist for self-injection training.")} className="p-3 border rounded-xl text-left hover:border-teal-400 hover:bg-teal-50">
+                <p className="text-xs font-bold text-orange-700">📋 Supervisor Guide</p>
+                <p className="text-xs text-gray-500 mt-1">"Give me a provider competency checklist..."</p>
+              </button>
+            </div>
+          </div>
+        ) : (
+          messages.map((msg, i) => (
+            <div key={i} className={`flex gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ${msg.role === 'user' ? 'bg-teal-600' : 'bg-gray-800'}`}>
+                {msg.role === 'user' ? 'You' : 'AI'}
+              </div>
+              <div className="flex flex-col gap-1 max-w-[80%]">
+                <div className={`p-3 rounded-xl text-sm leading-relaxed whitespace-pre-line ${msg.role === 'user' ? 'bg-teal-600 text-white rounded-tr-none' : 'bg-gray-100 text-gray-800 rounded-tl-none'}`}>
+                  {msg.content}
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+        {loading && <p className="text-xs text-gray-400 italic">Thinking...</p>}
+        <div ref={messagesEndRef}/>
+      </div>
+
+      {/* Input */}
+      <div className="p-3 border-t border-gray-200 bg-white flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <input
+            className="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-teal-500"
+            placeholder={`Ask anything in ${langConfig.label}...`}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && sendMessage()}
+          />
+          <button onClick={() => sendMessage()} disabled={!input.trim() || loading}
+            className={`p-2 rounded-full text-white transition-colors ${input.trim() && !loading ? 'bg-teal-600 hover:bg-teal-700' : 'bg-gray-300'}`}>
+            <Send size={18}/>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ── COUNSELLING SIMULATOR ──────────────────────────────────────────────────────
@@ -500,10 +656,18 @@ Keep feedback specific, encouraging, grounded in Kenya MOH BCS+ and SI-first gui
   }
 
   if (phase === 'intro') return (
-    <div className="text-center p-6">
+    <div className="text-center p-6 relative">
       <div className="text-5xl mb-4">{scenario.emoji}</div>
       <h3 className="font-bold text-gray-800 text-lg mb-2">{scenario.title}</h3>
       <p className="text-gray-500 text-sm mb-3">{scenario.description}</p>
+      
+      {scenario.id.startsWith('sim_dynamic_') && (
+        <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 mb-3 text-left">
+          <p className="text-xs font-bold text-purple-700 mb-1">⚡ AI-Generated Edge Case</p>
+          <p className="text-xs text-purple-600">This is a unique, complex scenario created by the AI. Apply all your knowledge!</p>
+        </div>
+      )}
+
       {scenario.si_focus && (
         <div className="bg-green-50 border border-green-200 rounded-xl p-3 mb-3 text-left">
           <p className="text-xs font-bold text-green-700 mb-1">💉 SI-First Focus</p>
@@ -799,11 +963,13 @@ function HistoryViewer({ onClose, onContinue }) {
                   <p className="text-xs text-gray-600 whitespace-pre-line bg-gray-50 rounded-lg p-3 max-h-40 overflow-y-auto">
                     {entry.feedback?.replace(/\*\*/g, '').replace(/#{1,3}\s/g, '') || 'No feedback saved.'}
                   </p>
-                  <button onClick={() => onContinue(entry)}
-                    className="mt-2 w-full text-white font-bold py-2 rounded-lg text-xs"
-                    style={{background:'#0d7377'}}>
-                    Practice This Scenario Again
-                  </button>
+                  {!entry.scenario_id?.startsWith('sim_dynamic_') && (
+                    <button onClick={() => onContinue(entry)}
+                      className="mt-2 w-full text-white font-bold py-2 rounded-lg text-xs"
+                      style={{background:'#0d7377'}}>
+                      Practice This Scenario Again
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -823,12 +989,12 @@ export default function AfyaMentor() {
   const facility = getFacilitySettings()
   const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY || facility.gemini_api_key || ''
 
-  const [activeTab, setActiveTab] = useState('learn')
+  const [activeTab, setActiveTab] = useState('ask')
   const [selectedModule, setSelectedModule] = useState(null)
   const [selectedSim, setSelectedSim] = useState(null)
-  const [showHistory, setShowHistory] = useState(false)
   const [language, setLanguage] = useState(() => localStorage.getItem('afyamentor_lang') || 'en')
   const [showLangPicker, setShowLangPicker] = useState(false)
+  const [generatingSim, setGeneratingSim] = useState(false)
   const [progress, setProgress] = useState(() => {
     try { return JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}') }
     catch { return {} }
@@ -846,9 +1012,48 @@ export default function AfyaMentor() {
     setShowLangPicker(false)
   }
 
+  const generateDynamicScenario = async () => {
+    if (!geminiApiKey) return;
+    setGeneratingSim(true);
+    try {
+      const prompt = `Generate a highly complex, edge-case family planning clinical scenario for a roleplay simulation. It must involve overlapping issues (e.g., medical contraindications + social pressure, or side effects + ARV interactions).
+      Return ONLY valid JSON matching this exact structure, with no markdown formatting:
+      {
+        "id": "sim_dynamic_${Date.now()}",
+        "title": "Short descriptive title",
+        "difficulty": "Advanced",
+        "emoji": "⚠️",
+        "description": "1-2 sentences describing the complex situation.",
+        "context": "Brief clinical and social context",
+        "scoring_criteria": ["Array", "of", "5", "clinical", "and empathy", "goals"],
+        "client_persona": "Detailed instructions for the AI playing the client. Include their fears, hidden motives, and how they should react.",
+        "empathy_focus": true,
+        "si_focus": false
+      }`;
+
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiApiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generation_config: { temperature: 0.9 }
+        })
+      });
+      const data = await res.json();
+      let text = data.candidates[0].content.parts[0].text;
+      text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+      const newScenario = JSON.parse(text);
+      if (!newScenario.id) newScenario.id = `sim_dynamic_${Date.now()}`;
+      setSelectedSim(newScenario);
+    } catch (e) {
+      alert("Failed to generate dynamic scenario. Check connection or API key.");
+    }
+    setGeneratingSim(false);
+  };
+
   const totalPoints = Object.values(progress).reduce((sum, p) => sum + (p.points || 0), 0)
   const completedModules = MODULES.filter(m => progress[m.id]?.completed).length
-  const completedSims = SIMULATION_SCENARIOS.filter(s => progress[s.id]?.completed).length
+  const completedSims = STATIC_SCENARIOS.filter(s => progress[s.id]?.completed).length
   const historyCount = loadHistory().length
 
   const getLevelTitle = (pts) => {
@@ -861,7 +1066,7 @@ export default function AfyaMentor() {
   const langConfig = LANGUAGES.find(l => l.code === language) || LANGUAGES[0]
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto pb-6">
       <div className="flex items-center justify-between mb-4">
         <button onClick={() => navigate('/')}
           className="flex items-center gap-1 text-gray-500 hover:text-gray-700 text-sm">
@@ -910,7 +1115,7 @@ export default function AfyaMentor() {
           {[
             { value: totalPoints, label: 'Points' },
             { value: `${completedModules}/${MODULES.length}`, label: 'Modules' },
-            { value: `${completedSims}/${SIMULATION_SCENARIOS.length}`, label: 'Sims' },
+            { value: `${completedSims}/${STATIC_SCENARIOS.length}`, label: 'Sims' },
             { value: historyCount, label: 'Sessions' },
           ].map((stat, i) => (
             <div key={i} className="rounded-lg p-2 text-center" style={{background:'rgba(255,255,255,0.15)'}}>
@@ -933,22 +1138,34 @@ export default function AfyaMentor() {
       {/* Tabs */}
       <div className="grid grid-cols-4 gap-2 mb-5">
         {[
+          { key: 'ask', label: '🤖 Ask', desc: 'Open Chat' },
           { key: 'learn', label: '📖 Learn', desc: 'Modules' },
-          { key: 'simulate', label: '🎭 Simulate', desc: 'Practice' },
+          { key: 'simulate', label: '🎭 Sim', desc: 'Roleplay' },
           { key: 'peers', label: '👥 Peers', desc: 'Discuss' },
-          { key: 'history', label: '📂 History', desc: `${historyCount} sessions` },
         ].map(tab => {
           const isActive = activeTab === tab.key
           return (
-            <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-              className="p-2.5 rounded-xl border-2 transition-colors"
+            <button key={tab.key} onClick={() => { setActiveTab(tab.key); setSelectedModule(null); setSelectedSim(null); }}
+              className="p-2.5 rounded-xl border-2 transition-colors text-center"
               style={isActive ? {background:'#0d7377', borderColor:'#0d7377'} : {background:'white', borderColor:'#e5e7eb'}}>
               <p style={{color: isActive ? 'white' : '#374151'}} className="font-bold text-xs">{tab.label}</p>
-              <p style={{color: isActive ? '#99f6e4' : '#9ca3af'}} className="text-xs">{tab.desc}</p>
+              <p style={{color: isActive ? '#99f6e4' : '#9ca3af'}} className="text-[10px]">{tab.desc}</p>
             </button>
           )
         })}
       </div>
+
+      {!geminiApiKey && activeTab !== 'peers' && activeTab !== 'learn' && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+          <p className="text-sm text-amber-700 font-bold mb-1">⚠️ System AI Offline</p>
+          <p className="text-xs text-amber-600">The universal Gemini AI key has not been configured in the environment variables.</p>
+        </div>
+      )}
+
+      {/* ── ASK MENTOR (OPEN CHAT) TAB ── */}
+      {activeTab === 'ask' && (
+        <OpenMentorChat apiKey={geminiApiKey} language={language} langConfig={langConfig} />
+      )}
 
       {/* ── LEARN TAB ── */}
       {activeTab === 'learn' && !selectedModule && (
@@ -972,12 +1189,11 @@ export default function AfyaMentor() {
                     <div className="flex items-center gap-2 mb-0.5">
                       <p className="font-bold text-gray-800 text-sm">{module.title}</p>
                       {done && <CheckCircle size={14} className="text-green-500"/>}
-                      {module.id === 'mod_empathy_counselling' && <span className="text-xs bg-pink-100 text-pink-700 px-1.5 py-0.5 rounded-full">New</span>}
+                      {module.id === 'mod_empathy_counselling' && <span className="text-[10px] font-bold bg-pink-100 text-pink-700 px-1.5 py-0.5 rounded-full">New</span>}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400">{module.duration}</span>
-                      <span className="text-xs px-2 py-0.5 rounded-full" style={{background: module.color + '20', color: module.color}}>{module.category}</span>
-                      <span className="text-xs text-gray-400">{module.level}</span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs text-gray-500">{module.duration}</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full font-medium" style={{background: module.color + '20', color: module.color}}>{module.category}</span>
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0">
@@ -1016,31 +1232,21 @@ export default function AfyaMentor() {
       {/* ── SIMULATE TAB ── */}
       {activeTab === 'simulate' && !selectedSim && (
         <div className="space-y-3">
-          {!geminiApiKey && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-              <p className="text-sm text-amber-700 font-bold mb-1">⚠️ Gemini API Key Required</p>
-              <p className="text-xs text-amber-600">Add your Gemini API key in Settings → Facility Settings.</p>
-              <button onClick={() => navigate('/settings')} className="mt-2 text-xs text-amber-700 underline">Go to Settings →</button>
-            </div>
-          )}
-          <div className="grid grid-cols-2 gap-2 mb-3">
-            <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-center">
-              <p className="text-xs font-bold text-green-700">💉 SI-First Focus</p>
-              <p className="text-xs text-green-600 mt-0.5">2 scenarios</p>
-            </div>
-            <div className="bg-pink-50 border border-pink-200 rounded-xl p-3 text-center">
-              <p className="text-xs font-bold text-pink-700">💗 Empathy Focus</p>
-              <p className="text-xs text-pink-600 mt-0.5">3 scenarios</p>
-            </div>
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-2">
+            <p className="text-sm text-blue-700 font-medium">
+              🎭 Practice counselling with an AI client. You are the provider.
+            </p>
           </div>
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-bold text-gray-700">Choose a Scenario</p>
+
+          <div className="flex items-center justify-between mb-2 mt-4">
+            <p className="text-sm font-bold text-gray-700">Standard Scenarios</p>
             <button onClick={() => setActiveTab('history')}
               className="flex items-center gap-1 text-xs text-teal-600 hover:underline">
-              <History size={12}/> View Past Sessions ({historyCount})
+              <History size={12}/> View Past Sessions
             </button>
           </div>
-          {SIMULATION_SCENARIOS.map(sim => {
+
+          {STATIC_SCENARIOS.map(sim => {
             const done = progress[sim.id]?.completed
             const diffColors = { 'Beginner': '#14a044', 'Intermediate': '#f59e0b', 'Advanced': '#dc2626' }
             return (
@@ -1057,20 +1263,26 @@ export default function AfyaMentor() {
                     </div>
                     <p className="text-xs text-gray-500 mb-1.5">{sim.description}</p>
                     <div className="flex gap-1 flex-wrap">
-                      <span className="text-xs px-2 py-0.5 rounded-full text-white font-medium"
+                      <span className="text-[10px] px-2 py-0.5 rounded-full text-white font-medium"
                         style={{background: diffColors[sim.difficulty]}}>{sim.difficulty}</span>
-                      {sim.si_focus && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">💉 SI-First</span>}
-                      {sim.empathy_focus && <span className="text-xs bg-pink-100 text-pink-700 px-2 py-0.5 rounded-full">💗 Empathy</span>}
+                      {sim.si_focus && <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">💉 SI-First</span>}
+                      {sim.empathy_focus && <span className="text-[10px] bg-pink-100 text-pink-700 px-2 py-0.5 rounded-full font-bold">💗 Empathy</span>}
                     </div>
                   </div>
-                  {done && <div className="text-right flex-shrink-0">
-                    <p className="text-sm font-bold text-green-600">{progress[sim.id]?.score}/10</p>
-                    <p className="text-xs text-gray-400">Best</p>
-                  </div>}
                 </div>
               </button>
             )
           })}
+
+          <div className="mt-6 mb-2">
+            <p className="text-sm font-bold text-purple-700">Dynamic Edge-Case Generator</p>
+            <p className="text-xs text-gray-500 mb-3">AI creates a unique, unpredictable clinical challenge.</p>
+            <button onClick={generateDynamicScenario} disabled={generatingSim || !geminiApiKey}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 transition-colors">
+              {generatingSim ? <RefreshCw className="animate-spin" size={18}/> : <Zap size={18}/>}
+              {generatingSim ? 'Generating Complex Scenario...' : 'Auto-Generate Complex Edge-Case'}
+            </button>
+          </div>
         </div>
       )}
 
@@ -1081,15 +1293,18 @@ export default function AfyaMentor() {
             <button onClick={() => setSelectedSim(null)} className="text-gray-400 hover:text-gray-600">
               <ArrowLeft size={16}/>
             </button>
-            <span className="text-sm font-bold text-gray-600">Counselling Simulation</span>
+            <span className="text-sm font-bold text-gray-600">Roleplay Simulation</span>
           </div>
           <div className="flex-1 overflow-hidden">
             <CounsellingSimulator
               scenario={selectedSim}
               apiKey={geminiApiKey}
               language={language}
+              langConfig={langConfig}
               onComplete={(score) => {
-                saveProgress(selectedSim.id, { completed: true, score, points: score })
+                if (!selectedSim.id.startsWith('sim_dynamic_')) {
+                  saveProgress(selectedSim.id, { completed: true, score, points: score })
+                }
                 setSelectedSim(null)
               }}
             />
@@ -1100,9 +1315,24 @@ export default function AfyaMentor() {
       {/* ── PEERS TAB ── */}
       {activeTab === 'peers' && (
         <div className="space-y-3">
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
-            <p className="text-sm text-blue-700 font-medium">👥 Peer learning: Share real cases. Inspired by PATH Uganda's community learning model.</p>
+          
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
+            <h3 className="font-bold text-green-800 text-sm mb-2 flex items-center gap-2">
+              <Users size={18} /> Youth & Provider Community
+            </h3>
+            <p className="text-xs text-green-700 mb-3 leading-relaxed">
+              Join the official AfyaMEC WhatsApp group. Connect with other providers and youth to discuss adolescent-friendly service delivery, share field experiences, and consult on complex MEC cases in real-time.
+            </p>
+            <button onClick={() => window.open('https://chat.whatsapp.com/Im9mluV66rKFJGwhgeybdH?mode=gi_t', '_blank')}
+              className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2.5 rounded-xl transition-colors shadow-sm flex items-center justify-center gap-2 text-sm">
+              <MessageCircle size={16}/> Join WhatsApp Group
+            </button>
           </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+            <p className="text-sm text-blue-700 font-medium">👥 Peer learning: Share these prompts directly to the WhatsApp group to start a discussion.</p>
+          </div>
+
           {PEER_DISCUSSIONS.map(disc => (
             <div key={disc.id} className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
               <h3 className="font-bold text-gray-700 text-sm mb-2">{disc.title}</h3>
@@ -1112,27 +1342,14 @@ export default function AfyaMentor() {
                   <span key={tag} className="text-xs bg-teal-50 text-teal-600 px-2 py-0.5 rounded-full border border-teal-100">{tag}</span>
                 ))}
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-400">💬 {disc.responses} responses</span>
-                <button onClick={() => {
-                  const msg = encodeURIComponent(`🌿 *AfyaMEC Peer Learning*\n\n*${disc.title}*\n\n${disc.prompt}\n\nShare your experience 👇`)
-                  window.open(`https://wa.me/?text=${msg}`, '_blank')
-                }} className="flex items-center gap-1.5 text-xs bg-green-500 hover:bg-green-600 text-white font-bold px-3 py-1.5 rounded-lg">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                  Share on WhatsApp
-                </button>
-              </div>
+              <button onClick={() => {
+                const msg = encodeURIComponent(`🌿 *AfyaMEC Peer Learning*\n\n*${disc.title}*\n\n${disc.prompt}\n\nShare your experience 👇`)
+                window.open(`https://wa.me/?text=${msg}`, '_blank')
+              }} className="flex items-center justify-center gap-1.5 w-full text-sm bg-green-50 border border-green-200 text-green-700 font-bold py-2 rounded-lg hover:bg-green-100 transition-colors">
+                <MessageCircle size={14}/> Send prompt to Group
+              </button>
             </div>
           ))}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-            <h3 className="font-bold text-gray-700 text-sm mb-3 flex items-center gap-2">
-              <Trophy size={16} className="text-amber-500"/> Learning Summary
-            </h3>
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              <div className="bg-teal-50 rounded-lg p-3"><p className="text-lg font-bold text-teal-600">{totalPoints}</p><p className="text-xs text-gray-500">Points earned</p></div>
-              <div className="bg-purple-50 rounded-lg p-3"><p className="text-lg font-bold text-purple-600">{completedModules + completedSims}</p><p className="text-xs text-gray-500">Activities done</p></div>
-            </div>
-          </div>
         </div>
       )}
 
@@ -1141,7 +1358,7 @@ export default function AfyaMentor() {
         <HistoryViewer
           onClose={() => setActiveTab('simulate')}
           onContinue={(entry) => {
-            const sim = SIMULATION_SCENARIOS.find(s => s.id === entry.scenario_id)
+            const sim = STATIC_SCENARIOS.find(s => s.id === entry.scenario_id)
             if (sim) { setSelectedSim(sim); setActiveTab('simulate') }
           }}
         />
