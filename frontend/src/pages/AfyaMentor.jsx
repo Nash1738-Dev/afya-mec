@@ -3,10 +3,22 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, BookOpen, Play, CheckCircle, RefreshCw,
          MessageCircle, Trophy, ChevronRight, Send,
          RotateCcw, Mic, MicOff, Volume2, VolumeX, History,
-         Globe, Trash2, ChevronDown, ChevronUp, Zap, Users, Plus, ClipboardCheck, Award } from 'lucide-react'
+         Globe, Trash2, ChevronDown, ChevronUp, Zap, Users, ClipboardCheck, Award, Edit3, Link } from 'lucide-react'
 import { getFacilitySettings } from '../utils/facilitySettings.js'
 
 const GEMINI_MODEL = 'gemini-2.5-flash'
+
+// ── TEXT FORMATTING UTILITY ────────────────────────────────────────────────────
+// Converts markdown **bold**, *italic*, and [links](url) into clean HTML
+const formatText = (text) => {
+  if (!text) return { __html: '' }
+  let formatted = text
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-teal-900">$1</strong>')
+    .replace(/(?<!\*)\*(?!\*)(.*?)\*/g, '<em class="text-teal-800">$1</em>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline font-medium inline-flex items-center gap-1">$1 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a>')
+    .replace(/\n/g, '<br/>');
+  return { __html: formatted };
+}
 
 // ── LANGUAGE CONFIG ────────────────────────────────────────────────────────────
 const LANGUAGES = [
@@ -22,12 +34,12 @@ const LANGUAGES = [
 const getLangInstruction = (langCode, customText = '') => {
   if (langCode === 'custom') return `Respond ENTIRELY in this specific dialect/language: ${customText}. Maintain absolute clinical accuracy while fully adapting to the cultural nuances, slang, and syntax of this dialect.`
   const instructions = {
-    en: 'Respond in clear, simple English appropriate for an East African health worker.',
+    en: 'Respond in clear, simple English appropriate for a Kenyan health worker.',
     sw: 'Jibu kwa Kiswahili safi na rahisi kinachofaa kwa mfanyakazi wa afya. Tumia maneno ya kawaida ya kliniki.',
-    sheng: 'Jibu kwa Sheng — mchanganyiko wa Kiswahili na Kiingereza kama unavyosemwa mitaani Nairobi. Tumia lugha ya vijana (k.m., "Sawa si", "Niaje", "Fiti") lakini uwe serious na sahihi kuhusu maudhui ya kliniki.',
+    sheng: 'Jibu kwa Sheng safi ya mitaani Nairobi (k.m., "Sawa si", "Niaje", "Fiti") lakini uwe serious na sahihi kuhusu maudhui ya kliniki.',
     ki: 'Jibu kwa Kikuyu na Kiswahili ukichanganya. Tumia maneno ya Kikuyu kwa salamu na kujenga uhusiano.',
-    luo: 'Jibu kwa Dholuo na Kiswahili ukichanganya. Tumia Dholuo kwa salamu na kujenga uhusiano.',
-    kam: 'Jibu kwa Kamba na Kiswahili ukichanganya. Tumia Kamba kwa salamu.',
+    luo: 'Jibu kwa Dholuo na Kiswahili ukichanganya. Tumia Dholuo kwa salamu.',
+    kam: 'Jibu kwa Kamba na Kiswahili ukichanganya.',
   }
   return instructions[langCode] || instructions.en
 }
@@ -37,56 +49,33 @@ const MODULES = [
   {
     id: 'mod_bcs_intro', title: 'BCS+ Algorithm — The 4 Stages', category: 'Counselling', emoji: '🗂️', duration: '8 min', level: 'Foundation', color: '#0d7377', points: 10,
     content: [
-      { type: 'lesson', title: 'What is BCS+?', text: `The Balanced Counselling Strategy Plus (BCS+) is Kenya's evidence-based approach to FP counselling, developed by the Population Council.\n\nBCS+ ensures every client receives complete, high-quality FP counselling regardless of which provider they see. It is the official Kenya MOH standard for FP service delivery (2023).`, highlight: '✅ BCS+ is NOT optional — it is the Kenya MOH standard' },
-      { type: 'lesson', title: 'Stage 1: Pre-Choice', text: `In the Pre-Choice stage:\n1. Establish a warm, respectful relationship\n2. Determine why they have come today\n3. Rule out pregnancy using the WHO 6-question checklist or PDT\n4. Display ALL method cards — never pre-select\n5. Ask screening questions and set aside inappropriate methods\n\nKey principle: You are identifying options, not making choices for the client.`, highlight: '🎯 You are a guide, not a decision-maker' },
-      { type: 'lesson', title: 'Stage 2: Method Choice', text: `In Method Choice:\n6. Present remaining methods starting with most effective\n7. Ask the client to choose — the decision belongs to them\n8. Confirm no MEC contraindications\n\n⚡ SI-FIRST APPROACH: When DMPA-SC is eligible, ALWAYS present self-injection as the preferred option first. Say: "This method can be given here by me, OR you can learn to give it yourself at home — most clients prefer this option."`, highlight: '💉 Lead with self-injection — it is the default for eligible DMPA-SC clients' },
-      { type: 'quiz', question: 'According to BCS+, when should you display contraceptive method cards?', options: ['After asking preferred method', 'Before screening — show ALL methods first', 'Only after ruling out pregnancy', 'Only appropriate methods'], correct: 1, explanation: 'BCS+ Step 4: Display ALL method cards before screening. Never pre-select.' },
+      { type: 'lesson', title: 'What is BCS+?', text: `The Balanced Counselling Strategy Plus (BCS+) is Kenya's evidence-based approach to FP counselling.\n\nBCS+ ensures every client receives complete, high-quality FP counselling regardless of which provider they see. It is the official Kenya MOH standard for FP service delivery.`, highlight: '✅ BCS+ is NOT optional — it is the Kenya MOH standard' },
+      { type: 'lesson', title: 'Stage 1: Pre-Choice', text: `In the Pre-Choice stage:\n1. Establish a warm, respectful relationship\n2. Determine why they have come today\n3. Rule out pregnancy using the WHO 6-question checklist or PDT\n4. Display ALL method cards — never pre-select\n5. Ask screening questions and set aside inappropriate methods`, highlight: '🎯 You are a guide, not a decision-maker' },
+      { type: 'quiz', question: 'According to BCS+, when should you display contraceptive method cards?', options: ['After asking preferred method', 'Before screening — show ALL methods first', 'Only after ruling out pregnancy', 'Only appropriate methods'], correct: 1, explanation: 'BCS+ Step 4: Display ALL method cards before screening.' },
     ]
   },
   {
-    id: 'mod_empathy_counselling', title: 'Empathy-Based Counselling — REDI & OARS', category: 'Counselling', emoji: '💗', duration: '9 min', level: 'Foundation', color: '#ec4899', points: 15,
+    id: 'mod_empathy_counselling', title: 'Empathy-Based Counselling', category: 'Counselling', emoji: '💗', duration: '9 min', level: 'Foundation', color: '#ec4899', points: 15,
     content: [
-      { type: 'lesson', title: 'The REDI Framework', text: `The REDI framework builds trust:\n\nR — Rapport: Greet warmly, ensure privacy.\nE — Explore: Ask open questions to understand their life and fears.\nD — Decide: Help them choose based on facts, without pressure.\nI — Implement: Provide method and plan follow-up.`, highlight: '💗 Empathy is the foundation of quality FP care.' },
-      { type: 'lesson', title: 'OARS Framework', text: `Use OARS to explore:\n\n🔵 O — Open questions ("Tell me about...")\n🔵 A — Affirmations ("It's great you came in today.")\n🔵 R — Reflective listening ("So you are worried about weight gain.")\n🔵 S — Summarising ("To make sure I understand...")`, highlight: '🎯 Avoid Yes/No questions. Invite narrative.' },
       { type: 'lesson', title: 'The Empathy Sandwich', text: `For difficult conversations or myths:\n\n🍞 Acknowledge the feeling: "I hear that you're worried..."\n🥗 Provide accurate information: "What the evidence actually shows is..."\n🍞 Validate their choice: "You know your body best."`, highlight: '🥪 Always lead with empathy, THEN information.' },
-      { type: 'quiz', question: 'A client says "I stopped my pills because they were making me feel sick." What is the BEST empathic response?', options: ['You should not have stopped without telling us first.', 'The pills don\'t actually cause those symptoms.', 'That sounds really difficult — feeling unwell every day would worry anyone. Tell me more.', 'Let me give you a different type of pill.'], correct: 2, explanation: 'Acknowledge the feeling before giving information or redirecting.' },
+      { type: 'quiz', question: 'A client says "I stopped my pills because they made me sick." What is the BEST empathic response?', options: ['You should not have stopped without telling us first.', 'The pills don\'t actually cause those symptoms.', 'That sounds really difficult — feeling unwell every day would worry anyone. Tell me more.', 'Let me give you a different type of pill.'], correct: 2, explanation: 'Acknowledge the feeling before giving information.' },
     ]
   },
 ]
 
 const STATIC_SCENARIOS = [
-  { id: 'sim_new_si_client', title: 'New Client — SI-First Approach', difficulty: 'Beginner', emoji: '💉', description: 'Practice presenting self-injection as the default option.', context: 'new client eligible for DMPA-SC, SI-first counselling, MAPS training', scoring_criteria: ['Offered SI as default first', 'Used MAPS steps correctly', 'Used empathic language', 'Checked comprehension', 'Gave return date'], si_focus: true, client_persona: `You are Wanjiru, 26, married, visiting for FP for the first time. You've heard of "the injection." You are nervous about needles but open to learning. You live far from the facility. When the provider mentions self-injection, you initially say "Mimi?! Naweza kujichomea mwenyewe?" but warm up quickly if they explain it empathically. You have no contraindications.` },
-  { id: 'sim_empathy_side_effects', title: 'Anxious Client — Empathic Side Effect Counselling', difficulty: 'Intermediate', emoji: '💗', description: 'Practice the Empathy Sandwich with a worried DMPA client considering stopping.', context: 'DMPA revisit, amenorrhoea concern, empathy-first counselling needed', scoring_criteria: ['Acknowledged feeling first (empathy)', 'Did NOT jump to explanation first', 'Used Empathy Sandwich', 'Used open questions (OARS)', 'Client feels heard and decides to continue'], empathy_focus: true, client_persona: `You are Akinyi, 28, on DMPA 3 months. VERY worried — no periods. Mother-in-law says "blood accumulating inside." Considering stopping. You need genuine empathy first — if provider jumps straight to clinical explanation without acknowledging your fear, you will push back: "Unasema tu maneno — si unasikia kile ninachosema?" Open up and relax only when truly heard.` },
-  { id: 'sim_adolescent', title: 'Adolescent — Youth-Friendly Empathic Counselling', difficulty: 'Intermediate', emoji: '🌱', description: '17-year-old requests ECP. Practice youth-friendly ARSH counselling with deep empathy.', context: 'Adolescent, ECP, fear, empathy-first, ARSH guidelines', scoring_criteria: ['Ensured privacy first', 'Non-judgmental language', 'Assessed for coercion empathically', 'Provided ECP', 'Offered ongoing FP', 'Dual protection', 'Linked HTC/STI'], empathy_focus: true, client_persona: `You are Zawadi, 17, scared and embarrassed. Consensual sex last night, worried about pregnancy. Short answers at first. Need the provider to be GENUINELY KIND — not just technically correct. If provider is warm and empathic, open up and ask about ongoing FP. If provider feels clinical or judgmental, become monosyllabic. Notice and respond to emotional tone.` },
+  { id: 'sim_new_si_client', title: 'New Client — SI-First Approach', difficulty: 'Beginner', emoji: '💉', description: 'Practice presenting self-injection as the default option.', context: 'new client eligible for DMPA-SC, SI-first counselling, MAPS training', scoring_criteria: ['Offered SI as default first', 'Used MAPS steps correctly', 'Used empathic language', 'Checked comprehension', 'Gave return date'], si_focus: true, client_persona: `You are Wanjiru, 26, visiting for FP for the first time. You are nervous about needles. When the provider mentions self-injection, say "Mimi?! Naweza kujichomea mwenyewe?" but warm up if they explain it empathically.` },
+  { id: 'sim_adolescent', title: 'Adolescent — Youth-Friendly BCS+', difficulty: 'Intermediate', emoji: '🌱', description: '17-year-old requests ECP. Practice ARSH guidelines.', context: 'Adolescent, ECP, fear, empathy-first, ARSH guidelines', scoring_criteria: ['Ensured privacy first', 'Non-judgmental language', 'Assessed for coercion', 'Provided ECP', 'Offered ongoing FP', 'Dual protection'], empathy_focus: true, client_persona: `You are Zawadi, 17, scared and embarrassed. Consensual sex last night. Short answers at first. Need the provider to be GENUINELY KIND. Notice and respond to emotional tone.` },
 ]
 
 const YOUTH_DISCUSSIONS = [
   { id: 'yd_1', title: '📱 Social Media Myths', prompt: 'I saw on TikTok that implants make you gain 20kgs in a month. Is this true? Has anyone else heard this?', tags: ['Myths', 'Side Effects'] },
-  { id: 'yd_2', title: '🤫 Privacy Concerns', prompt: 'I want to get family planning but I\'m afraid the nurse will tell my parents or judge me. How do I find a youth-friendly clinic?', tags: ['Privacy', 'ARSH'] },
-]
-
-const PROVIDER_DISCUSSIONS = [
-  { id: 'pd_si_first', title: '💉 SI-First Success Stories', prompt: 'Share a case where you offered self-injection first and the client was surprised — what happened? What did you say?', tags: ['DMPA-SC', 'SI-First'] },
-  { id: 'pd_mec_challenge', title: '⚕️ Difficult MEC Case', prompt: 'A challenging case with multiple conditions. How did you navigate eligibility and keep it client-centred?', tags: ['MEC', 'Clinical'] },
-]
-
-const SUPERVISION_CHECKLIST = [
-  { id: 'c1', category: 'Facility Readiness', text: 'Privacy is ensured in the FP counselling area (visual and auditory).' },
-  { id: 'c2', category: 'Facility Readiness', text: 'WHO MEC Wheel and BCS+ algorithm cards are available and visible.' },
-  { id: 'c3', category: 'Facility Readiness', text: 'DMPA-SC training devices and sharps containers are in stock.' },
-  { id: 'c4', category: 'Counselling (REDI)', text: 'Provider greets client warmly and establishes rapport before discussing methods.' },
-  { id: 'c5', category: 'Counselling (REDI)', text: 'Provider asks open-ended questions (OARS) to explore client needs.' },
-  { id: 'c6', category: 'Clinical Practice', text: 'Provider accurately takes and interprets Blood Pressure and BMI.' },
-  { id: 'c7', category: 'Clinical Practice', text: 'Provider uses the WHO 6-question checklist to rule out pregnancy.' },
-  { id: 'c8', category: 'Method Provision', text: 'Provider introduces DMPA-SC Self-Injection as a default option (SI-First).' },
-  { id: 'c9', category: 'Method Provision', text: 'Provider utilizes the MAPS technique for SI training and uses Teach-Back.' },
-  { id: 'c10', category: 'Method Provision', text: 'Provider proactively discusses side effects (Empathy Sandwich) and provides a return date.' },
+  { id: 'yd_2', title: '🤫 Privacy Concerns', prompt: 'I want to get family planning but I\'m afraid the nurse will tell my parents. How do I find a youth-friendly clinic?', tags: ['Privacy', 'ARSH'] },
 ]
 
 const ECPD_COURSES = [
-  { id: 'ecpd1', title: 'Advanced LARC Insertion & Removal', credits: 2, status: 'available', icon: '🩹' },
-  { id: 'ecpd2', title: 'Adolescent Sexual & Reproductive Health (ARSH)', credits: 3, status: 'available', icon: '🌱' },
-  { id: 'ecpd3', title: 'Managing Hypertensive Clients in FP', credits: 2, status: 'locked', icon: '❤️' },
+  { id: 'ecpd1', title: 'Advanced BCS+ Counselling Mastery', credits: 2, status: 'available', icon: '🗂️', prompt: 'You are an examiner for the eCPD course "Advanced BCS+ Counselling Mastery". Ask the provider 3 clinical questions ONE BY ONE about the Kenya BCS+ algorithm and MEC criteria. Wait for their answer before asking the next. If they answer correctly, move to the next. If they fail, gently correct them. After 3 correct answers, output exactly: [COURSE_PASSED]' },
+  { id: 'ecpd2', title: 'Managing Severe Side Effects (DMPA & LARC)', credits: 3, status: 'available', icon: '🩺', prompt: 'You are an examiner for the eCPD course "Managing Severe Side Effects". Ask the provider 3 complex clinical case questions ONE BY ONE regarding heavy bleeding on DMPA or IUD pain. Wait for their answer. After 3 correct answers, output exactly: [COURSE_PASSED]' },
 ]
 
 const MEMORY_KEY = 'afyamentor_sim_history'
@@ -102,9 +91,53 @@ function OpenMentorChat({ apiKey, language, customLangText, langConfig }) {
   const [loading, setLoading] = useState(false);
   const [chatHistory, setChatHistory] = useState(() => JSON.parse(localStorage.getItem('afyamentor_open_chats') || '[]'));
   const [showHistory, setShowHistory] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioEnabled, setAudioEnabled] = useState(true);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  
   const messagesEndRef = useRef(null);
+  const recognitionRef = useRef(null);
+  const synthRef = useRef(window.speechSynthesis);
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages]);
+
+  // Speech Recognition Setup
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = langConfig.voiceLang;
+      recognition.onresult = (e) => {
+        const transcript = e.results[0][0].transcript;
+        setInput(prev => prev + ' ' + transcript);
+        setIsRecording(false);
+      };
+      recognition.onerror = () => setIsRecording(false);
+      recognition.onend = () => setIsRecording(false);
+      recognitionRef.current = recognition;
+    }
+    return () => { synthRef.current?.cancel(); };
+  }, [langConfig.voiceLang]);
+
+  const toggleRecording = () => {
+    if (!recognitionRef.current) return;
+    if (isRecording) { recognitionRef.current.stop(); setIsRecording(false); } 
+    else { recognitionRef.current.start(); setIsRecording(true); }
+  };
+
+  const speakText = (text) => {
+    if (!audioEnabled || !synthRef.current) return;
+    synthRef.current.cancel();
+    const clean = text.replace(/\*[^*]+\*/g, '').replace(/\[.*?\]\(.*?\)/g, '').trim();
+    const utterance = new SpeechSynthesisUtterance(clean);
+    utterance.lang = langConfig.voiceLang;
+    utterance.rate = 0.95;
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    synthRef.current.speak(utterance);
+  };
 
   const saveToHistory = (newMessages) => {
     if (newMessages.length < 2) return;
@@ -115,23 +148,18 @@ function OpenMentorChat({ apiKey, language, customLangText, langConfig }) {
     localStorage.setItem('afyamentor_open_chats', JSON.stringify(updatedHistory));
   };
 
-  const loadChat = (chat) => {
-    setMessages(chat.messages);
-    setShowHistory(false);
-  };
-
   const getSystemPrompt = () => `You are "Afya Mentor", an expert clinical trainer and supervisor for Family Planning. 
-  You assist healthcare providers. Be highly encouraging, practical, and EXTREMELY concise. Use bullet points.
+  You assist healthcare providers. Be highly encouraging, practical, and EXTREMELY concise. Use short paragraphs.
   
   CRITICAL INSTRUCTION FOR LANGUAGE/DIALECT: ${getLangInstruction(language, customLangText)}
-  
-  RAG FENCING & CITATION STRICTNESS: 
-  - For ANY Family Planning or Reproductive Health question, you MUST base your answers strictly on the WHO Medical Eligibility Criteria (MEC) 6th Edition, Kenya MOH FP Guidelines, or the REDI/BCS+ frameworks. 
-  - Always quote your source briefly at the end of the point (e.g., "[Source: WHO MEC 6th Ed]").
-  - If the user asks a general medical or non-FP question that is outside the scope of WHO MEC (e.g., "What are symptoms of Malaria?", "How to treat a burn?"), you may use your pre-trained internet medical knowledge, but you MUST state exactly this at the beginning of your response: "Based on general internet medical knowledge (outside FP guidelines)..." and then answer concisely.
-  - Do NOT hallucinate FP guidelines.
+  If Sheng, Kikuyu, Luo, or a local dialect is selected, immerse yourself fully in that dialect while maintaining professional clinical advice.
 
-  COUNSELLING FRAMEWORKS: Always reference the REDI counseling framework (Rapport, Explore, Decide, Implement) and the MAPS technique (Mix, Activate, Pinch, Self-inject) when relevant.`;
+  RAG FENCING & CITATION STRICTNESS: 
+  - For ANY Family Planning or Reproductive Health question, you MUST base your answers strictly on the Kenya National FP Guidelines, WHO MEC 6th Edition, and the BCS+ (Balanced Counselling Strategy Plus) Algorithm.
+  - Always briefly quote your source at the end of the point (e.g., "[Source: WHO MEC 6th Ed]" or "[Source: Kenya MOH BCS+]").
+  - If the user asks a general medical or non-FP question outside the scope of WHO MEC/BCS+, you may use your pre-trained internet medical knowledge, but you MUST state exactly this at the beginning of your response: "Based on general internet medical knowledge (outside FP guidelines)..." and then answer concisely.
+  - Do NOT hallucinate FP guidelines. Add relevant http links if necessary formatted as markdown [text](url).
+  - Strongly emphasize BCS+ stages and the MAPS technique for SI when relevant.`;
 
   const sendMessage = async (presetInput = null) => {
     const textToSend = presetInput || input;
@@ -151,7 +179,7 @@ function OpenMentorChat({ apiKey, language, customLangText, langConfig }) {
           body: JSON.stringify({
             system_instruction: { parts: [{ text: getSystemPrompt() }] },
             contents: history,
-            generation_config: { temperature: 0.4 } // Lower temp for more factual adherence
+            generation_config: { temperature: 0.4 } 
           })
         }
       );
@@ -160,6 +188,7 @@ function OpenMentorChat({ apiKey, language, customLangText, langConfig }) {
       const finalMessages = [...newMessages, { role: 'assistant', content: reply }];
       setMessages(finalMessages);
       saveToHistory(finalMessages);
+      if (audioEnabled) speakText(reply);
     } catch (e) {
       setMessages([...newMessages, { role: 'assistant', content: 'Network error. Please try again.' }]);
     }
@@ -167,15 +196,18 @@ function OpenMentorChat({ apiKey, language, customLangText, langConfig }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col h-[600px]">
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col h-[650px]">
       <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50 flex-shrink-0">
         <div className="flex items-center gap-2">
           <MessageCircle size={18} className="text-teal-600"/>
           <span className="font-bold text-gray-700 text-sm">Ask Mentor ({language === 'custom' ? customLangText || 'Custom' : langConfig.label})</span>
         </div>
         <div className="flex items-center gap-3">
+          <button onClick={() => setAudioEnabled(!audioEnabled)} className={`flex items-center gap-1 text-xs px-2 py-1 rounded ${audioEnabled ? 'bg-teal-100 text-teal-700' : 'bg-gray-200 text-gray-600'}`}>
+            {audioEnabled ? <Volume2 size={12}/> : <VolumeX size={12}/>} {audioEnabled ? 'Voice ON' : 'Voice OFF'}
+          </button>
           <button onClick={() => setShowHistory(!showHistory)} className="flex items-center gap-1 text-xs text-gray-500 hover:text-teal-600">
-            <History size={14}/> {showHistory ? 'Close History' : 'View History'}
+            <History size={14}/> {showHistory ? 'Close History' : 'History'}
           </button>
           <button onClick={() => setMessages([])} className="text-gray-500 hover:text-teal-600" title="New Chat">
             <RefreshCw size={14}/>
@@ -183,7 +215,7 @@ function OpenMentorChat({ apiKey, language, customLangText, langConfig }) {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 relative">
+      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 relative">
         {showHistory ? (
           <div className="absolute inset-0 bg-white z-10 p-4 overflow-y-auto">
             <h3 className="font-bold text-gray-700 mb-3">Previous Chats</h3>
@@ -199,38 +231,28 @@ function OpenMentorChat({ apiKey, language, customLangText, langConfig }) {
         ) : messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center pt-8 pb-4">
             <p className="text-xs text-gray-500 font-bold mb-6 tracking-widest uppercase">Examples — Try asking:</p>
-            
-            {/* Redesigned Organic Chat Prompt Bubbles */}
-            <div className="flex flex-col gap-4 w-full max-w-md items-center">
+            <div className="flex flex-wrap justify-center gap-3 w-full max-w-lg">
               
-              <button onClick={() => sendMessage("What should I say to a client who fears side effects? Use the REDI framework.")} 
+              <button onClick={() => sendMessage("What should I say to a client who fears side effects? Use the BCS+ approach.")} 
                 className="self-start relative group w-4/5 text-left">
                 <div className="absolute inset-0 bg-purple-200 rounded-3xl rounded-tl-none transform group-hover:scale-105 transition-transform origin-top-left opacity-50"></div>
-                <div className="relative bg-purple-50 border border-purple-200 p-3 rounded-3xl rounded-tl-none shadow-sm">
-                  <p className="text-xs font-semibold text-purple-900 leading-relaxed">🗣️ "What should I say to a client who fears side effects? Use the REDI framework."</p>
+                <div className="relative bg-purple-50 border border-purple-200 p-4 rounded-3xl rounded-tl-none shadow-sm">
+                  <p className="text-xs font-semibold text-purple-900 leading-relaxed">🗣️ "What should I say to a client who fears side effects using BCS+?"</p>
                 </div>
               </button>
 
               <button onClick={() => sendMessage("Teach me step-by-step how to give a DMPA-SC injection.")} 
                 className="self-end relative group w-4/5 text-left">
                 <div className="absolute inset-0 bg-teal-200 rounded-3xl rounded-tr-none transform group-hover:scale-105 transition-transform origin-top-right opacity-50"></div>
-                <div className="relative bg-teal-50 border border-teal-200 p-3 rounded-3xl rounded-tr-none shadow-sm">
+                <div className="relative bg-teal-50 border border-teal-200 p-4 rounded-3xl rounded-tr-none shadow-sm">
                   <p className="text-xs font-semibold text-teal-900 leading-relaxed">📚 "Teach me step-by-step how to give a DMPA-SC injection."</p>
-                </div>
-              </button>
-
-              <button onClick={() => sendMessage("Give me a provider competency checklist for self-injection training.")} 
-                className="self-start relative group w-4/5 text-left">
-                <div className="absolute inset-0 bg-orange-200 rounded-full transform group-hover:scale-105 transition-transform opacity-50"></div>
-                <div className="relative bg-orange-50 border border-orange-200 p-3 rounded-full shadow-sm text-center">
-                  <p className="text-xs font-semibold text-orange-900 leading-relaxed">📋 "Give me a provider checklist..."</p>
                 </div>
               </button>
               
               <button onClick={() => sendMessage("Is it safe to give COC to a 38 year old who smokes? What does the MEC say?")} 
                 className="self-end relative group w-4/5 text-left">
                 <div className="absolute inset-0 bg-blue-200 rounded-3xl rounded-br-none transform group-hover:scale-105 transition-transform origin-bottom-right opacity-50"></div>
-                <div className="relative bg-blue-50 border border-blue-200 p-3 rounded-3xl rounded-br-none shadow-sm">
+                <div className="relative bg-blue-50 border border-blue-200 p-4 rounded-3xl rounded-br-none shadow-sm">
                   <p className="text-xs font-semibold text-blue-900 leading-relaxed">⚕️ "Is it safe to give COC to a 38 year old who smokes?"</p>
                 </div>
               </button>
@@ -239,14 +261,15 @@ function OpenMentorChat({ apiKey, language, customLangText, langConfig }) {
           </div>
         ) : (
           messages.map((msg, i) => (
-            <div key={i} className={`flex gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ${msg.role === 'user' ? 'bg-teal-600' : 'bg-gray-800'}`}>
+            <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm ${msg.role === 'user' ? 'bg-teal-600' : 'bg-gray-800'}`}>
                 {msg.role === 'user' ? 'You' : 'AI'}
               </div>
               <div className="flex flex-col gap-1 max-w-[85%]">
-                <div className={`p-3 rounded-xl text-sm leading-relaxed whitespace-pre-line ${msg.role === 'user' ? 'bg-teal-600 text-white rounded-tr-none' : 'bg-gray-100 text-gray-800 rounded-tl-none'}`}>
-                  {msg.content}
-                </div>
+                <div className={`p-4 rounded-2xl text-sm leading-relaxed shadow-sm
+                  ${msg.role === 'user' ? 'bg-teal-600 text-white rounded-tr-none' : 'bg-white border border-gray-200 text-gray-800 rounded-tl-none'}`}
+                  {...(msg.role === 'assistant' ? formatText(msg.content) : { children: msg.content })}
+                />
               </div>
             </div>
           ))
@@ -257,16 +280,24 @@ function OpenMentorChat({ apiKey, language, customLangText, langConfig }) {
 
       <div className="p-3 border-t border-gray-200 bg-white flex-shrink-0">
         <div className="flex items-center gap-2">
+          {recognitionRef.current && (
+            <button onClick={toggleRecording}
+              className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors
+                ${isRecording ? 'bg-red-500 text-white animate-pulse shadow-inner' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+              {isRecording ? <MicOff size={16}/> : <Mic size={16}/>}
+            </button>
+          )}
           <input
-            className="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-teal-500"
-            placeholder={`Ask anything in ${language === 'custom' ? 'your dialect' : langConfig.label}...`}
+            className="flex-1 border border-gray-300 rounded-full px-4 py-2.5 text-sm focus:outline-none focus:border-teal-500"
+            placeholder={isRecording ? '🎤 Listening...' : `Type or speak (${language === 'custom' ? 'your dialect' : langConfig.label})...`}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && sendMessage()}
           />
           <button onClick={() => sendMessage()} disabled={!input.trim() || loading}
-            className={`p-2 rounded-full text-white transition-colors ${input.trim() && !loading ? 'bg-teal-600 hover:bg-teal-700' : 'bg-gray-300'}`}>
-            <Send size={18}/>
+            className={`w-10 h-10 rounded-full flex items-center justify-center text-white transition-colors flex-shrink-0 shadow-sm
+              ${input.trim() && !loading ? 'bg-teal-600 hover:bg-teal-700' : 'bg-gray-300'}`}>
+            <Send size={16}/>
           </button>
         </div>
       </div>
@@ -312,22 +343,17 @@ function CounsellingSimulator({ scenario, onComplete, apiKey, language, customLa
 
   const toggleRecording = () => {
     if (!recognitionRef.current) return
-    if (isRecording) {
-      recognitionRef.current.stop()
-      setIsRecording(false)
-    } else {
-      recognitionRef.current.start()
-      setIsRecording(true)
-    }
+    if (isRecording) { recognitionRef.current.stop(); setIsRecording(false) } 
+    else { recognitionRef.current.start(); setIsRecording(true) }
   }
 
   const speakText = (text) => {
     if (!audioEnabled || !synthRef.current) return
     synthRef.current.cancel()
-    const clean = text.replace(/\*[^*]+\*/g, '').replace(/\[.*?\]/g, '').trim()
+    const clean = text.replace(/\*[^*]+\*/g, '').replace(/\[.*?\]\(.*?\)/g, '').trim()
     const utterance = new SpeechSynthesisUtterance(clean)
     utterance.lang = langConfig.voiceLang
-    utterance.rate = 0.9
+    utterance.rate = 0.95
     utterance.onstart = () => setIsSpeaking(true)
     utterance.onend = () => setIsSpeaking(false)
     synthRef.current.speak(utterance)
@@ -336,26 +362,23 @@ function CounsellingSimulator({ scenario, onComplete, apiKey, language, customLa
   const langInstruction = getLangInstruction(language, customLangText)
 
   const getSystemPrompt = () => {
-    const siNote = scenario.si_focus ? '\n\nSI-FIRST CONTEXT: This scenario focuses on self-injection counselling. React positively when the provider uses MAPS steps correctly and presents SI as the default.' : ''
-    const empathyNote = scenario.empathy_focus ? '\n\nEMPATHY CONTEXT: You need genuine empathy before information. If provider jumps straight to clinical explanation without acknowledging your feelings first, push back or become withdrawn. Only open up when truly heard.' : ''
+    const siNote = scenario.si_focus ? '\n\nSI-FIRST CONTEXT: This scenario focuses on self-injection. React positively when provider uses MAPS steps.' : ''
+    const empathyNote = scenario.empathy_focus ? '\n\nEMPATHY CONTEXT: You need genuine empathy before information. Push back if lectured.' : ''
 
     return `You are playing a role-play simulation for training FP providers.
 
 LANGUAGE INSTRUCTION: ${langInstruction}
 
-YOUR ROLE: You are the CLIENT in a FP counselling session.
-
-CLIENT PROFILE:
+YOUR ROLE: You are the CLIENT. PROFILE:
 ${scenario.client_persona}
 ${siNote}${empathyNote}
 
 SIMULATION RULES:
 1. Stay strictly in character. Do NOT break character.
-2. Respond naturally as a real client — use emotions, concerns, and local expressions based on the language instruction.
-3. After 8-10 exchanges, if the provider has done well, signal readiness to end.
-4. If provider makes clinical error, react appropriately — question, hesitate.
-5. Keep responses SHORT — 1-3 sentences maximum like a real client.
-6. After 12 exchanges OR natural conclusion, end with: [SESSION_COMPLETE]
+2. Respond naturally as a real client — use emotions and local expressions.
+3. Keep responses SHORT — 1-3 sentences maximum.
+4. After 10-12 exchanges, if provider has done well, signal readiness to end.
+5. After 12 exchanges OR natural conclusion, end with: [SESSION_COMPLETE]
 
 Context: ${scenario.context}`
   }
@@ -384,7 +407,7 @@ AREAS TO IMPROVE:
 - [specific improvement]
 
 MODEL ANSWER / CORRECT APPROACH:
-- [Provide a concise, step-by-step explanation of exactly how the provider *should* have optimally handled this specific clinical and emotional scenario based on WHO MEC, REDI, or SI-First guidelines].
+- [Provide a concise, step-by-step explanation of exactly how the provider *should* have optimally handled this specific clinical and emotional scenario based on WHO MEC, BCS+, or SI-First guidelines].
 
 CRITERIA MET:
 ${scenario.scoring_criteria.map(c => `- ${c}: [YES/NO]`).join('\n')}
@@ -469,18 +492,16 @@ CLINICAL ACCURACY: [errors found, or "No clinical errors detected"]`
     setPhase('active')
     const opener = scenario.id === 'sim_empathy_side_effects'
       ? '*enters nervously* ' + langConfig.greeting + '... I haven\'t had my period for 3 months since starting the injection. I\'m thinking of stopping...'
-      : scenario.id === 'sim_si_training'
+      : scenario.id === 'sim_new_si_client'
         ? '*looking at the device nervously* ' + langConfig.greeting + '. I have to inject myself? I don\'t know how to do this...'
         : '*enters clinic* ' + langConfig.greeting + '. I was told to come here for family planning...'
     setMessages([{ role: 'assistant', content: opener, isOpener: true }])
     if (audioEnabled) setTimeout(() => speakText(opener), 500)
   }
 
-  // FIX: Scroll Bug addressed by separating the text into an overflow container and locking the button to the bottom
   if (phase === 'intro') return (
     <div className="relative flex flex-col h-full bg-white">
-      {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto p-6 text-center">
+      <div className="flex-1 overflow-y-auto pr-2 pb-4 p-6 text-center">
         <div className="text-5xl mb-4">{scenario.emoji}</div>
         <h3 className="font-bold text-gray-800 text-lg mb-2">{scenario.title}</h3>
         <p className="text-gray-500 text-sm mb-3">{scenario.description}</p>
@@ -492,24 +513,12 @@ CLINICAL ACCURACY: [errors found, or "No clinical errors detected"]`
           </div>
         )}
 
-        {scenario.si_focus && (
-          <div className="bg-green-50 border border-green-200 rounded-xl p-3 mb-3 text-left">
-            <p className="text-xs font-bold text-green-700 mb-1">💉 SI-First Focus</p>
-            <p className="text-xs text-green-600">Practice presenting self-injection as the DEFAULT option. Lead with empowerment.</p>
-          </div>
-        )}
-        {scenario.empathy_focus && (
-          <div className="bg-pink-50 border border-pink-200 rounded-xl p-3 mb-3 text-left">
-            <p className="text-xs font-bold text-pink-700 mb-1">💗 Empathy Focus</p>
-            <p className="text-xs text-pink-600">Practice the Empathy Sandwich: Acknowledge → Explain → Validate.</p>
-          </div>
-        )}
         <div className="bg-teal-50 rounded-xl p-3 mb-3 text-left">
           <p className="text-xs font-bold text-teal-700 mb-2">📋 Scored on:</p>
           {scenario.scoring_criteria.map((c, i) => <p key={i} className="text-xs text-teal-600">• {c}</p>)}
         </div>
         
-        <div className="flex items-center justify-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+        <div className="flex items-center justify-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 mb-4">
           <button onClick={() => setAudioEnabled(!audioEnabled)}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors
               ${audioEnabled ? 'bg-teal-600 text-white' : 'bg-white border border-gray-300 text-gray-600'}`}>
@@ -520,7 +529,6 @@ CLINICAL ACCURACY: [errors found, or "No clinical errors detected"]`
         </div>
       </div>
       
-      {/* Sticky Bottom Button */}
       <div className="p-4 border-t border-gray-100 bg-white flex-shrink-0">
         <button onClick={startSession}
           className="w-full text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-transform hover:-translate-y-0.5"
@@ -539,7 +547,7 @@ CLINICAL ACCURACY: [errors found, or "No clinical errors detected"]`
     const verdict = feedback.includes('EXCELLENT') ? 'EXCELLENT' : feedback.includes('GOOD') ? 'GOOD' : 'NEEDS PRACTICE'
     const verdictColor = verdict === 'EXCELLENT' ? '#14a044' : verdict === 'GOOD' ? '#f59e0b' : '#dc2626'
     
-    // Extract Model Answer for highlighting
+    // Extract Model Answer
     let displayFeedback = feedback
     let modelAnswer = null
     const modelAnswerSplit = feedback.split(/MODEL ANSWER \/ CORRECT APPROACH:/i)
@@ -547,9 +555,7 @@ CLINICAL ACCURACY: [errors found, or "No clinical errors detected"]`
        displayFeedback = modelAnswerSplit[0]
        const remainder = modelAnswerSplit[1].split(/CRITERIA MET:/i)
        modelAnswer = remainder[0].trim()
-       if (remainder.length > 1) {
-           displayFeedback += "\nCRITERIA MET:\n" + remainder[1]
-       }
+       if (remainder.length > 1) displayFeedback += "\nCRITERIA MET:\n" + remainder[1]
     }
 
     return (
@@ -559,7 +565,6 @@ CLINICAL ACCURACY: [errors found, or "No clinical errors detected"]`
             <div className="text-3xl mb-2">{verdict === 'EXCELLENT' ? '🏆' : verdict === 'GOOD' ? '⭐' : '📚'}</div>
             <div className="text-3xl font-bold mb-1" style={{color: verdictColor}}>{score}/10</div>
             <div className="font-bold text-sm px-3 py-1 rounded-full inline-block text-white mb-2" style={{background: verdictColor}}>{verdict}</div>
-            
             {badges.length > 0 && (
               <div className="flex justify-center gap-2 mt-2 flex-wrap">
                 {badges.map(b => (
@@ -576,17 +581,13 @@ CLINICAL ACCURACY: [errors found, or "No clinical errors detected"]`
               <h3 className="font-bold text-blue-800 text-sm mb-2 flex items-center gap-2">
                 <CheckCircle size={16}/> Correct Approach / Model Answer
               </h3>
-              <p className="text-sm text-blue-900 whitespace-pre-line leading-relaxed">
-                {modelAnswer.replace(/\*\*/g, '').replace(/^- /gm, '• ')}
-              </p>
+              <div className="text-sm text-blue-900 leading-relaxed" {...formatText(modelAnswer)} />
             </div>
           )}
 
           <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4">
             <h3 className="font-bold text-gray-700 text-sm mb-2">Detailed Assessment</h3>
-            <p className="text-xs text-gray-700 whitespace-pre-line leading-relaxed">
-              {displayFeedback.replace(/\*\*/g, '').replace(/#{1,3}\s/g, '').replace(/BADGES EARNED:.*?\n/, '')}
-            </p>
+            <div className="text-xs text-gray-700 leading-relaxed" {...formatText(displayFeedback.replace(/BADGES EARNED:.*?\n/, ''))} />
           </div>
           
           {audioEnabled && (
@@ -596,7 +597,6 @@ CLINICAL ACCURACY: [errors found, or "No clinical errors detected"]`
             </button>
           )}
         </div>
-
         <div className="p-4 border-t border-gray-100 flex gap-2 flex-shrink-0 bg-white">
           <button onClick={() => { setPhase('intro'); setMessages([]); setTurnCount(0); setFeedback(null) }}
             className="flex-1 flex items-center justify-center gap-1 border border-gray-300 text-gray-600 py-3 rounded-xl text-sm hover:bg-gray-50 transition-colors">
@@ -617,32 +617,23 @@ CLINICAL ACCURACY: [errors found, or "No clinical errors detected"]`
           <p className="text-xs font-bold text-gray-600">{scenario.emoji} {scenario.title}</p>
           <p className="text-xs text-gray-400">Turn {turnCount}/12 | {language === 'custom' ? 'Custom' : langConfig.label}</p>
         </div>
-        <div className="flex gap-1">
-          {scenario.si_focus && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">SI-First</span>}
-          {scenario.empathy_focus && <span className="text-xs bg-pink-100 text-pink-700 px-2 py-0.5 rounded-full">Empathy</span>}
-        </div>
       </div>
       <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0 bg-gray-50/30">
         {messages.map((msg, i) => (
-          <div key={i} className={`flex gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+          <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
             <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold shadow-sm
               ${msg.role === 'user' ? 'bg-teal-600 text-white' : 'bg-gray-700 text-white'}`}>
-              {msg.role === 'user' ? 'You' : 'AI'}
+              {msg.role === 'user' ? 'P' : 'C'}
             </div>
             <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm
               ${msg.role === 'user' ? 'text-white rounded-tr-none bg-teal-600' : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none'}`}>
               {msg.content}
-              {msg.role === 'assistant' && audioEnabled && (
-                <button onClick={() => speakText(msg.content)} className="ml-2 opacity-40 hover:opacity-100 transition-opacity">
-                  <Volume2 size={12}/>
-                </button>
-              )}
             </div>
           </div>
         ))}
         {loading && (
           <div className="flex gap-2">
-            <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs text-white">AI</div>
+            <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs text-white">C</div>
             <div className="bg-white border border-gray-100 rounded-2xl px-4 py-3 flex gap-1 shadow-sm">
               {[0,1,2].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-gray-400" style={{animation:`bounce 1s infinite ${i*0.2}s`}}/>)}
             </div>
@@ -673,187 +664,140 @@ CLINICAL ACCURACY: [errors found, or "No clinical errors detected"]`
           </button>
         </div>
       </div>
-      <style>{`@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-4px)}}`}</style>
     </div>
   )
 }
 
-// ── MODULE VIEWER ──────────────────────────────────────────────────────────────
-function ModuleViewer({ module, onComplete }) {
-  // Keeping ModuleViewer essentially the same, just ensuring styling matches
-  const [currentStep, setCurrentStep] = useState(0)
-  const [answers, setAnswers] = useState({})
-  const [showExplanation, setShowExplanation] = useState({})
-  const [completed, setCompleted] = useState(false)
-  const content = module.content
-  const item = content[currentStep]
-  const isLast = currentStep === content.length - 1
-  const quizItems = content.filter(c => c.type === 'quiz')
-  const answeredCorrectly = quizItems.filter(q => {
-    const qIndex = content.findIndex(c => c === q)
-    return answers[qIndex] === q.correct
-  }).length
+// ── ECPD COURSE VIEWER (VIVA VOCE) ─────────────────────────────────────────────
+function ECPDCourseViewer({ course, apiKey, onComplete, onBack }) {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [passed, setPassed] = useState(false);
+  const messagesEndRef = useRef(null);
 
-  const handleAnswer = (questionIndex, optionIndex) => {
-    if (answers[questionIndex] !== undefined) return
-    setAnswers(prev => ({ ...prev, [questionIndex]: optionIndex }))
-    setShowExplanation(prev => ({ ...prev, [questionIndex]: true }))
-  }
+  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages]);
 
-  const handleNext = () => {
-    if (isLast) {
-      const finalScore = quizItems.length > 0 ? Math.round((answeredCorrectly / quizItems.length) * 10) : 10
-      setCompleted(true)
-      onComplete(finalScore, module.points)
-    } else {
-      setCurrentStep(s => s + 1)
+  useEffect(() => {
+    // Start course automatically
+    setMessages([{ role: 'assistant', content: `Welcome to the eCPD Assessment for: **${course.title}**.\n\nI will ask you 3 clinical questions based on Kenya FP Guidelines. Answer correctly to earn your CPD points. Are you ready?` }]);
+  }, [course]);
+
+  const sendMessage = async () => {
+    if (!input.trim() || loading) return;
+    const userMsg = input.trim();
+    setInput('');
+    const newMessages = [...messages, { role: 'user', content: userMsg }];
+    setMessages(newMessages);
+    setLoading(true);
+
+    try {
+      const history = newMessages.map(m => ({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: m.content }] }));
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: course.prompt }] },
+            contents: history,
+            generation_config: { temperature: 0.5 }
+          }) }
+      );
+      const data = await res.json();
+      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      
+      if (reply.includes('[COURSE_PASSED]')) {
+        setPassed(true);
+      } else {
+        setMessages([...newMessages, { role: 'assistant', content: reply }]);
+      }
+    } catch {
+      setMessages([...newMessages, { role: 'assistant', content: 'Network error. Please try again.' }]);
     }
-  }
+    setLoading(false);
+  };
 
-  if (completed) return (
-    <div className="text-center p-6">
-      <div className="text-5xl mb-3">{answeredCorrectly === quizItems.length ? '🏆' : '⭐'}</div>
-      <h3 className="font-bold text-gray-800 text-lg mb-1">{answeredCorrectly === quizItems.length ? 'Excellent!' : 'Well done!'}</h3>
-      <p className="text-gray-500 text-sm mb-4">Quiz: {answeredCorrectly}/{quizItems.length} correct</p>
-      <div className="bg-teal-50 rounded-xl p-4 mb-4">
-        <p className="text-2xl font-bold text-teal-600">+{module.points} pts</p>
+  if (passed) return (
+    <div className="text-center p-8 bg-white h-full flex flex-col justify-center">
+      <div className="text-6xl mb-4">🏆</div>
+      <h2 className="text-2xl font-bold text-gray-800 mb-2">Congratulations!</h2>
+      <p className="text-gray-600 mb-6">You have successfully passed the AI Viva Voce examination for <strong>{course.title}</strong>.</p>
+      <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-6 inline-block mx-auto">
+        <p className="text-3xl font-bold text-indigo-700">+{course.credits}</p>
+        <p className="text-sm font-semibold text-indigo-600">CPD Points Awarded</p>
       </div>
-    </div>
-  )
-
-  return (
-    <div className="p-4">
-      <div className="flex items-center gap-2 mb-4">
-        {content.map((_, i) => (
-          <div key={i} className={`flex-1 h-1.5 rounded-full ${i < currentStep ? 'bg-green-400' : i === currentStep ? 'bg-teal-500' : 'bg-gray-200'}`}/>
-        ))}
-      </div>
-      <p className="text-xs text-gray-400 mb-4">Step {currentStep + 1} of {content.length}</p>
-      {item.type === 'lesson' && (
-        <div>
-          <h3 className="font-bold text-gray-800 mb-3">{item.title}</h3>
-          <div className="bg-gray-50 rounded-xl p-4 mb-3 text-sm text-gray-700 leading-relaxed whitespace-pre-line">{item.text}</div>
-          {item.highlight && <div className="bg-teal-50 border border-teal-200 rounded-lg p-3 mb-4 text-sm text-teal-700 font-medium">{item.highlight}</div>}
-          <button onClick={handleNext} className="w-full text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2" style={{background:'#0d7377'}}>
-            {isLast ? '✅ Complete' : <>Next <ChevronRight size={16}/></>}
-          </button>
-        </div>
-      )}
-      {item.type === 'quiz' && (
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <span className="bg-purple-100 text-purple-700 text-xs font-bold px-2 py-0.5 rounded-full">QUIZ</span>
-          </div>
-          <p className="font-semibold text-gray-800 text-sm mb-4">{item.question}</p>
-          <div className="space-y-2 mb-4">
-            {item.options.map((opt, i) => {
-              const answered = answers[currentStep] !== undefined
-              const isSelected = answers[currentStep] === i
-              const isCorrect = i === item.correct
-              let cls = 'border-gray-200 hover:border-teal-300 bg-white'
-              if (answered) {
-                if (isCorrect) cls = 'border-green-400 bg-green-50'
-                else if (isSelected) cls = 'border-red-400 bg-red-50'
-                else cls = 'border-gray-200 bg-gray-50 opacity-60'
-              }
-              return (
-                <button key={i} onClick={() => handleAnswer(currentStep, i)}
-                  className={`w-full text-left px-3 py-2.5 rounded-xl border-2 text-sm transition-all ${cls}`}
-                  disabled={answered}>
-                  <span className="text-gray-600 font-medium mr-2">{['A','B','C','D'][i]}.</span>
-                  <span className={answered && isCorrect ? 'text-green-700 font-semibold' : answered && isSelected ? 'text-red-700' : 'text-gray-700'}>{opt}</span>
-                  {answered && isCorrect && <span className="float-right text-green-500">✅</span>}
-                  {answered && isSelected && !isCorrect && <span className="float-right text-red-500">❌</span>}
-                </button>
-              )
-            })}
-          </div>
-          {showExplanation[currentStep] && (
-            <div className={`rounded-xl p-3 mb-4 text-sm ${answers[currentStep] === item.correct ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'}`}>
-              <p className="font-bold mb-1">{answers[currentStep] === item.correct ? '✅ Correct!' : '❌ Not quite...'}</p>
-              <p>{item.explanation}</p>
-            </div>
-          )}
-          {answers[currentStep] !== undefined && (
-            <button onClick={handleNext} className="w-full text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2" style={{background:'#0d7377'}}>
-              {isLast ? '✅ Complete' : <>Next <ChevronRight size={16}/></>}
-            </button>
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ── HISTORY VIEWER ─────────────────────────────────────────────────────────────
-function HistoryViewer({ onClose, onContinue }) {
-  const history = loadHistory()
-  const [expanded, setExpanded] = useState(null)
-
-  if (history.length === 0) return (
-    <div className="text-center py-12 text-gray-400">
-      <History size={40} className="mx-auto mb-3 opacity-30"/>
-      <p>No previous simulations yet.</p>
-      <button onClick={onClose} className="mt-4 text-teal-600 underline text-sm">Back</button>
-    </div>
-  )
-
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-bold text-gray-800 flex items-center gap-2">
-          <History size={16} className="text-teal-600"/> Previous Sessions ({history.length})
-        </h3>
-        <button onClick={() => { if (window.confirm('Clear all history?')) { localStorage.removeItem(MEMORY_KEY); onClose() } }}
-          className="flex items-center gap-1 text-xs text-red-400 hover:text-red-600">
-          <Trash2 size={12}/> Clear All
-        </button>
-      </div>
-      <div className="space-y-3">
-        {history.map((entry, i) => {
-          const scoreMatch = entry.feedback?.match(/SCORE:\s*(\d+)\/10/)
-          const score = scoreMatch ? parseInt(scoreMatch[1]) : null
-          const verdict = entry.feedback?.includes('EXCELLENT') ? 'EXCELLENT' : entry.feedback?.includes('GOOD') ? 'GOOD' : 'NEEDS PRACTICE'
-          const verdictColor = verdict === 'EXCELLENT' ? '#14a044' : verdict === 'GOOD' ? '#f59e0b' : '#dc2626'
-          return (
-            <div key={entry.id} className="bg-white rounded-xl border border-gray-200 p-3 shadow-sm">
-              <div className="flex items-center justify-between cursor-pointer" onClick={() => setExpanded(expanded === i ? null : i)}>
-                <div>
-                  <p className="font-semibold text-gray-700 text-sm">{entry.scenario_title}</p>
-                  <p className="text-xs text-gray-400">{entry.date} · {entry.language} · {entry.turns} turns</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {score && <span className="font-bold text-sm" style={{color: verdictColor}}>{score}/10</span>}
-                  {expanded === i ? <ChevronUp size={14}/> : <ChevronDown size={14}/>}
-                </div>
-              </div>
-              {expanded === i && (
-                <div className="mt-3 pt-3 border-t border-gray-100">
-                  <div className="text-xs text-gray-600 whitespace-pre-line bg-gray-50 rounded-lg p-3 max-h-48 overflow-y-auto">
-                    {entry.feedback?.replace(/\*\*/g, '').replace(/#{1,3}\s/g, '') || 'No feedback saved.'}
-                  </div>
-                  {!entry.scenario_id?.startsWith('sim_dynamic_') && (
-                    <button onClick={() => onContinue(entry)}
-                      className="mt-3 w-full text-white font-bold py-2.5 rounded-lg text-xs transition-colors hover:shadow-md"
-                      style={{background:'#0d7377'}}>
-                      Practice This Scenario Again
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
-      <button onClick={onClose} className="mt-4 w-full border border-gray-300 text-gray-600 py-2.5 rounded-xl text-sm hover:bg-gray-50 transition-colors">
-        Back to Simulations
+      <button onClick={() => onComplete(course.credits)} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition-colors">
+        Collect Points & Return
       </button>
     </div>
-  )
+  );
+
+  return (
+    <div className="flex flex-col h-[600px] bg-white rounded-2xl border border-gray-200 shadow-sm">
+      <div className="px-4 py-3 border-b border-gray-100 bg-indigo-50 flex items-center justify-between flex-shrink-0">
+        <button onClick={onBack} className="text-indigo-600 hover:text-indigo-800"><ArrowLeft size={18}/></button>
+        <div className="text-center">
+          <p className="text-xs font-bold text-indigo-800 uppercase tracking-wider">eCPD Examiner</p>
+          <p className="text-sm font-semibold text-indigo-900">{course.title}</p>
+        </div>
+        <div className="w-6"></div>
+      </div>
+      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+        {messages.map((msg, i) => (
+          <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm ${msg.role === 'user' ? 'bg-indigo-600' : 'bg-gray-800'}`}>
+              {msg.role === 'user' ? 'You' : 'AI'}
+            </div>
+            <div className={`p-4 rounded-2xl text-sm leading-relaxed shadow-sm max-w-[85%]
+              ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white border border-gray-200 text-gray-800 rounded-tl-none'}`}
+              {...(msg.role === 'assistant' ? formatText(msg.content) : { children: msg.content })}
+            />
+          </div>
+        ))}
+        {loading && <p className="text-xs text-indigo-400 italic">Evaluating answer...</p>}
+        <div ref={messagesEndRef}/>
+      </div>
+      <div className="p-3 border-t border-gray-200 bg-white flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <input className="flex-1 border border-gray-300 rounded-full px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500"
+            placeholder="Type your clinical answer..." value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendMessage()}/>
+          <button onClick={sendMessage} disabled={!input.trim() || loading} className={`w-10 h-10 rounded-full flex items-center justify-center text-white transition-colors flex-shrink-0 shadow-sm ${input.trim() && !loading ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-gray-300'}`}>
+            <Send size={16}/>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-// ── SUPERVISION CHECKLIST (SELF-ASSESSMENT) ──────────────────────────────────
-function SupervisionChecklist() {
+// ── SUPERVISION CHECKLIST (DYNAMIC) ───────────────────────────────────────────
+const SUPERVISION_SECTIONS = [
+  { id: 'sec1', title: 'Training & Supply Chain', 
+    items: [
+      { id: 'q1', text: 'Does the facility have FP providers trained/mentored on DMPA-SC SI?' },
+      { id: 'q4', text: 'Has the facility been stocked out on any FP methods for the past 3 months?' },
+      { id: 'q8', text: 'Did the facility receive FP commodities for the last orders placed in the last 12-24 weeks?' },
+    ]
+  },
+  { id: 'sec2', title: 'DMPA-SC SI Service Delivery & Data', 
+    items: [
+      { id: 'q10', text: 'Does the facility have a lockable room that provides privacy during counseling?' },
+      { id: 'q12', text: 'Does the facility have all necessary supplies (SI instruction sheet, sharp box, models, MEC wheel)?' },
+      { id: 'q15', text: 'Does the facility have updated reporting tools (MOH 512, MOH 711, MOH 747A)?' },
+      { id: 'q21', text: 'Does the facility make monthly summaries that clearly add up disaggregated clients and doses dispensed?' },
+    ]
+  },
+  { id: 'sec3', title: 'Observed Client Counseling & SI', 
+    items: [
+      { id: 'q25', text: 'Does the provider screen the client to check if they are medically eligible (MEC)?' },
+      { id: 'q27', text: 'Does the provider give women appropriate guidance about HIV protection (dual method)?' },
+      { id: 'q30', text: 'Is the provider able to talk about SI first for clients who choose injectables?' },
+      { id: 'q31', text: 'Is the provider able to use active listening and open-ended questions?' },
+      { id: 'q39', text: 'Did the provider go through all MAPS steps (Mix, Activate, Pinch, Inject)?' },
+    ]
+  }
+];
+
+function SupervisionChecklist({ facility }) {
   const [checked, setChecked] = useState(() => JSON.parse(localStorage.getItem('afyamentor_supervision') || '[]'));
   
   const handleToggle = (id) => {
@@ -862,32 +806,39 @@ function SupervisionChecklist() {
     localStorage.setItem('afyamentor_supervision', JSON.stringify(updated));
   };
 
-  const score = Math.round((checked.length / SUPERVISION_CHECKLIST.length) * 100);
+  const totalItems = SUPERVISION_SECTIONS.reduce((acc, sec) => acc + sec.items.length, 0);
+  const score = Math.round((checked.length / totalItems) * 100) || 0;
   const color = score >= 80 ? 'text-green-600' : score >= 50 ? 'text-amber-500' : 'text-red-500';
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-start justify-between mb-4 border-b border-gray-100 pb-4">
         <div>
-          <h3 className="font-bold text-gray-800">Supervision Self-Assessment</h3>
-          <p className="text-xs text-gray-500">Ensure your facility & practice meet MOH standards</p>
+          <h3 className="font-bold text-gray-800">Support Supervision Assessment</h3>
+          <p className="text-xs text-gray-500 mt-1">Based on PSI/DISC Official TA Checklist</p>
+          <div className="mt-3 bg-gray-50 rounded-lg p-2 text-xs text-gray-600 grid grid-cols-2 gap-2">
+            <p><strong>Facility:</strong> {facility.facility_name || 'Not set'}</p>
+            <p><strong>County:</strong> {facility.county || 'Not set'}</p>
+            <p><strong>Provider:</strong> {facility.provider_name || 'Not set'}</p>
+            <p><strong>Code:</strong> {facility.facility_code || 'Not set'}</p>
+          </div>
         </div>
-        <div className="text-right">
-          <p className={`text-2xl font-bold ${color}`}>{score}%</p>
-          <p className="text-[10px] text-gray-400 uppercase tracking-widest">Readiness</p>
+        <div className="text-right flex flex-col items-center">
+          <div className={`text-3xl font-bold ${color}`}>{score}%</div>
+          <div className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Compliance</div>
         </div>
       </div>
       
       <div className="space-y-4">
-        {['Facility Readiness', 'Counselling (REDI)', 'Clinical Practice', 'Method Provision'].map(cat => (
-          <div key={cat}>
-            <h4 className="text-xs font-bold text-blue-800 bg-blue-50 px-3 py-1.5 rounded-t-lg border border-b-0 border-blue-100">{cat}</h4>
+        {SUPERVISION_SECTIONS.map(sec => (
+          <div key={sec.id}>
+            <h4 className="text-xs font-bold text-blue-800 bg-blue-50 px-3 py-2 rounded-t-lg border border-b-0 border-blue-100 uppercase tracking-wide">{sec.title}</h4>
             <div className="border border-blue-100 rounded-b-lg overflow-hidden divide-y divide-gray-100">
-              {SUPERVISION_CHECKLIST.filter(c => c.category === cat).map(item => (
+              {sec.items.map(item => (
                 <label key={item.id} className="flex items-start gap-3 p-3 hover:bg-gray-50 cursor-pointer transition-colors">
                   <input type="checkbox" checked={checked.includes(item.id)} onChange={() => handleToggle(item.id)}
                     className="mt-0.5 w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"/>
-                  <span className={`text-sm ${checked.includes(item.id) ? 'text-gray-500 line-through' : 'text-gray-700'}`}>{item.text}</span>
+                  <span className={`text-sm ${checked.includes(item.id) ? 'text-gray-500 line-through' : 'text-gray-800 font-medium'}`}>{item.text}</span>
                 </label>
               ))}
             </div>
@@ -895,47 +846,9 @@ function SupervisionChecklist() {
         ))}
       </div>
       <button onClick={() => { if(confirm('Reset checklist?')) { setChecked([]); localStorage.removeItem('afyamentor_supervision') } }}
-        className="mt-4 text-xs text-red-500 hover:text-red-700 underline">Reset Checklist</button>
+        className="mt-4 text-xs bg-red-50 text-red-600 hover:bg-red-100 font-semibold px-3 py-1.5 rounded transition-colors">Reset Checklist</button>
     </div>
   );
-}
-
-// ── eCPD POC DASHBOARD ────────────────────────────────────────────────────────
-function ECPDDashboard() {
-  return (
-    <div className="space-y-4">
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-5 text-white shadow-md">
-        <h3 className="font-bold text-lg flex items-center gap-2"><Award size={20}/> AI-Assisted eCPD (Beta)</h3>
-        <p className="text-sm mt-1 opacity-90">Earn Continuous Professional Development credits by completing AI-assessed modules and Oral Viva Voce exams.</p>
-        <div className="mt-4 bg-white/20 rounded-lg p-3 inline-block">
-          <p className="text-xs uppercase tracking-widest opacity-80">Your Credits</p>
-          <p className="text-2xl font-bold">0 <span className="text-sm font-normal opacity-80">CPD Points</span></p>
-        </div>
-      </div>
-
-      <div className="grid gap-3">
-        {ECPD_COURSES.map(course => (
-          <div key={course.id} className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
-            <div className="text-3xl bg-gray-50 p-3 rounded-full">{course.icon}</div>
-            <div className="flex-1">
-              <h4 className="font-bold text-gray-800 text-sm">{course.title}</h4>
-              <p className="text-xs text-gray-500 mt-0.5">Earn {course.credits} CPD Credits</p>
-            </div>
-            {course.status === 'available' ? (
-              <button className="text-xs bg-indigo-50 text-indigo-700 font-bold px-4 py-2 rounded-lg border border-indigo-200 hover:bg-indigo-100 transition-colors">
-                Start Course
-              </button>
-            ) : (
-              <span className="text-xs bg-gray-100 text-gray-400 font-bold px-3 py-1.5 rounded-lg border border-gray-200">
-                🔒 Locked
-              </span>
-            )}
-          </div>
-        ))}
-      </div>
-      <p className="text-xs text-center text-gray-400 italic">This is a Proof of Concept integrating AI-based verbal examinations for official CPD accreditation.</p>
-    </div>
-  )
 }
 
 // ── MAIN COMPONENT ─────────────────────────────────────────────────────────────
@@ -947,6 +860,8 @@ export default function AfyaMentor() {
   const [activeTab, setActiveTab] = useState('ask')
   const [selectedModule, setSelectedModule] = useState(null)
   const [selectedSim, setSelectedSim] = useState(null)
+  const [activeECPD, setActiveECPD] = useState(null)
+  const [customPeerPrompt, setCustomPeerPrompt] = useState('')
   const [language, setLanguage] = useState(() => localStorage.getItem('afyamentor_lang') || 'en')
   const [customLangText, setCustomLangText] = useState(() => localStorage.getItem('afyamentor_custom_lang') || '')
   const [showLangPicker, setShowLangPicker] = useState(false)
@@ -1131,7 +1046,7 @@ export default function AfyaMentor() {
         ].map(tab => {
           const isActive = activeTab === tab.key
           return (
-            <button key={tab.key} onClick={() => { setActiveTab(tab.key); setSelectedModule(null); setSelectedSim(null); }}
+            <button key={tab.key} onClick={() => { setActiveTab(tab.key); setSelectedModule(null); setSelectedSim(null); setActiveECPD(null); }}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap shadow-sm border
                 ${isActive ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>
               {tab.icon} {tab.label}
@@ -1174,7 +1089,6 @@ export default function AfyaMentor() {
                     <div className="flex items-center gap-2 mb-0.5">
                       <p className="font-bold text-gray-800 text-sm">{module.title}</p>
                       {done && <CheckCircle size={14} className="text-green-500"/>}
-                      {module.id === 'mod_empathy_counselling' && <span className="text-[10px] font-bold bg-pink-100 text-pink-700 px-1.5 py-0.5 rounded-full">New</span>}
                     </div>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-xs text-gray-500">{module.duration}</span>
@@ -1330,7 +1244,25 @@ export default function AfyaMentor() {
             </button>
           </div>
 
-          <div className="border-t border-gray-200 pt-4">
+          {/* Custom Prompt Box */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+            <h3 className="font-bold text-gray-800 text-sm mb-2 flex items-center gap-2"><Edit3 size={16} className="text-blue-500"/> Write Your Own Scenario</h3>
+            <textarea 
+              value={customPeerPrompt}
+              onChange={(e) => setCustomPeerPrompt(e.target.value)}
+              placeholder="Type a clinical challenge, a myth you heard, or a question you want to ask your peers..."
+              className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 mb-3"
+              rows={3}
+            />
+            <button disabled={!customPeerPrompt.trim()} onClick={() => {
+              const msg = encodeURIComponent(`🌿 *AfyaMEC Peer Discussion*\n\n${customPeerPrompt}\n\nWhat do you think? 👇`)
+              window.open(`https://wa.me/?text=${msg}`, '_blank')
+            }} className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white font-bold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm">
+              <Send size={14}/> Share Custom Prompt via WhatsApp
+            </button>
+          </div>
+
+          <div className="border-t border-gray-200 pt-2">
             <h3 className="font-bold text-gray-800 text-sm mb-3 flex items-center gap-2"><span className="text-orange-500">💬</span> Youth-Focused Discussions</h3>
             {YOUTH_DISCUSSIONS.map(disc => (
               <div key={disc.id} className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mb-3">
@@ -1377,12 +1309,59 @@ export default function AfyaMentor() {
 
       {/* ── ASSESS TAB ── */}
       {activeTab === 'assess' && (
-        <SupervisionChecklist />
+        <SupervisionChecklist facility={facility} />
       )}
 
       {/* ── eCPD TAB ── */}
-      {activeTab === 'ecpd' && (
-        <ECPDDashboard />
+      {activeTab === 'ecpd' && !activeECPD && (
+        <div className="space-y-4">
+          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-5 text-white shadow-md">
+            <h3 className="font-bold text-lg flex items-center gap-2"><Award size={20}/> AI-Assisted eCPD (Beta)</h3>
+            <p className="text-sm mt-1 opacity-90">Earn Continuous Professional Development credits by passing AI-assessed oral exams based on Kenya FP Guidelines.</p>
+            <div className="mt-4 bg-white/20 rounded-lg p-3 inline-block">
+              <p className="text-xs uppercase tracking-widest opacity-80">Your Credits</p>
+              <p className="text-2xl font-bold">{progress['ecpd_total'] || 0} <span className="text-sm font-normal opacity-80">CPD Points</span></p>
+            </div>
+          </div>
+
+          <div className="grid gap-3">
+            {ECPD_COURSES.map(course => (
+              <div key={course.id} className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
+                <div className="text-3xl bg-gray-50 p-3 rounded-full">{course.icon}</div>
+                <div className="flex-1">
+                  <h4 className="font-bold text-gray-800 text-sm">{course.title}</h4>
+                  <p className="text-xs text-gray-500 mt-0.5">Earn {course.credits} CPD Credits</p>
+                </div>
+                {progress[course.id]?.completed ? (
+                  <span className="text-xs bg-green-100 text-green-700 font-bold px-3 py-1.5 rounded-lg border border-green-200 flex items-center gap-1">
+                    <CheckCircle size={14}/> Completed
+                  </span>
+                ) : course.status === 'available' ? (
+                  <button onClick={() => setActiveECPD(course)} disabled={!geminiApiKey} className="text-xs bg-indigo-50 text-indigo-700 font-bold px-4 py-2 rounded-lg border border-indigo-200 hover:bg-indigo-100 transition-colors disabled:opacity-50">
+                    Start Course
+                  </button>
+                ) : (
+                  <span className="text-xs bg-gray-100 text-gray-400 font-bold px-3 py-1.5 rounded-lg border border-gray-200">
+                    🔒 Locked
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'ecpd' && activeECPD && (
+        <ECPDCourseViewer 
+          course={activeECPD} 
+          apiKey={geminiApiKey} 
+          onBack={() => setActiveECPD(null)}
+          onComplete={(credits) => {
+            saveProgress(activeECPD.id, { completed: true, credits });
+            saveProgress('ecpd_total', (progress['ecpd_total'] || 0) + credits);
+            setActiveECPD(null);
+          }}
+        />
       )}
 
     </div>
