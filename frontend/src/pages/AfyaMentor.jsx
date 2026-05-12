@@ -6,7 +6,7 @@ import { ArrowLeft, BookOpen, Play, CheckCircle, RefreshCw,
          Globe, Trash2, ChevronDown, ChevronUp, Zap, Users, Plus, ClipboardCheck, Award } from 'lucide-react'
 import { getFacilitySettings } from '../utils/facilitySettings.js'
 
-const GEMINI_MODEL = 'gemini-2.0-flash'
+const GEMINI_MODEL = 'gemini-2.5-flash'
 
 // ── LANGUAGE CONFIG ────────────────────────────────────────────────────────────
 const LANGUAGES = [
