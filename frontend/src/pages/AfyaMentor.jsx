@@ -191,13 +191,26 @@ COUNSELLING FRAMEWORK: Always reference BCS+ (not REDI) for counselling guidance
           })
         }
       );
+      
       const data = await res.json();
-      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Error generating response.';
+      if (!res.ok) {
+        throw new Error(`API ${res.status}: ${data.error?.message || JSON.stringify(data)}`)
+      }
+      
+      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text
+      if (!reply) {
+        throw new Error('Empty response from AI — possible safety filter')
+      }
+      
       const finalMessages = [...newMessages, { role: 'assistant', content: reply }];
       setMessages(finalMessages);
       saveToHistory(finalMessages);
     } catch (e) {
-      setMessages([...newMessages, { role: 'assistant', content: 'Network error. Please try again.' }]);
+      console.error('Gemini error:', e)
+      const errMsg = e.message?.includes('fetch') 
+        ? 'Network error. Check internet connection.' 
+        : `AI error: ${e.message || 'Unknown error'}`
+      setMessages([...newMessages, { role: 'assistant', content: errMsg }]);
     }
     setLoading(false);
   };
@@ -288,7 +301,7 @@ COUNSELLING FRAMEWORK: Always reference BCS+ (not REDI) for counselling guidance
               <div className="flex flex-col gap-1 max-w-[85%]">
                 <div className={`p-3 rounded-xl text-sm leading-relaxed whitespace-pre-line ${msg.role === 'user' ? 'bg-teal-600 text-white rounded-tr-none' : 'bg-gray-100 text-gray-800 rounded-tl-none'}`}>
                   {msg.content}
-                  {msg.role === 'assistant' && audioEnabled && (
+                  {msg.role === 'assistant' && audioEnabled && msg.content && (
                     <button onClick={() => speakText(msg.content)} 
                       className="mt-1 self-start text-xs text-gray-400 hover:text-teal-600 flex items-center gap-1">
                       <Volume2 size={10}/> Listen
@@ -443,6 +456,10 @@ CLINICAL ACCURACY: [errors found, or "No clinical errors detected"]`
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return
+    if (!apiKey) {
+      alert('AI key not configured. Check Settings.')
+      return
+    }
     const userMsg = input.trim()
     setInput('')
     setTurnCount(t => t + 1)
@@ -465,18 +482,27 @@ CLINICAL ACCURACY: [errors found, or "No clinical errors detected"]`
           }) }
       )
       const data = await res.json()
-      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
-      const sessionComplete = reply.includes('[SESSION_COMPLETE]') || turnCount >= 12
-      const cleanReply = reply.replace('[SESSION_COMPLETE]', '').trim()
+      
+      const rawReply = data.candidates?.[0]?.content?.parts?.[0]?.text
+      if (!rawReply) {
+        setMessages(prev => [...prev, { role: 'assistant', content: '...' }])
+        return
+      }
+      
+      const sessionComplete = rawReply.includes('[SESSION_COMPLETE]') || turnCount >= 12
+      const cleanReply = rawReply.replace('[SESSION_COMPLETE]', '').trim()
       setMessages(prev => [...prev, { role: 'assistant', content: cleanReply }])
+      
       if (audioEnabled) speakText(cleanReply)
+      
       if (sessionComplete) {
         setTimeout(() => generateFeedback([...newMessages, { role: 'assistant', content: cleanReply }]), 1000)
       }
-    } catch {
+    } catch (e) {
       setMessages(prev => [...prev, { role: 'assistant', content: 'Network error — please check your connection.' }])
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const generateFeedback = async (history) => {
@@ -507,10 +533,11 @@ CLINICAL ACCURACY: [errors found, or "No clinical errors detected"]`
         messages: history.slice(-6),
       }
       saveHistory([entry, ...existing])
-    } catch {
+    } catch (e) {
       setFeedback('Could not generate feedback — check internet connection.')
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const startSession = () => {
@@ -676,10 +703,10 @@ CLINICAL ACCURACY: [errors found, or "No clinical errors detected"]`
               ${msg.role === 'user' ? 'bg-teal-600 text-white' : 'bg-gray-700 text-white'}`}>
               {msg.role === 'user' ? 'You' : 'AI'}
             </div>
-            <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm
+            <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm min-h-[40px]
               ${msg.role === 'user' ? 'text-white rounded-tr-none bg-teal-600' : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none'}`}>
-              {msg.content}
-              {msg.role === 'assistant' && audioEnabled && (
+              {msg.content || <span className="text-gray-300 italic">Thinking...</span>}
+              {msg.role === 'assistant' && audioEnabled && msg.content && (
                 <button onClick={() => speakText(msg.content)} className="ml-2 opacity-40 hover:opacity-100 transition-opacity">
                   <Volume2 size={12}/>
                 </button>
@@ -1290,6 +1317,7 @@ export default function AfyaMentor() {
   
   // THE CORRECT VITE WAY: Just declare it directly. Vite safely replaces this at build time.
   const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY || facility.gemini_api_key || ''
+  console.log('API KEY STATUS:', geminiApiKey ? `Set (${geminiApiKey.substring(0,10)}...)` : 'NOT SET')
 
   const [activeTab, setActiveTab] = useState('ask')
   const [selectedModule, setSelectedModule] = useState(null)
