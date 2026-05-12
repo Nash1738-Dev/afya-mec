@@ -516,10 +516,10 @@ CLINICAL ACCURACY: [errors found, or "No clinical errors detected"]`
   const startSession = () => {
     setPhase('active')
     const opener = scenario.id === 'sim_empathy_side_effects'
-      ? '*enters nervously* ' + langConfig.greeting + '... I haven\'t had my period for 3 months since starting the injection. I\'m thinking of stopping...'
+      ? '*enters nervously* Good morning... I haven\'t had my period for 3 months since starting the injection. I\'m thinking of stopping...'
       : scenario.id === 'sim_si_training'
-        ? '*looking at the device nervously* ' + langConfig.greeting + '. I have to inject myself? I don\'t know how to do this...'
-        : '*enters clinic* ' + langConfig.greeting + '. I was told to come here for family planning...'
+        ? '*looking at the device nervously* Good morning. I have to inject myself? I don\'t know how to do this...'
+        : '*enters clinic* Good morning. I was told to come here for family planning...'
     setMessages([{ role: 'assistant', content: opener, isOpener: true }])
     if (audioEnabled) setTimeout(() => speakText(opener), 500)
   }
@@ -1287,7 +1287,17 @@ function DynamicPeerDiscussion({ apiKey, langConfig, language, customLangText })
 export default function AfyaMentor() {
   const navigate = useNavigate()
   const facility = getFacilitySettings()
-  const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY || facility.gemini_api_key || ''
+  
+  // Safe environment variable check to avoid crashes, with localStorage fallback
+  const getApiKey = () => {
+    try {
+      if (typeof import !== 'undefined' && import.meta && import.meta.env && import.meta.env.VITE_GEMINI_API_KEY) {
+        return import.meta.env.VITE_GEMINI_API_KEY;
+      }
+    } catch (e) { /* ignore */ }
+    return facility?.gemini_api_key || localStorage.getItem('afyamentor_api_key') || '';
+  };
+  const geminiApiKey = getApiKey();
 
   const [activeTab, setActiveTab] = useState('ask')
   const [selectedModule, setSelectedModule] = useState(null)
