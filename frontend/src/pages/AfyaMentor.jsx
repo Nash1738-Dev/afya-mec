@@ -6,7 +6,7 @@ import { ArrowLeft, BookOpen, Play, CheckCircle, RefreshCw,
          Globe, Trash2, ChevronDown, ChevronUp, Zap, Users, Plus, ClipboardCheck, Award } from 'lucide-react'
 import { getFacilitySettings } from '../utils/facilitySettings.js'
 
-const GEMINI_MODEL = 'gemini-2.5-flash'
+const GEMINI_MODEL = 'gemini-2.0-flash'
 
 // ── LANGUAGE CONFIG ────────────────────────────────────────────────────────────
 const LANGUAGES = [
@@ -192,27 +192,33 @@ COUNSELLING FRAMEWORK: Always reference BCS+ (not REDI) for counselling guidance
         }
       );
       
+      if (res.status === 429) {
+        throw new Error('429 - Rate limit exceeded')
+      }
       const data = await res.json();
       if (!res.ok) {
         throw new Error(`API ${res.status}: ${data.error?.message || JSON.stringify(data)}`)
       }
       
-      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text
-      if (!reply) {
-        throw new Error('Empty response from AI — possible safety filter')
-      }
+      const rawReply = data.candidates?.[0]?.content?.parts?.[0]?.text
+      if (!rawReply) throw new Error('Empty response')
+      const reply = rawReply
       
       const finalMessages = [...newMessages, { role: 'assistant', content: reply }];
       setMessages(finalMessages);
       saveToHistory(finalMessages);
     } catch (e) {
       console.error('Gemini error:', e)
-      const errMsg = e.message?.includes('fetch') 
-        ? 'Network error. Check internet connection.' 
-        : `AI error: ${e.message || 'Unknown error'}`
-      setMessages([...newMessages, { role: 'assistant', content: errMsg }]);
+      const is429 = e.message?.includes('429') || String(e).includes('429')
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: is429 
+          ? '⏳ Too many requests — Gemini free tier limit reached. Wait 30 seconds and try again.' 
+          : 'Network error — check your connection.'
+      }])
+    } finally {
+      setLoading(false)
     }
-    setLoading(false);
   };
 
   return (
@@ -481,16 +487,17 @@ CLINICAL ACCURACY: [errors found, or "No clinical errors detected"]`
             generation_config: { temperature: 0.8, max_output_tokens: 300 }
           }) }
       )
-      const data = await res.json()
       
-      const rawReply = data.candidates?.[0]?.content?.parts?.[0]?.text
-      if (!rawReply) {
-        setMessages(prev => [...prev, { role: 'assistant', content: '...' }])
-        return
+      if (res.status === 429) {
+        throw new Error('429 - Rate limit exceeded')
       }
+      const data = await res.json()
+      const rawReply = data.candidates?.[0]?.content?.parts?.[0]?.text
+      if (!rawReply) throw new Error('Empty response')
+      const reply = rawReply
       
-      const sessionComplete = rawReply.includes('[SESSION_COMPLETE]') || turnCount >= 12
-      const cleanReply = rawReply.replace('[SESSION_COMPLETE]', '').trim()
+      const sessionComplete = reply.includes('[SESSION_COMPLETE]') || turnCount >= 12
+      const cleanReply = reply.replace('[SESSION_COMPLETE]', '').trim()
       setMessages(prev => [...prev, { role: 'assistant', content: cleanReply }])
       
       if (audioEnabled) speakText(cleanReply)
@@ -499,7 +506,13 @@ CLINICAL ACCURACY: [errors found, or "No clinical errors detected"]`
         setTimeout(() => generateFeedback([...newMessages, { role: 'assistant', content: cleanReply }]), 1000)
       }
     } catch (e) {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Network error — please check your connection.' }])
+      const is429 = e.message?.includes('429') || String(e).includes('429')
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: is429 
+          ? '⏳ Too many requests — Gemini free tier limit reached. Wait 30 seconds and try again.' 
+          : 'Network error — check your connection.'
+      }])
     } finally {
       setLoading(false)
     }
