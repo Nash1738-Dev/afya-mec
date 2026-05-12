@@ -1288,16 +1288,8 @@ export default function AfyaMentor() {
   const navigate = useNavigate()
   const facility = getFacilitySettings()
   
-  // Safe environment variable check to avoid crashes, with localStorage fallback
-  const getApiKey = () => {
-    try {
-      if (typeof import !== 'undefined' && import.meta && import.meta.env && import.meta.env.VITE_GEMINI_API_KEY) {
-        return import.meta.env.VITE_GEMINI_API_KEY;
-      }
-    } catch (e) { /* ignore */ }
-    return facility?.gemini_api_key || localStorage.getItem('afyamentor_api_key') || '';
-  };
-  const geminiApiKey = getApiKey();
+  // THE CORRECT VITE WAY: Just declare it directly. Vite safely replaces this at build time.
+  const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY || facility.gemini_api_key || ''
 
   const [activeTab, setActiveTab] = useState('ask')
   const [selectedModule, setSelectedModule] = useState(null)
