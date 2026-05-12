@@ -70,24 +70,30 @@ const PROVIDER_DISCUSSIONS = [
   { id: 'pd_mec_challenge', title: '⚕️ Difficult MEC Case', prompt: 'A challenging case with multiple conditions. How did you navigate eligibility and keep it client-centred?', tags: ['MEC', 'Clinical'] },
 ]
 
-const SUPERVISION_CHECKLIST = [
-  { id: 'c1', category: 'Facility Readiness', text: 'Privacy is ensured in the FP counselling area (visual and auditory).' },
-  { id: 'c2', category: 'Facility Readiness', text: 'WHO MEC Wheel and BCS+ algorithm cards are available and visible.' },
-  { id: 'c3', category: 'Facility Readiness', text: 'DMPA-SC training devices and sharps containers are in stock.' },
-  { id: 'c4', category: 'Counselling (REDI)', text: 'Provider greets client warmly and establishes rapport before discussing methods.' },
-  { id: 'c5', category: 'Counselling (REDI)', text: 'Provider asks open-ended questions (OARS) to explore client needs.' },
-  { id: 'c6', category: 'Clinical Practice', text: 'Provider accurately takes and interprets Blood Pressure and BMI.' },
-  { id: 'c7', category: 'Clinical Practice', text: 'Provider uses the WHO 6-question checklist to rule out pregnancy.' },
-  { id: 'c8', category: 'Method Provision', text: 'Provider introduces DMPA-SC Self-Injection as a default option (SI-First).' },
-  { id: 'c9', category: 'Method Provision', text: 'Provider utilizes the MAPS technique for SI training and uses Teach-Back.' },
-  { id: 'c10', category: 'Method Provision', text: 'Provider proactively discusses side effects (Empathy Sandwich) and provides a return date.' },
-]
-
-const ECPD_COURSES = [
-  { id: 'ecpd1', title: 'Advanced LARC Insertion & Removal', credits: 2, status: 'available', icon: '🩹' },
-  { id: 'ecpd2', title: 'Adolescent Sexual & Reproductive Health (ARSH)', credits: 3, status: 'available', icon: '🌱' },
-  { id: 'ecpd3', title: 'Managing Hypertensive Clients in FP', credits: 2, status: 'locked', icon: '❤️' },
-]
+const ECPD_MODULES = {
+  ecpd1: {
+    id: 'ecpd1', title: 'Advanced LARC Insertion & Removal', credits: 2, icon: '🩹',
+    content: [
+      { type: 'lesson', title: 'IUD Insertion — Pre-procedure Checklist', text: `Before IUD insertion, always confirm:\n\n✅ Pregnancy ruled out (WHO 6-question checklist)\n✅ No active PID or STI (MEC Category 4)\n✅ Unexplained vaginal bleeding excluded\n✅ Informed consent obtained\n✅ BP and bimanual examination done\n\nEquipment needed:\n• Speculum, tenaculum, sound, IUD inserter\n• Sterile gloves, antiseptic solution\n• Emergency tray (atropine for vasovagal)`, highlight: '🚨 Never insert IUD with active PID — wait until treatment is complete [WHO MEC 6th Ed]' },
+      { type: 'lesson', title: 'No-Touch IUD Insertion Technique', text: `The NO-TOUCH technique prevents uterine infection:\n\n1. CLEAN: Apply antiseptic to cervix — do NOT touch the insertion tube after this\n2. SOUND: Measure uterine depth — normal is 6-9cm\n3. LOAD: Load IUD without touching the insertion portion\n4. INSERT: Advance to fundus using withdrawal technique\n5. CUT: Leave 3cm of strings visible at os\n6. VERIFY: Bimanual to confirm fundal placement`, highlight: '⚠️ Sound depth <6cm or >9cm — proceed with caution, risk of perforation [Kenya MOH FP Guidelines 2023]' },
+      { type: 'lesson', title: 'Implant Insertion — Subdermal Technique', text: `Implanon NXT (1-rod) insertion:\n\n1. Position: Non-dominant arm, inner upper arm, 8-10cm from medial epicondyle\n2. Mark: Mark insertion site with pen\n3. Anaesthetise: 1-2ml lidocaine subdermal — do NOT inject deep\n4. Insert: Bevel up at 20° angle, advance full length\n5. Retract: Hold obturator still, retract cannula\n6. Verify: Palpate to confirm placement\n7. Dress: Apply bandage 3-5 days\n\nJadelle (2-rod) — insert second rod at slight angle to first.`, highlight: '💡 If you cannot palpate the rod after insertion, do NOT assume it is placed — ultrasound required [WHO MEC 6th Ed]' },
+      { type: 'lesson', title: 'LARC Removal — When and How', text: `Indications for removal:\n• Client request (any time)\n• Expiry (Cu-IUD 10yr, LNG-IUS 5yr, Implanon 3yr, Jadelle 5yr)\n• Medical complication (PID with IUD in situ — treat first, then consider removal)\n• Pregnancy (remove IUD if strings visible)\n\nImplant removal:\n• Use pop-out or U-technique for palpable rods\n• Non-palpable rods require ultrasound guidance before referral\n\nIUD removal:\n• Grasp strings with forceps and apply steady traction\n• If strings not visible: probe, then refer if not locatable`, highlight: '⚠️ Never forcefully remove a deeply embedded implant — refer to trained provider [Kenya MOH FP Guidelines 2023]' },
+      { type: 'quiz', question: 'What is the minimum uterine depth required before safe IUD insertion?', options: ['4cm', '6cm', '8cm', '10cm'], correct: 1, explanation: 'Uterine depth <6cm increases perforation risk significantly. 6-9cm is the safe range. [WHO MEC 6th Ed]' },
+      { type: 'quiz', question: 'After Implanon NXT insertion you cannot palpate the rod. What should you do?', options: ['Assume it is placed and close', 'Re-insert a new rod immediately', 'Order ultrasound before assuming placement', 'Ask the client to return in 2 weeks'], correct: 2, explanation: 'Non-palpable rods require ultrasound confirmation. Never assume placement. [Kenya MOH FP Guidelines 2023]' },
+    ]
+  },
+  ecpd2: {
+    id: 'ecpd2', title: 'Adolescent Sexual & Reproductive Health (ARSH)', credits: 3, icon: '🌱',
+    content: [
+      { type: 'lesson', title: 'Kenya ARSH Legal Framework', text: `Kenya law and policy on adolescent SRH:\n\n✅ Age of consent for medical care: 18 years (but FP services available to under-18s with confidentiality)\n✅ Kenya Sexual Offences Act: Provider MUST report suspected child sexual abuse\n✅ Parental consent: NOT required for adolescent FP services (Kenya MOH ARSH guidelines)\n✅ HIV testing: Adolescents 15+ can consent independently\n\nKey principle: Confidentiality is ABSOLUTE unless there is risk of harm to the adolescent or others.`, highlight: '⚖️ Confidentiality and non-judgement are legal AND ethical obligations for adolescent clients [Kenya MOH ARSH Guidelines]' },
+      { type: 'lesson', title: 'Youth-Friendly Service Standards (YFHS)', text: `Kenya YFHS standards require:\n\n🌟 ACCESSIBLE — known hours, affordable, no parental requirement\n🌟 ACCEPTABLE — non-judgmental, confidential, respectful\n🌟 EQUITABLE — serves all adolescents regardless of gender, status\n🌟 APPROPRIATE — age-specific information, dual protection emphasis\n🌟 EFFECTIVE — evidence-based, linked to other services\n\nYouth-friendly language examples:\n❌ "Are you married?" → ✅ "Tell me about your relationship"\n❌ "Why are you sexually active?" → ✅ "What brings you in today?"`, highlight: '💡 A youth-friendly provider asks, listens, and never judges [Kenya MOH ARSH Guidelines]' },
+      { type: 'lesson', title: 'Best FP Methods for Adolescents', text: `WHO MEC + Kenya ARSH recommendations:\n\n✅ Implant — Category 1. TOP CHOICE. Long-acting, private, reversible.\n✅ Cu-IUD/LNG-IUS — Category 2. Nulliparity NOT a contraindication.\n⚠️ DMPA — Category 2 under 16 (bone density concern). Not first choice.\n✅ COC/POP — Category 1 with no contraindications.\n✅ Condoms — ALWAYS. Dual protection is the standard.\n\nKey message to adolescents:\n"The best method for you is one you will USE correctly and consistently."`, highlight: '💊 Implant is the preferred LARC for adolescents in Kenya. DMPA under 16 needs careful counselling about bone health [Kenya MOH ARSH Guidelines]' },
+      { type: 'lesson', title: 'Assessing for Coercion — The SAFE Protocol', text: `Before providing FP to adolescents, assess for coercion:\n\nS — Safety: "Do you feel safe at home and in your relationship?"\nA — Afraid: "Is anyone pressuring you about sex or pregnancy?"\nF — Friends/Family: "Do you have adults you trust to talk to?"\nE — Emergency: "Do you know how to get help in an emergency?"\n\nIf coercion is identified:\n• Do NOT refuse services — this increases risk\n• Provide services AND link to safeguarding resources\n• Document carefully\n• Mandatory reporting if sexual abuse of a minor is disclosed`, highlight: '🚨 If a minor discloses sexual abuse, you MUST report to authorities under the Sexual Offences Act — this is NOT optional [Kenya Sexual Offences Act 2006]' },
+      { type: 'quiz', question: 'A 16-year-old comes alone for FP. Her parent is not with her. Can you provide services?', options: ['No — she needs parental consent', 'Yes — Kenya MOH ARSH guidelines allow confidential FP for adolescents without parental consent', 'Only if she is married', 'Only emergency contraception, not ongoing methods'], correct: 1, explanation: 'Kenya MOH ARSH guidelines explicitly allow confidential FP services for adolescents without parental consent. Confidentiality is an ethical and policy obligation. [Kenya MOH ARSH Guidelines]' },
+      { type: 'quiz', question: 'A 15-year-old requests DMPA. You are aware of bone density concerns. What do you do?', options: ['Refuse — DMPA is Category 4 under 18', 'Provide DMPA after counselling about bone density, and offer implant as the preferred alternative', 'Only give condoms until she is 18', 'Require parent to be present before providing DMPA'], correct: 1, explanation: 'DMPA is Category 2 for adolescents under 16 — not contraindicated, but requires counselling about bone density. Implant is preferred but DMPA is acceptable. [WHO MEC 6th Ed, Kenya MOH ARSH Guidelines]' },
+    ]
+  }
+}
 
 const MEMORY_KEY = 'afyamentor_sim_history'
 const PROGRESS_KEY = 'afyamentor_progress'
@@ -104,7 +110,20 @@ function OpenMentorChat({ apiKey, language, customLangText, langConfig }) {
   const [showHistory, setShowHistory] = useState(false);
   const messagesEndRef = useRef(null);
 
+  const [audioEnabled, setAudioEnabled] = useState(false)
+  const synthRef = useRef(window.speechSynthesis)
+
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages]);
+
+  const speakText = (text) => {
+    if (!audioEnabled || !synthRef.current) return
+    synthRef.current.cancel()
+    const clean = text.replace(/[*#]/g, '').trim()
+    const utterance = new SpeechSynthesisUtterance(clean.substring(0, 500))
+    utterance.lang = langConfig.voiceLang
+    utterance.rate = 0.9
+    synthRef.current.speak(utterance)
+  }
 
   const saveToHistory = (newMessages) => {
     if (newMessages.length < 2) return;
@@ -120,18 +139,35 @@ function OpenMentorChat({ apiKey, language, customLangText, langConfig }) {
     setShowHistory(false);
   };
 
-  const getSystemPrompt = () => `You are "Afya Mentor", an expert clinical trainer and supervisor for Family Planning. 
-  You assist healthcare providers. Be highly encouraging, practical, and EXTREMELY concise. Use bullet points.
-  
-  CRITICAL INSTRUCTION FOR LANGUAGE/DIALECT: ${getLangInstruction(language, customLangText)}
-  
-  RAG FENCING & CITATION STRICTNESS: 
-  - For ANY Family Planning or Reproductive Health question, you MUST base your answers strictly on the WHO Medical Eligibility Criteria (MEC) 6th Edition, Kenya MOH FP Guidelines, or the REDI/BCS+ frameworks. 
-  - Always quote your source briefly at the end of the point (e.g., "[Source: WHO MEC 6th Ed]").
-  - If the user asks a general medical or non-FP question that is outside the scope of WHO MEC (e.g., "What are symptoms of Malaria?", "How to treat a burn?"), you may use your pre-trained internet medical knowledge, but you MUST state exactly this at the beginning of your response: "Based on general internet medical knowledge (outside FP guidelines)..." and then answer concisely.
-  - Do NOT hallucinate FP guidelines.
+  const getSystemPrompt = () => `You are "Afya Mentor", an expert Kenya MOH Family Planning clinical trainer.
 
-  COUNSELLING FRAMEWORKS: Always reference the REDI counseling framework (Rapport, Explore, Decide, Implement) and the MAPS technique (Mix, Activate, Pinch, Self-inject) when relevant.`;
+LANGUAGE: ${getLangInstruction(language, customLangText)}
+
+SCOPE FENCE — CRITICAL:
+You ONLY answer questions about Family Planning, Reproductive Health, Sexual Health, and directly related topics (nutrition in FP context, HIV/ARV interactions with FP methods, adolescent SRH, etc.).
+If asked ANYTHING outside this scope (politics, cooking, general medicine unrelated to FP, entertainment, etc.), respond EXACTLY: "I'm specialised in Family Planning only. For other questions, please use a general AI assistant like ChatGPT or Google."
+
+FP KNOWLEDGE BASE (use in strict priority order):
+1. Kenya MOH FP Guidelines (2023) — PRIMARY SOURCE
+2. WHO Medical Eligibility Criteria 6th Edition — PRIMARY SOURCE  
+3. BCS+ (Balanced Counselling Strategy Plus) — Kenya standard counselling framework
+4. MAPS technique for DMPA-SC self-injection
+5. General peer-reviewed reproductive health literature — SECONDARY SOURCE ONLY
+
+CITATION RULES:
+- End every factual point with a source tag: [Kenya MOH FP Guidelines 2023], [WHO MEC 6th Ed], [BCS+], or [General RH Literature]
+- When using secondary sources, start with: "Based on general reproductive health literature (not in Kenya MOH guidelines)..."
+- NEVER fabricate guidelines. If unsure, say so.
+- Include a real URL only when you are certain it is correct (e.g., https://www.who.int/publications/i/item/9789240084551 for WHO MEC)
+
+FORMATTING RULES — CRITICAL:
+- Use plain HTML-style bold with double asterisks is NOT acceptable.
+- Structure responses with clear sections using emojis as headers (e.g. "✅ Answer:", "📋 Steps:", "⚠️ Caution:")
+- Use bullet points (•) not dashes
+- Maximum 4 bullet points per section — be concise
+- Never use *asterisks* for bold — the UI renders them as plain text
+
+COUNSELLING FRAMEWORK: Always reference BCS+ (not REDI) for counselling guidance. BCS+ is the Kenya MOH standard with 4 stages: Pre-Choice, Method Choice, Post-Choice, STI/HIV.`
 
   const sendMessage = async (presetInput = null) => {
     const textToSend = presetInput || input;
@@ -174,6 +210,12 @@ function OpenMentorChat({ apiKey, language, customLangText, langConfig }) {
           <span className="font-bold text-gray-700 text-sm">Ask Mentor ({language === 'custom' ? customLangText || 'Custom' : langConfig.label})</span>
         </div>
         <div className="flex items-center gap-3">
+          <button onClick={() => setAudioEnabled(!audioEnabled)}
+            className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg transition-colors
+              ${audioEnabled ? 'bg-teal-100 text-teal-700' : 'text-gray-500 hover:text-teal-600'}`}>
+            {audioEnabled ? <Volume2 size={14}/> : <VolumeX size={14}/>}
+            {audioEnabled ? 'Audio' : 'Audio'}
+          </button>
           <button onClick={() => setShowHistory(!showHistory)} className="flex items-center gap-1 text-xs text-gray-500 hover:text-teal-600">
             <History size={14}/> {showHistory ? 'Close History' : 'View History'}
           </button>
@@ -246,6 +288,12 @@ function OpenMentorChat({ apiKey, language, customLangText, langConfig }) {
               <div className="flex flex-col gap-1 max-w-[85%]">
                 <div className={`p-3 rounded-xl text-sm leading-relaxed whitespace-pre-line ${msg.role === 'user' ? 'bg-teal-600 text-white rounded-tr-none' : 'bg-gray-100 text-gray-800 rounded-tl-none'}`}>
                   {msg.content}
+                  {msg.role === 'assistant' && audioEnabled && (
+                    <button onClick={() => speakText(msg.content)} 
+                      className="mt-1 self-start text-xs text-gray-400 hover:text-teal-600 flex items-center gap-1">
+                      <Volume2 size={10}/> Listen
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -476,7 +524,6 @@ CLINICAL ACCURACY: [errors found, or "No clinical errors detected"]`
     if (audioEnabled) setTimeout(() => speakText(opener), 500)
   }
 
-  // FIX: Scroll Bug addressed by separating the text into an overflow container and locking the button to the bottom
   if (phase === 'intro') return (
     <div className="relative flex flex-col h-full bg-white">
       {/* Scrollable Content */}
@@ -680,7 +727,6 @@ CLINICAL ACCURACY: [errors found, or "No clinical errors detected"]`
 
 // ── MODULE VIEWER ──────────────────────────────────────────────────────────────
 function ModuleViewer({ module, onComplete }) {
-  // Keeping ModuleViewer essentially the same, just ensuring styling matches
   const [currentStep, setCurrentStep] = useState(0)
   const [answers, setAnswers] = useState({})
   const [showExplanation, setShowExplanation] = useState({})
@@ -704,7 +750,7 @@ function ModuleViewer({ module, onComplete }) {
     if (isLast) {
       const finalScore = quizItems.length > 0 ? Math.round((answeredCorrectly / quizItems.length) * 10) : 10
       setCompleted(true)
-      onComplete(finalScore, module.points)
+      onComplete(finalScore, module.points || module.credits)
     } else {
       setCurrentStep(s => s + 1)
     }
@@ -716,7 +762,7 @@ function ModuleViewer({ module, onComplete }) {
       <h3 className="font-bold text-gray-800 text-lg mb-1">{answeredCorrectly === quizItems.length ? 'Excellent!' : 'Well done!'}</h3>
       <p className="text-gray-500 text-sm mb-4">Quiz: {answeredCorrectly}/{quizItems.length} correct</p>
       <div className="bg-teal-50 rounded-xl p-4 mb-4">
-        <p className="text-2xl font-bold text-teal-600">+{module.points} pts</p>
+        <p className="text-2xl font-bold text-teal-600">+{module.points || module.credits} pts</p>
       </div>
     </div>
   )
@@ -853,87 +899,386 @@ function HistoryViewer({ onClose, onContinue }) {
 }
 
 // ── SUPERVISION CHECKLIST (SELF-ASSESSMENT) ──────────────────────────────────
-function SupervisionChecklist() {
-  const [checked, setChecked] = useState(() => JSON.parse(localStorage.getItem('afyamentor_supervision') || '[]'));
-  
-  const handleToggle = (id) => {
-    const updated = checked.includes(id) ? checked.filter(c => c !== id) : [...checked, id];
-    setChecked(updated);
-    localStorage.setItem('afyamentor_supervision', JSON.stringify(updated));
-  };
+function SupervisionChecklist({ apiKey }) {
+  const facility = getFacilitySettings()
+  const [responses, setResponses] = useState(() => JSON.parse(localStorage.getItem('afyamentor_disc_responses') || '{}'))
+  const [aiSummary, setAiSummary] = useState('')
+  const [generating, setGenerating] = useState(false)
+  const [activeSection, setActiveSection] = useState('training')
 
-  const score = Math.round((checked.length / SUPERVISION_CHECKLIST.length) * 100);
-  const color = score >= 80 ? 'text-green-600' : score >= 50 ? 'text-amber-500' : 'text-red-500';
+  const saveResponse = (id, value) => {
+    const updated = { ...responses, [id]: value }
+    setResponses(updated)
+    localStorage.setItem('afyamentor_disc_responses', JSON.stringify(updated))
+  }
+
+  const SECTIONS = {
+    training: {
+      label: '📚 Training', color: '#0d7377',
+      questions: [
+        { id: 'q1', text: 'Are FP providers trained/mentored on DMPA-SC SI?', type: 'select', options: ['All providers (10%)', 'Some providers (5%)', 'None (0%)'], scores: [10, 5, 0] },
+        { id: 'q2', text: 'Has the site received support supervision within 6 weeks post-training?', type: 'yesno', scores: [5, 0] },
+        { id: 'q3', text: 'How many providers trained in Empathy-Based Counselling?', type: 'number' },
+      ]
+    },
+    supply: {
+      label: '📦 Supply Chain', color: '#7c3aed',
+      questions: [
+        { id: 'q4', text: 'Any FP method stockouts in the past 3 months?', type: 'yesno', scores: [0, 5], invert: true },
+        { id: 'q5', text: 'Are stock cards being used correctly and up to date?', type: 'yesno', scores: [5, 0] },
+        { id: 'q6', text: 'Did facility receive FP commodities for last orders placed?', type: 'yesno', scores: [5, 0] },
+        { id: 'q7', text: 'If limited SI stock, are clients still counselled and trained on SI?', type: 'yesno', scores: [5, 0] },
+      ]
+    },
+    service: {
+      label: '💉 SI Service Delivery', color: '#14a044',
+      questions: [
+        { id: 'q8', text: 'Does the facility have a private lockable room for FP counselling?', type: 'yesno', scores: [5, 0] },
+        { id: 'q9', text: 'SI counselling offered all days of the week?', type: 'yesno', scores: [5, 0] },
+        { id: 'q10', text: 'All SI supplies available? (instruction sheet, sharps box, training device, DMPA-SC, MEC wheel)', type: 'select', options: ['All 5+ supplies (10%)', '3-4 supplies (6%)', '0-2 supplies (0%)'], scores: [10, 6, 0] },
+        { id: 'q11', text: 'Clients given take-home SI doses from second visit?', type: 'yesno', scores: [5, 0] },
+      ]
+    },
+    data: {
+      label: '📊 Data & Reporting', color: '#f59e0b',
+      questions: [
+        { id: 'q12', text: 'MOH 512, 711, and 747A reporting tools updated and available?', type: 'select', options: ['All tools (6%)', 'Some tools (4%)', 'No tools (0%)'], scores: [6, 4, 0] },
+        { id: 'q13', text: 'DMPA-SC SI data disaggregated with doses dispensed?', type: 'select', options: ['All 3 months (6%)', 'Inconsistently (4%)', 'No disaggregation (0%)'], scores: [6, 4, 0] },
+        { id: 'q14', text: 'Facility reporting consistently via ODK last 3 months?', type: 'select', options: ['All 3 months (6%)', 'Inconsistently (4%)', 'No reporting (0%)'], scores: [6, 4, 0] },
+        { id: 'q15', text: 'DMPA-SC SI clients seen in past 3 months (enter number)', type: 'number' },
+      ]
+    }
+  }
+
+  const calcScore = () => {
+    let total = 0, max = 0
+    Object.values(SECTIONS).forEach(section => {
+      section.questions.forEach(q => {
+        if (q.scores) {
+          max += q.scores[0]
+          const resp = responses[q.id]
+          if (resp !== undefined && resp !== '') {
+            total += q.scores[parseInt(resp)] || 0
+          }
+        }
+      })
+    })
+    return { total, max, pct: max > 0 ? Math.round((total / max) * 100) : 0 }
+  }
+
+  const generateAISummary = async () => {
+    if (!apiKey) return
+    setGenerating(true)
+    const scoreData = calcScore()
+    const responseText = Object.entries(responses).map(([k, v]) => `${k}: ${v}`).join(', ')
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: `You are a Kenya MOH DISC project supervisor. Based on this facility assessment:
+Facility: ${facility.facility_name || 'Unknown'} | County: ${facility.county || 'Unknown'} | Score: ${scoreData.total}/${scoreData.max} (${scoreData.pct}%)
+Responses: ${responseText}
+
+Generate a concise supervision feedback report with:
+1. Overall score interpretation (what it means)
+2. Top 2 strengths observed
+3. Top 3 priority actions needed (specific, actionable)
+4. One motivational closing statement for the provider
+
+Keep it under 200 words. Use bullet points. Reference Kenya MOH/DISC guidelines.` }] }],
+            generation_config: { temperature: 0.4 }
+          }) }
+      )
+      const data = await res.json()
+      setAiSummary(data.candidates[0].content.parts[0].text || '')
+    } catch { setAiSummary('Could not generate summary. Check connection.') }
+    setGenerating(false)
+  }
+
+  const score = calcScore()
+  const scoreColor = score.pct >= 80 ? '#14a044' : score.pct >= 50 ? '#f59e0b' : '#dc2626'
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-      <div className="flex items-center justify-between mb-4">
+    <div className="space-y-4">
+      {/* Facility info banner */}
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+        <p className="text-xs font-bold text-blue-800 mb-1">📍 Facility Being Assessed</p>
+        <p className="text-sm font-semibold text-blue-900">{facility.facility_name || 'Set in Settings'}</p>
+        <p className="text-xs text-blue-600">{facility.sub_county || '—'} Sub-County, {facility.county || '—'} County | Code: {facility.facility_code || '—'}</p>
+      </div>
+
+      {/* Score */}
+      <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between">
         <div>
-          <h3 className="font-bold text-gray-800">Supervision Self-Assessment</h3>
-          <p className="text-xs text-gray-500">Ensure your facility & practice meet MOH standards</p>
+          <p className="text-xs text-gray-500 uppercase tracking-widest">Assessment Score</p>
+          <p className="text-3xl font-bold" style={{color: scoreColor}}>{score.pct}%</p>
+          <p className="text-xs text-gray-400">{score.total}/{score.max} points</p>
         </div>
-        <div className="text-right">
-          <p className={`text-2xl font-bold ${color}`}>{score}%</p>
-          <p className="text-[10px] text-gray-400 uppercase tracking-widest">Readiness</p>
+        <div className="w-20 h-20 relative">
+          <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e5e7eb" strokeWidth="3"/>
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke={scoreColor} strokeWidth="3"
+              strokeDasharray={`${score.pct} ${100 - score.pct}`} strokeLinecap="round"/>
+          </svg>
         </div>
       </div>
-      
-      <div className="space-y-4">
-        {['Facility Readiness', 'Counselling (REDI)', 'Clinical Practice', 'Method Provision'].map(cat => (
-          <div key={cat}>
-            <h4 className="text-xs font-bold text-blue-800 bg-blue-50 px-3 py-1.5 rounded-t-lg border border-b-0 border-blue-100">{cat}</h4>
-            <div className="border border-blue-100 rounded-b-lg overflow-hidden divide-y divide-gray-100">
-              {SUPERVISION_CHECKLIST.filter(c => c.category === cat).map(item => (
-                <label key={item.id} className="flex items-start gap-3 p-3 hover:bg-gray-50 cursor-pointer transition-colors">
-                  <input type="checkbox" checked={checked.includes(item.id)} onChange={() => handleToggle(item.id)}
-                    className="mt-0.5 w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"/>
-                  <span className={`text-sm ${checked.includes(item.id) ? 'text-gray-500 line-through' : 'text-gray-700'}`}>{item.text}</span>
-                </label>
-              ))}
-            </div>
-          </div>
+
+      {/* Section tabs */}
+      <div className="grid grid-cols-4 gap-1">
+        {Object.entries(SECTIONS).map(([key, section]) => (
+          <button key={key} onClick={() => setActiveSection(key)}
+            className={`py-2 px-1 rounded-lg text-xs font-bold transition-colors text-center
+              ${activeSection === key ? 'text-white' : 'bg-gray-100 text-gray-600'}`}
+            style={activeSection === key ? {background: section.color} : {}}>
+            {section.label.split(' ')[0]}<br/>{section.label.split(' ').slice(1).join(' ')}
+          </button>
         ))}
       </div>
-      <button onClick={() => { if(confirm('Reset checklist?')) { setChecked([]); localStorage.removeItem('afyamentor_supervision') } }}
-        className="mt-4 text-xs text-red-500 hover:text-red-700 underline">Reset Checklist</button>
+
+      {/* Active section questions */}
+      {Object.entries(SECTIONS).map(([key, section]) => activeSection === key && (
+        <div key={key} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="px-4 py-3 font-bold text-white text-sm" style={{background: section.color}}>
+            {section.label}
+          </div>
+          <div className="divide-y divide-gray-100">
+            {section.questions.map(q => (
+              <div key={q.id} className="p-4">
+                <p className="text-sm text-gray-700 font-medium mb-2">{q.text}</p>
+                {q.type === 'yesno' && (
+                  <div className="flex gap-2">
+                    {['Yes', 'No'].map((opt, i) => (
+                      <button key={opt} onClick={() => saveResponse(q.id, i)}
+                        className={`flex-1 py-2 rounded-lg text-sm font-bold border-2 transition-colors
+                          ${responses[q.id] === i ? 'text-white border-transparent' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
+                        style={responses[q.id] === i ? {background: i === 0 ? '#14a044' : '#dc2626'} : {}}>
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {q.type === 'select' && (
+                  <div className="space-y-2">
+                    {q.options.map((opt, i) => (
+                      <button key={opt} onClick={() => saveResponse(q.id, i)}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-xs border-2 transition-colors
+                          ${responses[q.id] === i ? 'border-teal-400 bg-teal-50 text-teal-700 font-bold' : 'border-gray-200 text-gray-600 hover:border-teal-200'}`}>
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {q.type === 'number' && (
+                  <input type="number" min="0"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
+                    placeholder="Enter number..."
+                    value={responses[q.id] || ''}
+                    onChange={e => saveResponse(q.id, e.target.value)}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {/* AI Summary */}
+      <button onClick={generateAISummary} disabled={generating || !apiKey}
+        className="w-full text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:bg-gray-300"
+        style={{background: 'linear-gradient(135deg,#0d7377,#14a044)'}}>
+        {generating ? <RefreshCw size={16} className="animate-spin"/> : <Zap size={16}/>}
+        {generating ? 'Generating AI Summary...' : 'Generate AI Supervision Report'}
+      </button>
+
+      {aiSummary && (
+        <div className="bg-white border border-teal-200 rounded-xl p-4 shadow-sm">
+          <h3 className="font-bold text-teal-700 text-sm mb-3 flex items-center gap-2">
+            <CheckCircle size={16}/> AI Supervision Report — {facility.facility_name}
+          </h3>
+          <p className="text-sm text-gray-700 whitespace-pre-line leading-relaxed">
+            {aiSummary.replace(/\*\*/g, '').replace(/#{1,3}\s/g, '')}
+          </p>
+          <p className="text-xs text-gray-400 mt-3">Generated {new Date().toLocaleString('en-KE')} | Score: {score.pct}%</p>
+        </div>
+      )}
+
+      <button onClick={() => { if(confirm('Reset all responses?')) { setResponses({}); setAiSummary(''); localStorage.removeItem('afyamentor_disc_responses') } }}
+        className="text-xs text-red-500 hover:text-red-700 underline">Reset Assessment</button>
     </div>
-  );
+  )
 }
 
 // ── eCPD POC DASHBOARD ────────────────────────────────────────────────────────
-function ECPDDashboard() {
+function ECPDDashboard({ apiKey }) {
+  const [activeCourse, setActiveCourse] = useState(null)
+  const [credits, setCredits] = useState(() => JSON.parse(localStorage.getItem('afyamentor_ecpd_credits') || '{}'))
+
+  const earnCredit = (courseId, score) => {
+    if (score >= 6) {
+      const updated = { ...credits, [courseId]: { earned: true, score, date: new Date().toLocaleDateString('en-KE') } }
+      setCredits(updated)
+      localStorage.setItem('afyamentor_ecpd_credits', JSON.stringify(updated))
+    }
+    setActiveCourse(null)
+  }
+
+  // Recalculate properly
+  const earnedCredits = Object.entries(credits).filter(([,v]) => v.earned).reduce((sum, [id]) => {
+    return sum + (ECPD_MODULES[id]?.credits || 0)
+  }, 0)
+
+  if (activeCourse) return (
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-3 bg-indigo-50">
+        <button onClick={() => setActiveCourse(null)} className="text-gray-400 hover:text-gray-600">
+          <ArrowLeft size={16}/>
+        </button>
+        <div className="text-xl">{activeCourse.icon}</div>
+        <div>
+          <p className="font-bold text-gray-700 text-sm">{activeCourse.title}</p>
+          <p className="text-xs text-indigo-600">{activeCourse.credits} CPD Credits on completion</p>
+        </div>
+      </div>
+      <ModuleViewer
+        module={activeCourse}
+        onComplete={(score) => earnCredit(activeCourse.id, score)}
+      />
+    </div>
+  )
+
   return (
     <div className="space-y-4">
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-5 text-white shadow-md">
-        <h3 className="font-bold text-lg flex items-center gap-2"><Award size={20}/> AI-Assisted eCPD (Beta)</h3>
-        <p className="text-sm mt-1 opacity-90">Earn Continuous Professional Development credits by completing AI-assessed modules and Oral Viva Voce exams.</p>
+      <div className="rounded-xl p-5 text-white shadow-md" style={{background:'linear-gradient(135deg,#4f46e5,#7c3aed)'}}>
+        <h3 className="font-bold text-lg flex items-center gap-2"><Award size={20}/> AI-Assisted eCPD</h3>
+        <p className="text-sm mt-1 opacity-90">Earn CPD credits by completing Kenya MOH-aligned FP courses with AI-assessed quizzes.</p>
         <div className="mt-4 bg-white/20 rounded-lg p-3 inline-block">
-          <p className="text-xs uppercase tracking-widest opacity-80">Your Credits</p>
-          <p className="text-2xl font-bold">0 <span className="text-sm font-normal opacity-80">CPD Points</span></p>
+          <p className="text-xs uppercase tracking-widest opacity-80">Credits Earned</p>
+          <p className="text-2xl font-bold">{earnedCredits} <span className="text-sm font-normal opacity-80">CPD Points</span></p>
         </div>
       </div>
 
       <div className="grid gap-3">
-        {ECPD_COURSES.map(course => (
-          <div key={course.id} className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
-            <div className="text-3xl bg-gray-50 p-3 rounded-full">{course.icon}</div>
-            <div className="flex-1">
-              <h4 className="font-bold text-gray-800 text-sm">{course.title}</h4>
-              <p className="text-xs text-gray-500 mt-0.5">Earn {course.credits} CPD Credits</p>
-            </div>
-            {course.status === 'available' ? (
-              <button className="text-xs bg-indigo-50 text-indigo-700 font-bold px-4 py-2 rounded-lg border border-indigo-200 hover:bg-indigo-100 transition-colors">
-                Start Course
+        {Object.values(ECPD_MODULES).map(course => {
+          const earned = credits[course.id]?.earned
+          return (
+            <div key={course.id} className="bg-white rounded-xl border border-gray-200 p-4">
+              <div className="flex items-center gap-4 mb-3">
+                <div className="text-3xl bg-gray-50 p-3 rounded-full">{course.icon}</div>
+                <div className="flex-1">
+                  <h4 className="font-bold text-gray-800 text-sm">{course.title}</h4>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {course.credits} CPD Credits · {course.content.filter(c => c.type === 'lesson').length} lessons · {course.content.filter(c => c.type === 'quiz').length} quiz questions
+                  </p>
+                  {earned && (
+                    <p className="text-xs text-green-600 font-bold mt-1">
+                      ✅ Completed — {credits[course.id]?.date} · Score: {credits[course.id]?.score}/10
+                    </p>
+                  )}
+                </div>
+              </div>
+              <button onClick={() => setActiveCourse(course)}
+                className={`w-full font-bold py-2.5 rounded-xl text-sm transition-colors ${earned ? 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100' : 'text-white'}`}
+                style={!earned ? {background:'linear-gradient(135deg,#4f46e5,#7c3aed)'} : {}}>
+                {earned ? '🔄 Retake Course' : `Start Course — Earn ${course.credits} CPD Credits`}
               </button>
-            ) : (
-              <span className="text-xs bg-gray-100 text-gray-400 font-bold px-3 py-1.5 rounded-lg border border-gray-200">
-                🔒 Locked
-              </span>
-            )}
-          </div>
+            </div>
+          )
+        })}
+      </div>
+      <p className="text-xs text-center text-gray-400 italic">eCPD is currently a Proof of Concept. Official CPD accreditation integration with Kenya MOH is in development.</p>
+    </div>
+  )
+}
+
+function DynamicPeerDiscussion({ apiKey, langConfig, language, customLangText }) {
+  const [customTopic, setCustomTopic] = useState('')
+  const [generatedTopic, setGeneratedTopic] = useState(null)
+  const [generating, setGenerating] = useState(false)
+  const [shareMode, setShareMode] = useState('type') // 'type' | 'generate'
+
+  const generateTopic = async () => {
+    if (!apiKey) return
+    setGenerating(true)
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: `Generate a realistic, provocative peer discussion question for Kenya family planning health providers. It should be a real clinical or social dilemma (not textbook). Return JSON only: {"title": "short title with emoji", "prompt": "the discussion question", "tags": ["tag1","tag2"]}` }] }],
+            generation_config: { temperature: 0.9 }
+          }) }
+      )
+      const data = await res.json()
+      let text = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim()
+      setGeneratedTopic(JSON.parse(text))
+    } catch { setGeneratedTopic({ title: '💬 Open Discussion', prompt: 'Share a challenging FP case from your practice this month.', tags: ['Clinical'] }) }
+    setGenerating(false)
+  }
+
+  const shareOnWhatsApp = (title, prompt) => {
+    const msg = encodeURIComponent(`🌿 *AfyaMEC Peer Discussion*\n\n*${title}*\n\n${prompt}\n\nShare your experience 👇`)
+    window.open(`https://wa.me/?text=${msg}`, '_blank')
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-purple-200 shadow-sm p-4 mb-4">
+      <h3 className="font-bold text-gray-800 text-sm mb-3 flex items-center gap-2">
+        <Zap size={16} className="text-purple-600"/> Dynamic Discussion Topics
+      </h3>
+      <div className="flex gap-2 mb-3">
+        {['type', 'generate'].map(mode => (
+          <button key={mode} onClick={() => setShareMode(mode)}
+            className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors
+              ${shareMode === mode ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+            {mode === 'type' ? '✍️ Type Your Case' : '⚡ AI Generate Topic'}
+          </button>
         ))}
       </div>
-      <p className="text-xs text-center text-gray-400 italic">This is a Proof of Concept integrating AI-based verbal examinations for official CPD accreditation.</p>
+
+      {shareMode === 'type' && (
+        <div>
+          <textarea
+            className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-purple-400 resize-none"
+            rows={3}
+            placeholder="Describe a clinical case, dilemma, or question you want to discuss with peers..."
+            value={customTopic}
+            onChange={e => setCustomTopic(e.target.value)}
+          />
+          <button onClick={() => shareOnWhatsApp('Provider Case Discussion', customTopic)}
+            disabled={!customTopic.trim()}
+            className="mt-2 w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-300 text-white font-bold py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 transition-colors">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Share on WhatsApp
+          </button>
+        </div>
+      )}
+
+      {shareMode === 'generate' && (
+        <div>
+          <button onClick={generateTopic} disabled={generating || !apiKey}
+            className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white font-bold py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 transition-colors mb-3">
+            {generating ? <RefreshCw size={14} className="animate-spin"/> : <Zap size={14}/>}
+            {generating ? 'Generating...' : 'Generate New Topic'}
+          </button>
+          {generatedTopic && (
+            <div className="bg-purple-50 border border-purple-200 rounded-xl p-3">
+              <p className="font-bold text-purple-800 text-sm mb-1">{generatedTopic.title}</p>
+              <p className="text-sm text-gray-700 italic mb-3">"{generatedTopic.prompt}"</p>
+              <div className="flex flex-wrap gap-1 mb-3">
+                {generatedTopic.tags?.map(t => (
+                  <span key={t} className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{t}</span>
+                ))}
+              </div>
+              <button onClick={() => shareOnWhatsApp(generatedTopic.title, generatedTopic.prompt)}
+                className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded-lg text-xs flex items-center justify-center gap-2">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                Share on WhatsApp
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -1317,6 +1662,11 @@ export default function AfyaMentor() {
       {activeTab === 'peers' && (
         <div className="space-y-4">
           
+          {/* Dynamic Peer Topic Generator */}
+          <>
+            <DynamicPeerDiscussion apiKey={geminiApiKey} langConfig={langConfig} language={language} customLangText={customLangText} />
+          </>
+
           <div className="bg-green-50 border border-green-200 rounded-xl p-4 shadow-sm">
             <h3 className="font-bold text-green-800 text-sm mb-2 flex items-center gap-2">
               <Users size={18} /> Official Provider & Youth Community
@@ -1377,12 +1727,12 @@ export default function AfyaMentor() {
 
       {/* ── ASSESS TAB ── */}
       {activeTab === 'assess' && (
-        <SupervisionChecklist />
+        <SupervisionChecklist apiKey={geminiApiKey} />
       )}
 
       {/* ── eCPD TAB ── */}
       {activeTab === 'ecpd' && (
-        <ECPDDashboard />
+        <ECPDDashboard apiKey={geminiApiKey} />
       )}
 
     </div>
