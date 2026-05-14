@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useSession } from '../../hooks/useSession.jsx'
 import { CheckCircle, XCircle, AlertTriangle, ChevronRight, ChevronLeft, Baby } from 'lucide-react'
 
@@ -44,10 +44,35 @@ const CHECKLIST_QUESTIONS = [
 
 export default function PreChoice() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const isAnon = searchParams.get('anon') === 'true'
   const { session, updateSession } = useSession()
   const [pdt_done, setPdtDone] = useState(session.pregnancy.pdt_done)
   const [pdt_result, setPdtResult] = useState(session.pregnancy.pdt_result)
   const [checklist, setChecklist] = useState(session.pregnancy.checklist)
+
+  // Load anonymous client data into session on mount
+  useEffect(() => {
+    if (!isAnon) return
+    try {
+      const anonData = JSON.parse(sessionStorage.getItem('anon_session') || '{}')
+      if (!anonData.is_anonymous) return
+      updateSession('client', {
+        first_name: 'Anonymous',
+        last_name: 'Client',
+        age: anonData.age || 25,
+        sex: anonData.anon_sex || 'F',
+        visit_type: anonData.visit_type || '1',
+        first_ever_user: anonData.first_ever_user || '',
+        disability_status: 0,
+        facility_code: anonData.facility_code || '',
+        provider_name: anonData.provider_name || '',
+        is_anonymous: true,
+        anon_sex: anonData.anon_sex,
+        anon_age_bracket: anonData.anon_age_bracket,
+      })
+    } catch {}
+  }, [isAnon])
 
   const anyYes = Object.values(checklist).some(v => v === true)
   const pdtNegative = pdt_done && pdt_result === 'negative'
@@ -78,7 +103,12 @@ export default function PreChoice() {
           <Baby className="text-blue-600" size={24} /> Pregnancy Screening
         </h2>
         <p className="text-gray-500 text-sm mt-1">
-          Stage 2 of 6 — BCS+ Pre-Choice | Client: <strong>{session.client.first_name} {session.client.last_name}</strong>
+          Stage 2 of 6 — BCS+ Pre-Choice | Client:{' '}
+          {isAnon
+            ? <strong className="text-teal-600">Anonymous Client</strong>
+            : <strong>{session.client.first_name} {session.client.last_name}</strong>
+          }
+          {isAnon && <span className="ml-2 text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full">Full Assessment</span>}
         </p>
       </div>
 
@@ -204,7 +234,7 @@ export default function PreChoice() {
       {/* Navigation */}
       <div className="flex justify-between items-center mt-4">
         <button
-          onClick={() => navigate('/session/registration')}
+          onClick={() => navigate(isAnon ? '/anonymous-entry' : '/session/registration')}
           className="flex items-center gap-1 px-5 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 text-sm font-medium">
           <ChevronLeft size={16}/> Back
         </button>

@@ -39,12 +39,20 @@ body {
   color: #1a202c;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   overscroll-behavior: none;
 }
 
 /* Better touch targets */
 button, select, input, textarea {
   touch-action: manipulation;
+  min-height: 44px;
+}
+
+a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
 }
 
 /* Prevent zoom on iOS */
@@ -80,4 +88,43 @@ input, select, textarea {
     display: none !important;
   }
   body { background: white; }
+}
+
+/* ── ACCESSIBILITY — Sightsavers/WCAG 2.1 AA ── */
+
+/* 1. Focus indicators — visible keyboard navigation */
+*:focus-visible {
+  outline: 3px solid #0d7377;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Exception for small inline elements */
+button.touch-exempt {
+  min-height: unset;
+}
+
+/* 4. Reduced motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 5. Skip to content link */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #0d7377;
+  color: white;
+  padding: 8px 16px;
+  z-index: 9999;
+  font-weight: bold;
+  border-radius: 0 0 4px 0;
+}
+.skip-link:focus {
+  top: 0;
 }

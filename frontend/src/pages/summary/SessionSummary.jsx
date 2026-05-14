@@ -63,6 +63,9 @@ export default function SessionSummary() {
     }
   }
 
+  // Check if this was an anonymous full assessment
+  const isAnon = session.client?.is_anonymous === true
+
   // Auto-save once when component mounts
   useEffect(() => {
     if (saveAttempted.current) return
@@ -87,6 +90,8 @@ export default function SessionSummary() {
       if (result.success) {
         setSaved(result.offline ? 'offline' : 'online')
         await scheduleSIReminder(result)
+        // Clean up anonymous session data
+        sessionStorage.removeItem('anon_session')
       } else {
         setSaved('error')
       }
@@ -196,7 +201,11 @@ export default function SessionSummary() {
         </div>
         <h2 className="text-2xl font-bold text-gray-800">Session Complete</h2>
         <p className="text-gray-500 text-sm mt-1">
-          BCS+ session completed for <strong>{c.first_name} {c.last_name}</strong>
+          BCS+ session completed for{' '}
+          {isAnon
+            ? <strong className="text-teal-600">Anonymous Client ({session.client?.anon_age_bracket} yrs, {session.client?.anon_sex})</strong>
+            : <strong>{c.first_name} {c.last_name}</strong>
+          }
         </p>
       </div>
 
@@ -239,7 +248,16 @@ export default function SessionSummary() {
           </div>
           <div className="space-y-1 text-sm">
             <p><span className="text-gray-500">Name: </span>
-              <strong>{c.first_name} {c.last_name}</strong></p>
+              {isAnon
+                ? <strong className="text-teal-600">Anonymous Client
+                    <span className="ml-1 text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full font-normal">anon</span>
+                  </strong>
+                : <strong>{c.first_name} {c.last_name}</strong>
+              }
+            </p>
+            {isAnon && (
+              <p><span className="text-gray-500">Age bracket: </span>{c.anon_age_bracket} yrs</p>
+            )}
             <p><span className="text-gray-500">Age: </span>{c.age} yrs ({c.sex})</p>
             <p><span className="text-gray-500">Tel: </span>{c.telephone || '—'}</p>
             <p><span className="text-gray-500">Location: </span>{c.location || '—'}</p>
@@ -328,7 +346,7 @@ export default function SessionSummary() {
       {/* Screening Summary */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-4">
         <h3 className="font-bold text-gray-700 mb-3 pb-2 border-b border-gray-100">
-          Screening Summary
+          Screen Summary
         </h3>
         <div className="grid grid-cols-2 gap-y-2 text-sm">
           {[

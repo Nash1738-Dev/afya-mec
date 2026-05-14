@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/layout/Layout'
 import AuthGuard from './components/shared/AuthGuard'
 import Dashboard from './pages/Dashboard'
+import AdminDashboard from './pages/AdminDashboard'
 import Registration from './pages/registration/Registration'
 import PreChoice from './pages/screening/PreChoice'
 import MECScreener from './pages/screening/MECScreener'
@@ -30,18 +31,21 @@ import NotFound from './pages/NotFound'
 import MethodsResource from './pages/MethodsResource'
 import MECWheel from './pages/MECWheel'
 import AfyaMentor from './pages/AfyaMentor'
+import ChaguaAfya from './pages/ChaguaAfya'
 
 export default function App() {
   return (
     <SessionProvider>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/chagua-afya" element={<ChaguaAfya />} />
         <Route path="/" element={
           <AuthGuard>
             <Layout />
           </AuthGuard>
         }>
           <Route index element={<Dashboard />} />
+          <Route path="admin" element={<AdminDashboard />} />
           <Route path="clients" element={<Clients />} />
           <Route path="clients/:id" element={<ClientDetail />} />
           <Route path="settings" element={<FacilitySettings />} />

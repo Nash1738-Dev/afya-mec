@@ -49,14 +49,40 @@ export default function AnonymousEntry() {
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
   const [detailView, setDetailView] = useState(null)
+  const [assessmentType, setAssessmentType] = useState('quick')
 
-  const canSubmit = sex && ageBracket && method && visitType
+  const canSubmit = assessmentType === 'full'
+    ? sex && ageBracket && visitType
+    : sex && ageBracket && method && visitType
 
   const handleSubmit = async () => {
     if (!canSubmit) return
+
+    // Full assessment — store anonymous context and route to session flow
+    if (assessmentType === 'full') {
+      const anonData = {
+        is_anonymous: true,
+        anon_sex: sex,
+        anon_age_bracket: ageBracket,
+        visit_type: visitType,
+        first_ever_user: firstEverUser,
+        facility_code: facility.facility_code || '',
+        provider_name: facility.provider_name || '',
+        // Approximate age for MEC engine
+        age: ageBracket === '10-14' ? 12
+           : ageBracket === '15-19' ? 17
+           : ageBracket === '20-24' ? 22
+           : ageBracket === '25-49' ? 35 : 55,
+      }
+      // Store in sessionStorage so PreChoice can read it
+      sessionStorage.setItem('anon_session', JSON.stringify(anonData))
+      navigate('/session/pre-choice?anon=true')
+      return
+    }
+
+    // Quick entry — existing behaviour unchanged
     setSubmitting(true)
     setError('')
-
     try {
       const payload = {
         client: {
@@ -71,9 +97,7 @@ export default function AnonymousEntry() {
           facility_code: facility.facility_code || '',
           provider_name: facility.provider_name || '',
         },
-        vitals: {
-          bp_systolic: '', bp_diastolic: '', weight_kg: '', bp_category: ''
-        },
+        vitals: { bp_systolic: '', bp_diastolic: '', weight_kg: '', bp_category: '' },
         pregnancy: { pdt_done: false, ruled_out: true, checklist: {} },
         conditions: [],
         conditionDetails: {},
@@ -82,21 +106,15 @@ export default function AnonymousEntry() {
         quantityDispensed: '1',
         counsellingDone: true,
         comprehensionConfirmed: true,
-        sti: {
-          natural_fp_counselled: naturalFP,
-          cycle_beads_given: cycleBeads,
-        },
+        sti: { natural_fp_counselled: naturalFP, cycle_beads_given: cycleBeads },
         is_anonymous: true,
         anon_sex: sex,
         anon_age_bracket: ageBracket,
         sessionDate: new Date().toISOString(),
         returnDate: null,
       }
-
       const res = await API.post('/visits/save-anonymous', payload)
-      if (res.data) {
-        setSubmitted(true)
-      }
+      if (res.data) setSubmitted(true)
     } catch (e) {
       setError(e.response?.data?.detail || 'Network error — check backend connection')
     }
@@ -167,6 +185,38 @@ export default function AnonymousEntry() {
       </div>
 
       <div className="space-y-4">
+        {/* Assessment Type */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+          <label className="block text-sm font-bold text-gray-700 mb-3">
+            Assessment Type <span className="text-red-500">*</span>
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { val: 'quick', label: '⚡ Quick Entry', desc: 'Method + demographics only' },
+              { val: 'full', label: '🩺 Full Assessment', desc: 'Vitals + pregnancy + MEC + method' }
+            ].map(opt => (
+              <button key={opt.val}
+                onClick={() => setAssessmentType(opt.val)}
+                className={`text-left p-3 rounded-xl border-2 transition-colors
+                  ${assessmentType === opt.val
+                    ? 'border-teal-500 text-white'
+                    : 'border-gray-200 text-gray-700 hover:border-teal-300'}`}
+                style={assessmentType === opt.val ? {background:'#0d7377'} : {}}>
+                <p className="font-bold text-sm">{opt.label}</p>
+                <p className={`text-xs mt-0.5 ${assessmentType === opt.val ? 'text-teal-100' : 'text-gray-400'}`}>
+                  {opt.desc}
+                </p>
+              </button>
+            ))}
+          </div>
+          {assessmentType === 'full' && (
+            <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+              <p className="text-xs text-blue-700">
+                🩺 Full assessment uses the standard BCS+ clinical flow — vitals, pregnancy checklist, MEC screening, then method choice. Data saves as anonymous.
+              </p>
+            </div>
+          )}
+        </div>
 
         {/* Sex */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
@@ -261,7 +311,8 @@ export default function AnonymousEntry() {
           )}
         </div>
 
-        {/* Method */}
+        {/* Method — only for quick entry */}
+        {assessmentType === 'quick' && (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
           <label className="block text-sm font-bold text-gray-700 mb-3">
             Method Issued <span className="text-red-500">*</span>
@@ -313,6 +364,7 @@ export default function AnonymousEntry() {
             </div>
           )}
         </div>
+        )} {/* end quick entry method */}
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-red-700 text-sm">
@@ -329,7 +381,12 @@ export default function AnonymousEntry() {
               ? 'text-white hover:shadow-xl'
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
           style={canSubmit && !submitting ? {background: 'linear-gradient(135deg, #0d7377 0%, #14a044 100%)'} : {}}>
-          {submitting ? '⏳ Submitting...' : <><CheckCircle size={18}/> Submit Anonymous Entry</>}
+          {submitting
+            ? '⏳ Submitting...'
+            : assessmentType === 'full'
+              ? <><ChevronRight size={18}/> Continue to Full Assessment</>
+              : <><CheckCircle size={18}/> Submit Anonymous Entry</>
+          }
         </button>
       </div>
 

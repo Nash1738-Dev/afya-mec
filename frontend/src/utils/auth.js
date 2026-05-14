@@ -44,6 +44,25 @@ export const login = async (name, pin) => {
       expiresAt: new Date(Date.now() + SESSION_DURATION_MS).toISOString()
     }))
 
+    // Auto-load this user's facility settings
+    // migrateLegacySettings migrates old shared data to this user if they have none
+    const { migrateLegacySettings, getFacilitySettings, saveFacilitySettings } = await import('./facilitySettings.js')
+    const username = data.user.name
+    migrateLegacySettings(username)
+
+    // If user registered with facility/county data, pre-populate settings
+    const existing = getFacilitySettings(username.toLowerCase().replace(/\s+/g, '_'))
+    if (!existing.facility_name && data.user.facility) {
+      saveFacilitySettings({
+        ...existing,
+        facility_name: data.user.facility || '',
+        county: data.user.county || '',
+        sub_county: data.user.sub_county || '',
+        provider_name: data.user.name || '',
+        provider_cadre: data.user.cadre || '',
+      }, username.toLowerCase().replace(/\s+/g, '_'))
+    }
+
     resetInactivityTimer()
     return { success: true, user: data.user }
   } catch (e) {
