@@ -128,9 +128,9 @@ export default function Login() {
                 🏥
               </div>
               <div>
-                <p className="font-bold text-gray-800 text-base">Health Provider</p>
+                <p className="font-bold text-gray-800 text-base">Healthcare Provider</p>
                 <p className="text-gray-500 text-xs mt-0.5">
-                  Nurse, Clinical Officer, Midwife or other MOH staff
+                  Healthcare provider accessing the clinical platform
                 </p>
                 <p className="text-teal-600 text-xs font-semibold mt-1">
                   Login required →
@@ -140,7 +140,7 @@ export default function Login() {
 
             {/* Client / General Public */}
             <button
-              onClick={() => navigate('/chagua-afya')}
+              onClick={() => navigate('/nova')}
               className="w-full rounded-2xl p-5 text-left hover:scale-105 transition-transform shadow-xl flex items-center gap-4 border-2 border-white border-opacity-40"
               style={{background:'rgba(255,255,255,0.15)'}}>
               <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
@@ -148,7 +148,7 @@ export default function Login() {
                 🌸
               </div>
               <div>
-                <p className="font-bold text-white text-base">Chagua Afya</p>
+                <p className="font-bold text-white text-base">Nova</p>
                 <p className="text-teal-100 text-xs mt-0.5">
                   For women, girls & anyone seeking FP information
                 </p>

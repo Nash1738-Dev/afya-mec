@@ -38,7 +38,7 @@ export default function App() {
     <SessionProvider>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/chagua-afya" element={<ChaguaAfya />} />
+        <Route path="/nova" element={<ChaguaAfya />} />
         <Route path="/" element={
           <AuthGuard>
             <Layout />
