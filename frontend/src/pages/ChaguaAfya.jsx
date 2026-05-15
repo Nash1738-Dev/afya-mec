@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { ChevronRight, Calendar, ArrowLeft, Send, Phone,
          Shield, Info, RefreshCw, MapPin, Heart, Trash2,
          ChevronDown, ChevronUp, User, Lock, Eye, EyeOff } from 'lucide-react'
+import NovaCycleTracker from './nova/NovaCycleTracker'
+import NovaMethods from './nova/NovaMethods'
+import NovaReturnDate from './nova/NovaReturnDate'
 
 const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY || ''
 const GEMINI_MODEL = 'gemini-2.0-flash'
@@ -26,7 +29,7 @@ const novaStore = {
 const T = {
   en: {
     appName: 'Nova', tagline: 'Your Health. Your Choice.',
-    tabs: ['🏠 Home','🌸 My Cycle','💊 Methods','💉 Self-Inject','📅 My Date','💬 Ask Nova','📍 Find Clinic'],
+    tabs: ['🏠 Home','🌸 My Cycle','💊 Methods','💉 Self-Inject','📅 Return Date','💬 Ask Nova','📍 Find Clinic'],
     homeTitle: 'Welcome to Nova',
     homeSubtitle: 'Your private reproductive health companion — no login required for most features',
     homeCards: [
@@ -49,7 +52,7 @@ const T = {
   },
   sw: {
     appName: 'Nova', tagline: 'Afya Yako. Chaguo Lako.',
-    tabs: ['🏠 Nyumbani','🌸 Hedhi Yangu','💊 Njia','💉 Jisindanie','📅 Tarehe','💬 Uliza Nova','📍 Pata Kliniki'],
+    tabs: ['🏠 Nyumbani','🌸 Hedhi Yangu','💊 Njia','💉 Jisindanie','📅 Tarehe ya Kurudi','💬 Uliza Nova','📍 Pata Kliniki'],
     homeTitle: 'Karibu Nova',
     homeSubtitle: 'Msaidizi wako wa faragha wa afya ya uzazi — hakuna kuingia kwa vipengele vingi',
     homeCards: [
@@ -96,67 +99,15 @@ const PERSONAS = [
   }
 ]
 
-// ── CYCLE HELPERS ──────────────────────────────────────────────────────────────
-const getPhase = (day) => {
-  if (day <= 5)  return { phase:'menstrual',   emoji:'🔴', color:'#dc2626', en:'Menstrual Phase',   sw:'Awamu ya Hedhi',      fpNote:{ en:'Lowest fertility. Good time to discuss starting contraception with a provider.', sw:'Uzazi wa chini. Wakati mzuri wa kujadili kuanza uzazi wa mpango.' } }
-  if (day <= 13) return { phase:'follicular',  emoji:'🌱', color:'#14a044', en:'Follicular Phase',  sw:'Awamu ya Follicular',  fpNote:{ en:'Rising energy and fertility. Implant and DMPA-SC work in all phases.', sw:'Nguvu na uzazi vinaongezeka. Kipandikizi na DMPA-SC vinafanya kazi katika awamu zote.' } }
-  if (day <= 16) return { phase:'ovulation',   emoji:'⭐', color:'#f59e0b', en:'Ovulation',         sw:'Ovulation',            fpNote:{ en:'⚠️ PEAK FERTILITY — highest chance of pregnancy. Use contraception consistently every time.', sw:'⚠️ UZAZI WA JUU KABISA — uwezekano mkubwa wa ujauzito. Tumia uzazi wa mpango kila wakati.' } }
-  return           { phase:'luteal',           emoji:'🌙', color:'#7c3aed', en:'Luteal Phase',      sw:'Awamu ya Luteal',      fpNote:{ en:'Post-ovulation. Fertility decreasing. PMS symptoms may appear.', sw:'Baada ya ovulation. Uzazi unashuka. Dalili za PMS zinaweza kutokea.' } }
-}
-
-const getFertility = (day) => {
-  if (day >= 11 && day <= 17) return { level:'HIGH',   color:'#dc2626', pct:85 }
-  if (day >= 8  && day <= 20) return { level:'MEDIUM', color:'#f59e0b', pct:40 }
-  return                              { level:'LOW',    color:'#14a044', pct:5  }
-}
-
-const FAQS = {
-  en: [
-    { q:'What is a normal cycle length?', a:'Normal cycles range from 21 to 35 days. The 28-day cycle is just an average — most women vary. Track yours for 3 months to know your personal pattern.' },
-    { q:'Why do I miss periods sometimes?', a:'Stress, illness, weight changes, travel, and hormonal contraception can cause missed or late periods. If you\'ve had unprotected sex and miss a period, take a pregnancy test.' },
-    { q:'When am I most fertile?', a:'Ovulation typically happens 14 days before your next period. Sperm can survive 5 days, so your fertile window is roughly days 10-17 of a 28-day cycle.' },
-    { q:'Can I get pregnant during my period?', a:'It\'s unlikely but possible — especially with short cycles. Sperm can survive up to 5 days. If you ovulate early, sex during your period could lead to pregnancy.' },
-    { q:'Is it normal to have no period on DMPA-SC?', a:'Yes — very normal and completely safe. Most women stop having periods after 3-6 months on DMPA. Your blood is NOT building up inside your body. This is actually a benefit for many women.' },
-    { q:'What is the best method for a breastfeeding mother?', a:'POP (progestogen-only pill), DMPA-SC, or implant are all safe from 6 weeks postpartum while breastfeeding. Avoid COC in the first 6 months. Ask your provider for the best fit.' },
-  ],
-  sw: [
-    { q:'Urefu wa mzunguko wa kawaida ni nini?', a:'Mzunguko wa kawaida ni siku 21 hadi 35. Mzunguko wa siku 28 ni wastani tu — wanawake wengi wanatofautiana. Fuatilia wako kwa miezi 3.' },
-    { q:'Kwa nini hedhi yangu inakosekana?', a:'Msongo, ugonjwa, mabadiliko ya uzito, safari, na uzazi wa mpango wa homoni vinaweza kusababisha hedhi kukosekana au kuchelewa.' },
-    { q:'Ni lini mimi ni na uzazi zaidi?', a:'Ovulation kawaida hutokea siku 14 kabla ya hedhi yako ijayo. Manii inaweza kuishi siku 5, kwa hivyo dirisha lako la uzazi ni takriban siku 10-17.' },
-    { q:'Ninaweza kupata ujauzito wakati wa hedhi?', a:'Ni nadra lakini inawezekana — hasa na mzunguko mfupi. Manii inaweza kuishi hadi siku 5.' },
-    { q:'Je, ni kawaida kutokuwa na hedhi kwenye DMPA-SC?', a:'Ndiyo — kawaida sana na salama kabisa. Wanawake wengi huacha kupata hedhi baada ya miezi 3-6 ya DMPA. Damu HAIKUSANYIKI ndani ya mwili wako.' },
-    { q:'Njia bora kwa mama anayenyonyesha ni ipi?', a:'POP, DMPA-SC, au kipandikizi ni salama kutoka wiki 6 baada ya kujifungua ukiwa unanyonyesha. Epuka COC katika miezi 6 ya kwanza.' },
-  ]
-}
-
-const METHODS = [
-  { id:'dmpa_sc', emoji:'💉', name:{ en:'Sayana Press (Self-injection)', sw:'Sayana Press (Kujisindania)' }, efficacy:'99%', duration:{ en:'13 weeks', sw:'Wiki 13' }, color:'#14a044',
-    desc:{ en:'Give yourself the injection at home. Works 13 weeks. Most women stop periods — this is normal and safe.', sw:'Jipe sindano nyumbani. Inafanya kazi wiki 13. Wanawake wengi huacha hedhi — kawaida na salama.' },
-    pros:{ en:['Private — no one needs to know','Can do at home','No daily pill','Reversible'], sw:['Faragha','Unaweza kufanya nyumbani','Hakuna kidonge cha kila siku','Inaweza kubadilishwa'] },
-    cons:{ en:['Training needed first','Irregular bleeding initially'], sw:['Mafunzo yanahitajika','Kutokwa damu isiyo ya kawaida mwanzoni'] } },
-  { id:'implant', emoji:'🔵', name:{ en:'Implant (Implanon/Jadelle)', sw:'Kipandikizi' }, efficacy:'99%+', duration:{ en:'3–5 years', sw:'Miaka 3–5' }, color:'#7c3aed',
-    desc:{ en:'Tiny rod under arm skin. Most effective reversible method. Nothing to remember daily.', sw:'Fimbo ndogo chini ya ngozi ya mkono. Njia bora zaidi ya kubadilishwa. Hakuna cha kukumbuka kila siku.' },
-    pros:{ en:['Most effective','Nothing to remember','Very private','Removable anytime'], sw:['Bora zaidi','Hakuna cha kukumbuka','Faragha sana','Inaweza kuondolewa wakati wowote'] },
-    cons:{ en:['Provider needed to insert/remove','May cause irregular bleeding'], sw:['Inahitaji mtoa huduma','Inaweza kusababisha kutokwa damu isiyo ya kawaida'] } },
-  { id:'coc', emoji:'💊', name:{ en:'Combined Pill (COC)', sw:'Kidonge cha Pamoja (COC)' }, efficacy:'91–99%', duration:{ en:'Daily', sw:'Kila siku' }, color:'#ec4899',
-    desc:{ en:'Daily pill at same time every day. Not for breastfeeding mothers in first 6 months.', sw:'Kidonge kila siku kwa wakati mmoja. Si kwa mama anayenyonyesha miezi 6 ya kwanza.' },
-    pros:{ en:['Easy to use','Lighter periods','Stop anytime'], sw:['Rahisi kutumia','Hedhi nyepesi','Simama wakati wowote'] },
-    cons:{ en:['Must take every day','Not for smokers 35+'], sw:['Lazima uchukuliwe kila siku','Si kwa wavutaji sigara 35+'] } },
-  { id:'condom', emoji:'🛡️', name:{ en:'Condom', sw:'Kondomu' }, efficacy:'85–98%', duration:{ en:'Single use', sw:'Matumizi moja' }, color:'#0d7377',
-    desc:{ en:'ONLY method protecting against BOTH pregnancy AND HIV/STIs. Use every time.', sw:'Njia PEKEE inayolinda dhidi ya ujauzito NA VVU/STI. Tumia kila wakati.' },
-    pros:{ en:['Protects against HIV/STIs','No hormones','Available everywhere'], sw:['Inalinda dhidi ya VVU/STI','Hakuna homoni','Inapatikana kila mahali'] },
-    cons:{ en:['Must use every time'], sw:['Lazima itumike kila wakati'] } },
-]
-
 const MAPS_STEPS = {
   en: [
-    { letter:'M', word:'Mix',         icon:'🔄', instruction:'Shake the Sayana Press device vigorously for 30 seconds until the liquid looks cloudy and milky.',            tip:'If you do not shake well, the medicine may not work properly.' },
-    { letter:'A', word:'Activate',    icon:'🔘', instruction:'Firmly push the needle cap and reservoir port together until you hear or feel a click.',                      tip:'You MUST hear or feel the click. No click = not ready to inject.' },
-    { letter:'P', word:'Pinch',       icon:'🤏', instruction:'Pinch a fold of skin on your lower belly (2 fingers from navel) or upper thigh. Keep pinching throughout.',  tip:'Hold the pinch firmly for the entire injection.' },
+    { letter:'M', word:'Mix',       icon:'🔄', instruction:'Shake the Sayana Press device vigorously for 30 seconds until the liquid looks cloudy and milky.',            tip:'If you do not shake well, the medicine may not work properly.' },
+    { letter:'A', word:'Activate',  icon:'🔘', instruction:'Firmly push the needle cap and reservoir port together until you hear or feel a click.',                      tip:'You MUST hear or feel the click. No click = not ready to inject.' },
+    { letter:'P', word:'Pinch',     icon:'🤏', instruction:'Pinch a fold of skin on your lower belly (2 fingers from navel) or upper thigh. Keep pinching throughout.',  tip:'Hold the pinch firmly for the entire injection.' },
     { letter:'S', word:'Self-inject', icon:'💉', instruction:'Insert needle at 45° angle into pinched skin. Slowly squeeze reservoir until completely empty (~5 seconds).', tip:'Remove needle while still pinching. Press gently — do NOT rub the site.' },
   ],
   sw: [
-    { letter:'M', word:'Changanya',   icon:'🔄', instruction:'Tikisa kifaa kwa nguvu kwa sekunde 30 hadi dawa ionekane na ukungu kama maziwa.',                              tip:'Usitikise vizuri, dawa inaweza kutofanya kazi.' },
+    { letter:'M', word:'Changanya',   icon:'🔄', instruction:'Tikisa kifaa kwa nguvu kwa sekunde 30 hadi dawa ionekane na ukungu kama maziwa.',                               tip:'Usitikise vizuri, dawa inaweza kutofanya kazi.' },
     { letter:'A', word:'Washa',       icon:'🔘', instruction:'Bonyeza kofia ya sindano na bandari pamoja kwa nguvu hadi usikie au uhisi kubonyeza.',                          tip:'LAZIMA usikie kubonyeza. Hakuna click = haiko tayari.' },
     { letter:'P', word:'Piga Pinch',  icon:'🤏', instruction:'Piga ngozi kwenye tumbo la chini (vidole 2 kutoka kitovuni) au mapaja ya juu. Endelea kushikilia.',              tip:'Shika pinch kwa nguvu wakati wote wa sindano.' },
     { letter:'S', word:'Jisindanie',  icon:'💉', instruction:'Ingiza sindano kwa pembe ya 45°. Bonyeza polepole hadi tupu (sekunde ~5).',                                      tip:'Toa sindano ukishikilia ngozi. Bonyeza kidogo — USISUGUE.' },
@@ -231,146 +182,6 @@ function NovaLogin({ lang, onLogin }) {
           </p>
         </div>
       </div>
-    </div>
-  )
-}
-
-// ── CYCLE TRACKER ──────────────────────────────────────────────────────────────
-function CycleTracker({ lang, user }) {
-  const [cycles, setCycles] = useState(novaStore.getCycles())
-  const [startDate, setStartDate] = useState('')
-  const [endDate,   setEndDate]   = useState('')
-  const [symptoms,  setSymptoms]  = useState([])
-  const [section,   setSection]   = useState('log')
-  const [openFaq,   setOpenFaq]   = useState(null)
-
-  const save = () => {
-    if (!startDate) return
-    const updated = [{ id:Date.now(), start:startDate, end:endDate, symptoms }, ...cycles].slice(0,24)
-    setCycles(updated); novaStore.saveCycles(updated)
-    setStartDate(''); setEndDate(''); setSymptoms([])
-  }
-
-  const last = cycles[0]
-  const day  = last ? Math.max(1, Math.ceil((new Date() - new Date(last.start))/(1000*60*60*24))) : null
-  const phase     = day ? getPhase(day)      : null
-  const fertility = day ? getFertility(day)  : null
-
-  const symptomList = lang==='sw'
-    ? ['Maumivu','Uchovu','Kukasiriana','Uvimbe','Kutokwa damu nyingi','Kutokwa damu kidogo','Hisia nzuri']
-    : ['Cramps','Fatigue','Mood swings','Bloating','Heavy flow','Light flow','Feeling good']
-
-  return (
-    <div className="space-y-4">
-      {phase && day && (
-        <div className="rounded-2xl p-5 text-white shadow-lg" style={{background:`linear-gradient(135deg,${phase.color},${phase.color}aa)`}}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs opacity-80 font-medium">{lang==='sw' ? 'Awamu ya Sasa' : 'Current Phase'}</p>
-              <p className="text-2xl font-bold mt-1">{phase.emoji} {phase[lang]}</p>
-              <p className="text-sm opacity-90 mt-0.5">{lang==='sw' ? `Siku ${day} ya mzunguko` : `Day ${day} of your cycle`}</p>
-            </div>
-            <div className="text-center bg-white/20 rounded-2xl px-4 py-3">
-              <p className="text-3xl font-black">{fertility.pct}%</p>
-              <p className="text-xs opacity-80 leading-tight">{lang==='sw' ? 'Uwezekano\nwa ujauzito' : 'Pregnancy\nchance'}</p>
-              <span className="text-xs font-bold bg-white/30 px-2 py-0.5 rounded-full mt-1 inline-block">{fertility.level}</span>
-            </div>
-          </div>
-          <div className="mt-3 bg-white/15 rounded-xl p-3">
-            <p className="text-xs leading-relaxed">{phase.fpNote[lang]}</p>
-          </div>
-        </div>
-      )}
-
-      {/* Section switcher */}
-      <div className="flex gap-2">
-        {[
-          { key:'log',     label: lang==='sw' ? '📝 Rekodi'  : '📝 Log'     },
-          { key:'history', label: lang==='sw' ? '📊 Historia': '📊 History' },
-          { key:'faqs',    label: 'FAQ' },
-        ].map(s => (
-          <button key={s.key} onClick={() => setSection(s.key)}
-            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors ${section===s.key ? 'text-white' : 'bg-white text-gray-600 border border-gray-200'}`}
-            style={section===s.key ? {background:'linear-gradient(135deg,#ec4899,#f59e0b)'} : {}}>
-            {s.label}
-          </button>
-        ))}
-      </div>
-
-      {section === 'log' && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 space-y-4">
-          <h3 className="font-bold text-gray-800">{lang==='sw' ? '📝 Rekodi Hedhi Yako' : '📝 Log Your Period'}</h3>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">{lang==='sw' ? 'Ilianza:' : 'Started:'}</label>
-              <input type="date" className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400"
-                value={startDate} onChange={e => setStartDate(e.target.value)}/>
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">{lang==='sw' ? 'Iliisha:' : 'Ended:'}</label>
-              <input type="date" className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400"
-                value={endDate} onChange={e => setEndDate(e.target.value)}/>
-            </div>
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 mb-2">{lang==='sw' ? 'Dalili:' : 'Symptoms (tap all that apply):'}</p>
-            <div className="flex flex-wrap gap-2">
-              {symptomList.map(s => (
-                <button key={s}
-                  onClick={() => setSymptoms(p => p.includes(s) ? p.filter(x => x!==s) : [...p,s])}
-                  className={`text-xs px-3 py-1.5 rounded-full border-2 transition-colors ${symptoms.includes(s) ? 'text-white border-pink-400' : 'border-gray-200 text-gray-600'}`}
-                  style={symptoms.includes(s) ? {background:'#ec4899'} : {}}>
-                  {s}
-                </button>
-              ))}
-            </div>
-          </div>
-          <button onClick={save} disabled={!startDate}
-            className="w-full text-white font-bold py-3 rounded-xl disabled:bg-gray-300"
-            style={{background: startDate ? 'linear-gradient(135deg,#ec4899,#f59e0b)' : undefined}}>
-            {lang==='sw' ? '💾 Hifadhi Rekodi' : '💾 Save Record'}
-          </button>
-        </div>
-      )}
-
-      {section === 'history' && (
-        <div className="space-y-3">
-          {cycles.length === 0
-            ? <div className="text-center py-10 text-gray-400"><Heart size={32} className="mx-auto mb-2 opacity-30"/><p className="text-sm">{lang==='sw' ? 'Bado hakuna rekodi.' : 'No records yet. Start tracking!'}</p></div>
-            : cycles.map(c => {
-                const dur = c.end ? Math.ceil((new Date(c.end)-new Date(c.start))/(1000*60*60*24)) : null
-                return (
-                  <div key={c.id} className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex items-center justify-between">
-                    <div>
-                      <p className="font-bold text-gray-800 text-sm">{new Date(c.start).toLocaleDateString('en-KE',{day:'numeric',month:'short',year:'numeric'})}</p>
-                      {dur && <p className="text-xs text-gray-500">{lang==='sw' ? `Siku ${dur}` : `${dur} days`}</p>}
-                    </div>
-                    {c.symptoms?.length > 0 && (
-                      <div className="flex flex-wrap gap-1 justify-end max-w-[60%]">
-                        {c.symptoms.slice(0,3).map(s => <span key={s} className="text-xs bg-pink-100 text-pink-700 px-2 py-0.5 rounded-full">{s}</span>)}
-                      </div>
-                    )}
-                  </div>
-                )
-              })
-          }
-        </div>
-      )}
-
-      {section === 'faqs' && (
-        <div className="space-y-2">
-          {FAQS[lang].map((faq, i) => (
-            <div key={i} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-              <button className="w-full flex items-center justify-between px-4 py-3 text-left"
-                onClick={() => setOpenFaq(openFaq===i ? null : i)}>
-                <p className="text-sm font-medium text-gray-700 pr-2">{faq.q}</p>
-                {openFaq===i ? <ChevronUp size={14} className="text-gray-400 flex-shrink-0"/> : <ChevronDown size={14} className="text-gray-400 flex-shrink-0"/>}
-              </button>
-              {openFaq===i && <div className="px-4 pb-4"><p className="text-sm text-gray-600 leading-relaxed">{faq.a}</p></div>}
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   )
 }
@@ -680,84 +491,11 @@ Focus on government health facilities that offer family planning services. Retur
   )
 }
 
-// ── DATE CALCULATOR ────────────────────────────────────────────────────────────
-function DateCalc({ lang }) {
-  const [lastDate, setLastDate] = useState('')
-  const [result,   setResult]   = useState(null)
-  const calc = () => {
-    if (!lastDate) return
-    const d = new Date(lastDate)
-    setResult({ next: new Date(d.getTime()+91*24*60*60*1000), grace: new Date(d.getTime()+119*24*60*60*1000) })
-  }
-  const fmt = (d) => d.toLocaleDateString('en-KE',{weekday:'long',year:'numeric',month:'long',day:'numeric'})
-  return (
-    <div className="space-y-4">
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
-        <label className="block text-sm text-gray-600 mb-2 font-medium">{lang==='sw' ? 'Tarehe ya sindano ya mwisho:' : 'Date of last injection:'}</label>
-        <input type="date" className="w-full border border-gray-300 rounded-xl px-3 py-3 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-pink-400"
-          value={lastDate} onChange={e => { setLastDate(e.target.value); setResult(null) }}/>
-        <button onClick={calc} disabled={!lastDate} className="w-full text-white font-bold py-3 rounded-xl disabled:bg-gray-300"
-          style={{background: lastDate ? 'linear-gradient(135deg,#ec4899,#f59e0b)' : undefined}}>
-          {lang==='sw' ? 'Hesabu' : 'Calculate'}
-        </button>
-      </div>
-      {result && (
-        <div className="space-y-3">
-          <div className="bg-teal-50 border border-teal-300 rounded-2xl p-5">
-            <p className="text-xs text-teal-600 font-bold uppercase tracking-wide mb-1">{lang==='sw' ? 'Sindano ijayo:' : 'Next injection due:'}</p>
-            <p className="text-xl font-bold text-teal-700">{fmt(result.next)}</p>
-          </div>
-          <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4">
-            <p className="text-xs text-amber-600 font-bold uppercase tracking-wide mb-1">{lang==='sw' ? 'Muda wa neema unaisha:' : 'Grace period ends:'}</p>
-            <p className="text-base font-bold text-amber-700">{fmt(result.grace)}</p>
-            <p className="text-xs text-amber-600 mt-2">⚠️ {lang==='sw' ? 'Baada ya tarehe hii, ona mtoa huduma kabla ya kusindania.' : 'After this date, see a provider before injecting.'}</p>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ── METHOD MODAL ───────────────────────────────────────────────────────────────
-function MethodModal({ method, lang, onClose }) {
-  return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center">
-      <div className="bg-white rounded-t-3xl w-full max-w-lg max-h-[85vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">{method.emoji}</span>
-            <div>
-              <p className="font-bold text-gray-800">{method.name[lang]}</p>
-              <p className="text-xs text-gray-400">{method.efficacy} · {method.duration[lang]}</p>
-            </div>
-          </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 text-xl">×</button>
-        </div>
-        <div className="p-5 space-y-4">
-          <p className="text-sm text-gray-700 leading-relaxed">{method.desc[lang]}</p>
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-            <p className="font-bold text-green-700 text-sm mb-2">✅ {lang==='sw' ? 'Faida' : 'Benefits'}</p>
-            {method.pros[lang].map((p,i) => <p key={i} className="text-sm text-green-700 mb-1">• {p}</p>)}
-          </div>
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-            <p className="font-bold text-amber-700 text-sm mb-2">⚠️ {lang==='sw' ? 'Kumbuka' : 'Things to Know'}</p>
-            {method.cons[lang].map((c,i) => <p key={i} className="text-sm text-amber-700 mb-1">• {c}</p>)}
-          </div>
-          <div className="bg-teal-50 border border-teal-200 rounded-xl p-3">
-            <p className="text-sm text-teal-700">🏥 {lang==='sw' ? 'Ongea na mtoa huduma kupata njia inayofaa kwako.' : 'Talk to a health provider to find the right method for you.'}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 // ── MAIN ───────────────────────────────────────────────────────────────────────
 export default function ChaguaAfya() {
   const navigate = useNavigate()
   const [lang,           setLang]           = useState('en')
   const [activeTab,      setActiveTab]      = useState('home')
-  const [selectedMethod, setSelectedMethod] = useState(null)
   const [user,           setUser]           = useState(novaStore.getUser())
   const [showLogin,      setShowLogin]      = useState(false)
   const t = T[lang]
@@ -865,10 +603,10 @@ export default function ChaguaAfya() {
           </div>
         )}
 
-        {activeTab==='cycle'   && user     && <CycleTracker lang={lang} user={user}/>}
+        {activeTab==='cycle'   && user     && <NovaCycleTracker lang={lang} user={user}/>}
         {activeTab==='ai'      && user     && <AskNova      lang={lang} user={user}/>}
         {activeTab==='clinic'             && <ClinicFinder lang={lang}/>}
-        {activeTab==='date'               && <DateCalc     lang={lang}/>}
+        {activeTab==='date'               && <NovaReturnDate lang={lang}/>}
         {activeTab==='inject'             && (
           <div className="space-y-4">
             <h2 className="font-bold text-gray-800 text-lg">{lang==='sw' ? 'Kujisindania Sayana Press' : 'Sayana Press Self-Injection'}</h2>
@@ -900,25 +638,8 @@ export default function ChaguaAfya() {
             </div>
           </div>
         )}
-        {activeTab==='methods' && (
-          <div className="space-y-3">
-            <h2 className="font-bold text-gray-800 text-lg">{lang==='sw' ? 'Njia za Uzazi wa Mpango' : 'Contraceptive Methods'}</h2>
-            {METHODS.map(m => (
-              <button key={m.id} onClick={() => setSelectedMethod(m)}
-                className="w-full bg-white rounded-2xl border border-gray-200 shadow-sm p-4 text-left hover:shadow-md transition-all flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0" style={{background:m.color+'20'}}>{m.emoji}</div>
-                <div className="flex-1">
-                  <p className="font-bold text-gray-800 text-sm">{m.name[lang]}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{m.efficacy} · {m.duration[lang]}</p>
-                </div>
-                <ChevronRight size={16} className="text-gray-400"/>
-              </button>
-            ))}
-          </div>
-        )}
+        {activeTab==='methods' && <NovaMethods lang={lang}/>}
       </div>
-
-      {selectedMethod && <MethodModal method={selectedMethod} lang={lang} onClose={() => setSelectedMethod(null)}/>}
     </div>
   )
 }
