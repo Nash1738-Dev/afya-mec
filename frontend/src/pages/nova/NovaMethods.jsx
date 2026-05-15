@@ -663,4 +663,12 @@ function MethodDetail({ method, lang, onBack }) {
       {/* Return date */}
       <div className="bg-teal-50 border border-teal-200 rounded-2xl p-4">
         <p className="text-xs font-bold text-teal-700 uppercase tracking-wide mb-1">
- 
+          {lang === 'sw' ? 'Tarehe ya Kurudi' : 'Return Date'}
+        </p>
+        <p className="text-sm text-teal-900">{s.return_date[lang]}</p>
+      </div>
+    </div>
+  )
+}
+
+export { METHODS_DB, CATEGORIES, categoryMatch, MethodDetail }
