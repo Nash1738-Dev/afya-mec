@@ -671,4 +671,14 @@ function MethodDetail({ method, lang, onBack }) {
   )
 }
 
+export default function NovaMethods() {
+  // If you had standard list logic here before, you can add it back.
+  // Otherwise, exporting this shell will prevent the page from crashing.
+  return (
+    <div className="p-4">
+      {/* Assuming you will import and use MethodDetail or the list view here */}
+    </div>
+  )
+}
+
 export { METHODS_DB, CATEGORIES, categoryMatch, MethodDetail }
