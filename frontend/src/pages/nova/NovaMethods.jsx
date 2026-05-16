@@ -671,14 +671,80 @@ function MethodDetail({ method, lang, onBack }) {
   )
 }
 
-export default function NovaMethods() {
-  // If you had standard list logic here before, you can add it back.
-  // Otherwise, exporting this shell will prevent the page from crashing.
+export default function NovaMethods({ lang = 'en' }) {
+  const [selectedMethod, setSelectedMethod] = useState(null)
+  const [activeCategory, setActiveCategory] = useState('all')
+  const [search, setSearch] = useState('')
+
+  if (selectedMethod) {
+    return <MethodDetail method={selectedMethod} lang={lang} onBack={() => setSelectedMethod(null)}/>
+  }
+
+  const filtered = METHODS_DB.filter(m => {
+    const matchCat = categoryMatch(m, activeCategory)
+    const matchSearch = !search || m.name[lang].toLowerCase().includes(search.toLowerCase())
+    return matchCat && matchSearch
+  })
+
   return (
-    <div className="p-4">
-      {/* Assuming you will import and use MethodDetail or the list view here */}
+    <div className="space-y-4">
+      <div>
+        <h2 className="font-bold text-gray-800 text-lg">
+          {lang === 'sw' ? '💊 Njia za Uzazi wa Mpango' : '💊 Contraceptive Methods'}
+        </h2>
+        <p className="text-sm text-gray-500">
+          {lang === 'sw' ? 'Gusa njia yoyote ili kupata maelezo kamili' : 'Tap any method for complete information'}
+        </p>
+      </div>
+
+      {/* Search */}
+      <input
+        className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400"
+        placeholder={lang === 'sw' ? '🔍 Tafuta njia...' : '🔍 Search methods...'}
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+      />
+
+      {/* Category filter */}
+      <div className="overflow-x-auto -mx-4 px-4">
+        <div className="flex gap-2 min-w-max pb-1">
+          {CATEGORIES.map(cat => (
+            <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors
+                ${activeCategory === cat.id ? 'text-white' : 'bg-white text-gray-600 border border-gray-200'}`}
+              style={activeCategory === cat.id ? {background:'linear-gradient(135deg,#ec4899,#f59e0b)'} : {}}>
+              {cat[lang]}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Method list */}
+      <div className="space-y-2">
+        {filtered.length === 0 ? (
+          <div className="text-center py-8 text-gray-400">
+            <p className="text-sm">{lang === 'sw' ? 'Hakuna njia zinazopatikana.' : 'No methods found.'}</p>
+          </div>
+        ) : filtered.map(m => (
+          <button key={m.id} onClick={() => setSelectedMethod(m)}
+            className="w-full bg-white rounded-2xl border border-gray-200 shadow-sm p-4 text-left hover:shadow-md transition-all flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
+              style={{background: m.color + '20'}}>
+              {m.emoji}
+            </div>
+            <div className="flex-1">
+              <p className="font-bold text-gray-800 text-sm">{m.name[lang]}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{m.tagline[lang]}</p>
+              <div className="flex items-center gap-2 mt-1.5">
+                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{m.efficacy.typical}</span>
+                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{m.duration[lang]}</span>
+                {m.protectsSTI && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">STI ✓</span>}
+              </div>
+            </div>
+            <ChevronRight size={16} className="text-gray-400 flex-shrink-0"/>
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
-
-export { METHODS_DB, CATEGORIES, categoryMatch, MethodDetail }
