@@ -1,0 +1,113 @@
+NOVA TRAINING DATA STATS
+==================================================
+Total lines processed : 887
+Messages extracted    : 382
+Messages skipped      : 505
+FP-related messages   : 62
+
+TOP 50 WORDS:
+==================================================
+  the                  148
+  to                   96
+  a                    78
+  you                  73
+  and                  67
+  na                   62
+  from                 58
+  is                   55
+  joined               53
+  community            53
+  for                  49
+  ‎~                   40
+  i                    40
+  it                   39
+  your                 34
+  but                  34
+  this                 31
+  that                 31
+  have                 31
+  so                   30
+  of                   30
+  if                   27
+  be                   26
+  they                 24
+  will                 24
+  what                 24
+  in                   23
+  we                   23
+  not                  23
+  can                  23
+  or                   22
+  he                   22
+  ni                   22
+  it's                 22
+  just                 21
+  do                   21
+  with                 20
+  are                  20
+  me                   19
+  think                18
+  on                   17
+  one                  17
+  about                17
+  ya                   16
+  don't                16
+  some                 16
+  their                15
+  then                 15
+  up                   15
+  because              15
+
+==================================================
+FP-RELATED MESSAGES SAMPLE (first 50):
+==================================================
+  • Your boyfriend says:
+  • Wueeeh, alot happens in my mind but ya kwanza huwa naona mimba na macho hiviii🤣
+  • Shindwe!!!anatataka nishike  mimba ama anataka kunipea ugonjwa
+  • He is reckless either hajali mimba ama akona ugonjwa
+  • Huwa najiambia ona huyu anataka kuniwekelea mimba ingine si akae tuwachane tu atleast now he respects my decisions
+  • I also noticed that most people wakiwa Kwa relationships they easily just trust their men so most don't take counter measures to protect themselves
+  • Maybe he realizes that he has disease and then anataka mshare ama mimba
+  • Weeeh!me kama hatuko nae like ameenda one  week lazima tupime me siezi risk ama anataka kunipea mimba
+  • Obvious why ask for unprotected sex and yet we have been doing protected sex??
+  • I'll rather let the relationship end than to ruin my life within a day
+  • Yes they put too much trust in their boyfriends forgetting that the same men can mess up their lives
+  • It depends on how you have been operating with your partner
+  • Yes unsafe sex can lead to a lot of casualties because it's like you're gambling
+  • Remember 3 months family planning can only prevent pregnancy and not STIs and Vaginal infections
+  • You do the initial test to confirm your current status, then wait for 3 months (window period ) to get tested again.
+  • Some ladies don't know how to use the female condom and where to get the female condom
+  • If you don't want to have unprotected sex it's your choice not your partner's until you are both on the same headspace usikubali kukuwa manipulated into doing it his own way because the risks are there pregnancy na ugonjwa and some men can make you believe they want kids but in reality he will knock you up and take the highway
+  • If your partner is not using protection would you choose abstinence
+  • Some partners can't allow that
+  • Very important and when using condoms it's better if you come prepared with one for them incase ametamper na yake
+  • Female dislike their condoms I have never seen even one using it's very rear
+  • Once a doctor said that it's better if us females get the condoms ourselves and put it on the men personally to avoid injuries in future because mwanaume akimess up it's always the woman who gets the blame
+  • Kabisa having a partner who respects you and your choices is the key point you cannot trust someone who does not respect your decisions
+  • Also kwa note ya ugonjwa if you feel like your partner is moving on the outside and want to get tested do not inform them ati nataka tujipime there's a medication some infected men take so mkifanya the test inakuja negative from what I was told once think smart on how to surprise him with a test in hand
+  • That's what a nurse told me alisema that's how you can get infected without knowing who passed it on to you
+  • And we should also all do personal research and know how different STI's present themselves usiambiwe ni rashes tu ju ya joto or sth weird and assume it Kuna watu husema heri ugonjwa kuliko mimba when I reality it's heri nothing at all
+  • Pregnancy and infections to be on the safer side Carry condoms ladies
+  • They have to tell us mtu anafaa kufanya aje coz we are dealing with boyfriends not spouses na kuna watu wanaeza ulizia
+  • Honestly my thoughts walaii will be like huyu anataka tuh nipate mimba
+  • Female condoms are available at the facility together with other FP methods, just that looking at uptake data over the years it is lower compared to other methods so they may not be available in facilities in large quantities to avoid expiry.
+  • For me i will convince him till he enters my track if there is no condom I will have to buy them using my money bt nowadays I walk with condoms in my handbag😂😂😂😂
+  • Utamshow nitumie condom
+  • Waah  hpo ni mimba ama ugonjwa direct
+  • And also if your partner isn't comfortable in using condoms.then you will have to protect your self.
+  • Honestly as girls we are suposed to have the condoms in our house, for protection purposes ☺️
+  • Bt for ur partner it's difficult to convince him bt if he's a new partner he must accept my decision since we don't know each other so next time is he's serious with me he will have to choose either twende tupime or we continue using...
+  • Couldn't agree more. It is important to take control of your sexual health and many women should continue to be empowered on this. Don't leave the responsibility of protecting yourself to someone else.
+  • Mm akuna mambo na kukaa na protection kama atupimi mm staki juu unaeza mpea bado protection na ipasuke btwn the mission and u become a failure upate ukimwi,kisonono na bado mimba utatibu gani
+  • I prefer having one partner we go for testing and  infection treatment for us to be safe and ready for s*x anytime
+  • You can have one partner yes , but  behind the dark curtains, your partner is having another partner
+  • Inalingana kama ni boyfriend uyo hata hanya tu but if u have a man kuna ujinga awezi entertain coz he knows he has the clean danm p***y waiting for him🤭
+  • Maybe if we have a certain place where female condom are been displayed and girls   are taught too can be good because we're am coming from most girls have asked me about the female condom.
+  • Definitely 😂😂like how one decides to stay even if the relationship is toxic😂😂
+  • It's just the fear of unknown.  You might even have lived a better life on your own than in a relationship but sijui nini hutufunga ataaa
+  • Wouldn't you rather walk away and be single doesn't have to be about being in a relationship again but rather finding yourself
+  • Yess they do make worse decision juu during that time walaii mtu huwa ana anything kwa mid yake juu unaone weeh nimepata ule lkn nakwambia nifika time ingine unapewa heartbreak ingine mwenda Alf that time imgn vile mtu huwa amejituma kwa hiyo relationship Wacha tuh 🤣
+  • Well I think many young people fear asking about contraceptives because of stigma and fear of judgment from society, family, friends, or even health workers 😕
+  • It's not that they don't want info, it's the barriers social and system related, judgement and stigma,for some sex is still a taboo before marriage.
+  • Many young people fear asking about contraceptives because of stigma and fear of being judged. Some worry that adults, parents, teachers, or even friends will think they are “bad,” irresponsible, or sexually active just because they ask questions. Others may feel shy, embarrassed, or afraid that their privacy won’t be respected.
+  • Kuna huyu dem n boy wake wali have  sex  then there was a mess 🫟 soo akameza P2 then after kitu kama 5days Tena wakakulana n iyo siku morning alikua ame toka kuweka depo alafu jioni wakakulana sai dem ana sema haja ona periods help kum jibu anaeza kua Ako pregnant ama case ni gni hapo
