@@ -75,18 +75,25 @@ const SYMS_SW = {
 const FAQS_EN = [
   { cat: 'Basics', q: 'What is Day 1 of my cycle?', a: 'Day 1 is the FIRST day of actual bleeding — not spotting. Count from Day 1 every cycle regardless of when your last cycle was. The calendar marks this as D1 in red.' },
   { cat: 'Basics', q: 'What is a normal cycle length?', a: 'Normal cycles range from 21 to 35 days. The "28-day cycle" is just an average — most women vary. Track 3+ cycles to find your pattern. Under 21 or over 35 days regularly? Discuss with a provider.' },
+  { cat: 'Basics', q: 'What is the difference between spotting and a period?', a: 'Spotting is light, irregular bleeding — usually just a few spots — that occurs OUTSIDE your regular period. It does NOT count as Day 1. A true period is heavier and lasts 2-7 days. Spotting can be caused by ovulation, contraception, or hormonal changes.' },
+  { cat: 'Basics', q: 'How long does a normal period last?', a: 'Normal periods last 2 to 7 days. Flow is usually heaviest in the first 2 days then lightens. More than 7 days, or soaking a pad every hour for 2+ consecutive hours, means you should see a provider.' },
   { cat: 'Fertility', q: 'When am I most likely to get pregnant?', a: 'Ovulation happens ~14 days BEFORE your next period. Your fertile window is 5 days before ovulation plus ovulation day itself (6 days total). Sperm survives 5 days; eggs survive 12-24 hours. The calendar shows this as orange/yellow days.' },
   { cat: 'Fertility', q: 'What are "safe days"?', a: 'Safe days are days with very low pregnancy chance — typically the days right after your period ends and the 1-2 weeks before your next period is due. BUT: no day is 100% safe without contraception, especially with irregular cycles. The calendar shows safe days in green.' },
   { cat: 'Fertility', q: 'Can I get pregnant during my period?', a: 'Unlikely but possible — especially with short cycles (21-24 days) or long periods (7+ days). Sperm can survive 5 days. The calendar shows probability percentages when you tap any day.' },
+  { cat: 'Fertility', q: 'What does ovulation feel like?', a: 'Many women notice: mild one-sided cramping (Mittelschmerz), clear stretchy mucus like raw egg white, slight bloating, increased libido, and a tiny rise in body temperature. Not everyone feels ovulation. Tracking your mucus and temperature gives you the clearest signs — log them in the Symptoms tab.' },
   { cat: 'Irregular', q: 'My period came earlier than expected — what does this mean?', a: 'Early periods (before Day 21) can be caused by stress, illness, weight changes, intense exercise, or hormonal changes. If it happens repeatedly, discuss with a provider. Log it immediately — the tracker will update your average cycle length and recalculate predictions.' },
   { cat: 'Irregular', q: 'My period is late — should I worry?', a: 'Periods up to 7 days late are usually normal variation. Stress, illness, travel, or contraception changes are common causes. If you had unprotected sex and your period is late — take a pregnancy test. If consistently irregular (varying by more than 7 days), see a provider.' },
   { cat: 'Irregular', q: 'How do I know if my periods are regular or irregular?', a: 'Track at least 3 cycles. The Insights tab shows your cycle lengths as a chart — if they vary by more than 7 days between cycles, that is considered irregular. The tracker calculates your average and shows the range (shortest to longest).' },
+  { cat: 'Irregular', q: 'What causes irregular periods?', a: 'Common causes: stress, significant weight change, intense exercise, PCOS (polycystic ovary syndrome), thyroid problems, hormonal contraception, breastfeeding, or perimenopause. Track your cycles and share with a provider if irregular for 3+ months.' },
+  { cat: 'Irregular', q: 'Can stress delay my period?', a: 'Yes — stress is one of the most common causes of a late period. High stress increases cortisol which can delay ovulation and push your period back. If you are going through a stressful time, expect variability. Log it and the tracker will adapt its predictions over time.' },
   { cat: 'Methods', q: 'Calendar Method (Rhythm Method)', a: 'Count your last 6-12 cycles. Subtract 18 from your shortest cycle (start of fertile window) and subtract 11 from your longest cycle (end of fertile window). Only reliable if cycles are very regular (within 2-3 days each month). The Nova calendar automates this calculation for you based on your logged history.' },
   { cat: 'Methods', q: 'Cervical Mucus Method (CMM / Billings Method)', a: 'Track your vaginal discharge daily: Dry or sticky = low fertility. Creamy/white = fertility increasing. Clear, wet, stretchy like raw egg white = PEAK fertility (ovulation approaching). Log your mucus observations in the Symptoms → Body section. Most fertile when mucus is like egg white.' },
   { cat: 'Methods', q: 'Basal Body Temperature (BBT) Method', a: 'Take your temperature every morning before getting out of bed at the same time using a special BBT thermometer. After ovulation, temperature rises slightly (0.2-0.5°C) and stays raised. This CONFIRMS ovulation has happened — you are already past peak fertility by then. Combine with CMM for the Symptothermal Method.' },
   { cat: 'Methods', q: 'Symptothermal Method', a: 'The MOST effective natural method — combines BBT + cervical mucus + calendar. Start of fertile window: determined by calendar calculation or first sign of fertile-type mucus (whichever comes first). End of fertile window: 3 full days of high temperature AND 4 days past peak mucus. Requires training — ask your provider or see a certified FAM instructor.' },
   { cat: 'Methods', q: 'How accurate are natural methods compared to hormonal methods?', a: 'With perfect use: Symptothermal = 98-99%. Calendar alone = 75-87%. Cervical mucus alone = 76-97%. Compare with: DMPA-SC = 99%+, Implant = 99.9%, COC = 91-99%. Natural methods require daily tracking, consistent practice, and regular cycles. They do NOT protect against STIs/HIV.' },
   { cat: 'FP', q: 'Is it normal to have no period on DMPA-SC?', a: 'Yes — very common and completely safe. Up to 70% of women stop having periods after 1 year on DMPA. Your blood is NOT building up inside. The uterine lining simply does not build up. This is a health benefit for many women. Does NOT mean the method is failing.' },
+  { cat: 'FP', q: 'Can I track my cycle on the implant or IUD?', a: 'Yes! Log your implant/IUD insertion date as Day 1. The FP tab will track your return date. With implant and IUD, your periods may become irregular or stop — this is normal. Log whatever you experience. The tracker will note your FP method and adjust accordingly.' },
+  { cat: 'FP', q: 'When can I start tracking again after stopping DMPA?', a: 'After stopping DMPA, it can take 6-18 months for regular periods to return. Start logging again from your very first period after stopping. Your early cycles may be irregular — this is normal. The tracker will start building predictions once you have 2+ logged cycles.' },
 ]
 
 const FAQS_SW = [
@@ -628,54 +635,178 @@ function FPSetup({ lang, onSave, current }) {
   )
 }
 
-// ── SEX LOG MODAL ──────────────────────────────────────────────────────────────
-function SexModal({ dateS, cycleDay, cycleLen, lang, onSave, onClose }) {
+// ── DAY DETAIL MODAL ──────────────────────────────────────────────────────────
+// Shows phase info + pregnancy chance + log sex + log period start
+function DayDetailModal({ dateS, cycleDay, cycleLen, lang, cycles, onSaveSex, onLogPeriodStart, onClose }) {
   const [prot, setProt] = useState(null)
-  const chance = cycleDay ? getPregnancyChance(cycleDay, cycleLen) : null
-  const disc = lang==='sw'
-    ? '⚕️ Hii si mbadala wa dawa ya daktari. Njia ya kalenda peke yake si ya kuaminika kwa uzazi wa mpango.'
-    : '⚕️ This is not a substitute for medical advice. Calendar prediction alone is NOT reliable contraception.'
+  const [view, setView] = useState('info') // 'info' | 'sex'
+
+  const phase  = cycleDay && cycleDay > 0 ? getPhase(cycleDay, cycleLen) : null
+  const chance = cycleDay && cycleDay > 0 ? getPregnancyChance(cycleDay, cycleLen) : null
+  const isToday = dateS === todayStr()
+  const isPeriodDay = cycles.some(c => {
+    const end = c.end || addDays(c.start, 4)
+    return dateS >= c.start && dateS <= end
+  })
+
+  // Chance bar color
+  const chanceBarColor = chance ? (chance.level==='PEAK'||chance.level==='HIGH' ? '#dc2626' : chance.level==='MEDIUM' ? '#f59e0b' : '#16a34a') : '#9ca3af'
+
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-5" onClick={e=>e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-gray-800">💜 {lang==='sw'?'Rekodi Ngono':'Log Sex'} — {fmtShort(dateS)}</h3>
-          <button onClick={onClose}><X size={18} className="text-gray-400"/></button>
-        </div>
-        {chance && cycleDay && (
-          <div className={`rounded-xl p-3 mb-4 border ${chance.level==='PEAK'||chance.level==='HIGH'?'bg-red-50 border-red-200':'bg-green-50 border-green-200'}`}>
-            <p className="text-xs font-bold mb-0.5" style={{color:chance.color}}>
-              {lang==='sw'?'Uwezekano wa ujauzito siku hii:':'Pregnancy chance on this day:'} {chance.pct}% — {chance.level}
-            </p>
-            <p className="text-xs text-gray-500">{lang==='sw'?`Siku ${cycleDay} ya mzunguko`:`Cycle day ${cycleDay}`}</p>
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center" onClick={onClose}>
+      <div className="bg-white rounded-t-3xl w-full max-w-lg max-h-[80vh] overflow-y-auto"
+        onClick={e=>e.stopPropagation()}>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <div>
+            <p className="font-bold text-gray-800">{fmtLong(dateS)}</p>
+            {cycleDay && cycleDay > 0 && (
+              <p className="text-xs text-gray-500 mt-0.5">
+                {lang==='sw' ? `Siku ${cycleDay} ya mzunguko` : `Day ${cycleDay} of your cycle`}
+                {isToday && <span className="ml-2 text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full font-bold">{lang==='sw'?'Leo':'Today'}</span>}
+              </p>
+            )}
           </div>
-        )}
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          {[{val:true,label:lang==='sw'?'✅ Ndiyo (kondomu/FP)':'✅ Yes (condom/FP)'},{val:false,label:lang==='sw'?'⚠️ Hapana':'⚠️ No protection'}].map(opt=>(
-            <button key={String(opt.val)} onClick={()=>setProt(opt.val)}
-              className={`py-2.5 rounded-xl border-2 text-xs font-bold transition-colors ${prot===opt.val?'text-white':'border-gray-200 text-gray-600'}`}
-              style={prot===opt.val?{background:opt.val?'#14a044':'#dc2626'}:{}}>
-              {opt.label}
-            </button>
-          ))}
-        </div>
-        {prot===false && chance && (chance.level==='PEAK'||chance.level==='HIGH'||chance.level==='MEDIUM') && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4">
-            <p className="text-xs text-red-700 font-medium">
-              ⚠️ {lang==='sw'?'Ngono bila kinga katika dirisha la uzazi wa juu. Fikiria uzazi wa mpango wa dharura (P2/EC) haraka iwezekanavyo.':'Unprotected sex during high fertility window. Consider emergency contraception (ECP/P2) as soon as possible.'}
-            </p>
-          </div>
-        )}
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4">
-          <p className="text-xs text-blue-600">{disc}</p>
-        </div>
-        <div className="flex gap-2">
-          <button onClick={onClose} className="flex-1 border border-gray-300 text-gray-600 text-sm font-semibold py-2.5 rounded-xl">{lang==='sw'?'Funga':'Cancel'}</button>
-          <button onClick={()=>{if(prot!==null){onSave({protected:prot});onClose()}}} disabled={prot===null}
-            className="flex-1 text-white text-sm font-bold py-2.5 rounded-xl disabled:bg-gray-300"
-            style={{background:'linear-gradient(135deg,#ec4899,#f59e0b)'}}>
-            {lang==='sw'?'Hifadhi':'Save'}
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+            <X size={16} className="text-gray-500"/>
           </button>
+        </div>
+
+        <div className="p-5 space-y-4">
+
+          {/* Phase card */}
+          {phase ? (
+            <div className="rounded-2xl p-4 text-white" style={{background:`linear-gradient(135deg,${phase.color},${phase.color}bb)`}}>
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-3xl">{phase.emoji}</span>
+                <div>
+                  <p className="font-black text-lg">{phase[lang==='sw'?'sw':'en']}</p>
+                  <p className="text-xs opacity-80">{lang==='sw'?`Siku ${cycleDay} ya mzunguko`:`Cycle day ${cycleDay}`}</p>
+                </div>
+              </div>
+              <p className="text-sm opacity-90">{phase.desc[lang==='sw'?'sw':'en']}</p>
+            </div>
+          ) : (
+            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 text-center">
+              <p className="text-sm text-gray-500">
+                {lang==='sw' ? 'Rekodi hedhi yako kwanza kupata mwanga wa awamu.' : 'Log your period first to see phase information.'}
+              </p>
+              <button onClick={()=>{ onLogPeriodStart(dateS); onClose() }}
+                className="mt-2 text-xs text-pink-600 font-bold border border-pink-300 px-3 py-1.5 rounded-lg">
+                🔴 {lang==='sw'?'Rekodi kama Siku 1':'Log as Day 1'}
+              </button>
+            </div>
+          )}
+
+          {/* Pregnancy chance */}
+          {chance && (
+            <div className="bg-white border border-gray-200 rounded-2xl p-4">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
+                🤰 {lang==='sw'?'Uwezekano wa Ujauzito':'Pregnancy Chance'}
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="flex-1">
+                  <div className="bg-gray-100 rounded-full h-3 overflow-hidden">
+                    <div className="h-full rounded-full transition-all" style={{width:`${chance.pct}%`, background:chanceBarColor}}/>
+                  </div>
+                </div>
+                <span className="text-xl font-black flex-shrink-0" style={{color:chanceBarColor}}>{chance.pct}%</span>
+              </div>
+              <p className="text-xs font-bold mt-1.5" style={{color:chanceBarColor}}>
+                {chance.level} — {chance[lang==='sw'?'label_sw':'label_en']}
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                ⚕️ {lang==='sw'?'Hii si mbadala wa dawa ya daktari. Njia ya kalenda peke yake si ya kuaminika.':'This is not medical advice. Calendar method alone is not reliable contraception.'}
+              </p>
+            </div>
+          )}
+
+          {/* Ovulation highlight */}
+          {phase?.id === 'ovulation' && (
+            <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 flex items-start gap-2">
+              <span className="text-xl">⭐</span>
+              <div>
+                <p className="text-sm font-bold text-amber-800">{lang==='sw'?'Siku ya Ovulation!':'Ovulation Day!'}</p>
+                <p className="text-xs text-amber-700">{lang==='sw'?'Hii ndiyo siku ya uzazi wa kilele wa mzunguko wako. Yai limetolewa leo. Tumia njia yako ya FP kila wakati.':'This is your peak fertility day this cycle. An egg has been released. Always use your FP method.'}</p>
+              </div>
+            </div>
+          )}
+
+          {phase?.id === 'fertile' && (
+            <div className="bg-orange-50 border border-orange-300 rounded-xl p-3 flex items-start gap-2">
+              <span className="text-xl">🟠</span>
+              <div>
+                <p className="text-sm font-bold text-orange-800">{lang==='sw'?'Dirisha la Uzazi wa Juu':'High Fertility Window'}</p>
+                <p className="text-xs text-orange-700">{lang==='sw'?'Uko kwenye dirisha la uzazi. Manii inaweza kuishi hadi siku 5. Tumia njia yako ya FP kila wakati.':'You are in the fertile window. Sperm can survive up to 5 days. Use your FP method every time.'}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Action buttons */}
+          <div className="space-y-2">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">{lang==='sw'?'Rekodi kwa Siku Hii:':'Log for This Day:'}</p>
+
+            {/* Log period start */}
+            {!isPeriodDay && (
+              <button onClick={()=>{ onLogPeriodStart(dateS); onClose() }}
+                className="w-full flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3 hover:bg-red-100 transition-colors">
+                <span className="text-xl">🔴</span>
+                <div className="text-left">
+                  <p className="text-sm font-bold text-red-700">{lang==='sw'?'Rekodi kama Siku 1 ya Hedhi':'Log as Period Day 1'}</p>
+                  <p className="text-xs text-red-500">{lang==='sw'?'Hedhi ilianza siku hii':'Period started on this day'}</p>
+                </div>
+              </button>
+            )}
+
+            {/* Log sex */}
+            {view === 'info' && (
+              <button onClick={()=>setView('sex')}
+                className="w-full flex items-center gap-3 bg-purple-50 border border-purple-200 rounded-xl px-4 py-3 hover:bg-purple-100 transition-colors">
+                <span className="text-xl">💜</span>
+                <div className="text-left">
+                  <p className="text-sm font-bold text-purple-700">{lang==='sw'?'Rekodi Ngono':'Log Sex Activity'}</p>
+                  <p className="text-xs text-purple-500">{lang==='sw'?'Rekodi ngono na kiwango cha ulinzi':'Log sexual activity and protection used'}</p>
+                </div>
+              </button>
+            )}
+
+            {/* Sex form */}
+            {view === 'sex' && (
+              <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 space-y-3">
+                <p className="text-sm font-bold text-purple-700">💜 {lang==='sw'?'Je, ulitumia ulinzi?':'Was protection used?'}</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    {val:true,  label:lang==='sw'?'✅ Ndiyo (kondomu/FP)':'✅ Yes (condom/FP)'},
+                    {val:false, label:lang==='sw'?'⚠️ Hapana':'⚠️ No protection'},
+                  ].map(opt=>(
+                    <button key={String(opt.val)} onClick={()=>setProt(opt.val)}
+                      className={`py-2.5 rounded-xl border-2 text-xs font-bold transition-colors ${prot===opt.val?'text-white':'border-gray-200 text-gray-600'}`}
+                      style={prot===opt.val?{background:opt.val?'#14a044':'#dc2626'}:{}}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+                {prot===false && chance && (chance.level==='PEAK'||chance.level==='HIGH'||chance.level==='MEDIUM') && (
+                  <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+                    <p className="text-xs text-red-700 font-medium">
+                      ⚠️ {lang==='sw'
+                        ?'Ngono bila kinga kwenye dirisha la uzazi wa juu. Fikiria uzazi wa mpango wa dharura (P2/EC) haraka iwezekanavyo.'
+                        :'Unprotected sex during high fertility. Consider emergency contraception (ECP/P2) as soon as possible.'}
+                    </p>
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <button onClick={()=>setView('info')} className="flex-1 border border-gray-300 text-gray-600 text-xs font-semibold py-2 rounded-xl">{lang==='sw'?'Rudi':'Back'}</button>
+                  <button onClick={()=>{if(prot!==null){onSaveSex({protected:prot});onClose()}}} disabled={prot===null}
+                    className="flex-1 text-white text-xs font-bold py-2 rounded-xl disabled:bg-gray-300"
+                    style={{background:'linear-gradient(135deg,#ec4899,#f59e0b)'}}>
+                    {lang==='sw'?'Hifadhi':'Save'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -766,9 +897,15 @@ export default function NovaCycleTracker({ lang='en', user }) {
   const toggleSym = (cat,sym) => setSelectedSyms(p=>{ const c=p[cat]||[]; return{...p,[cat]:c.includes(sym)?c.filter(s=>s!==sym):[...c,sym]} })
 
   const handleDayTap = (dateS) => {
-    if(!last) return
-    const cd = diffDays(last.start, dateS)+1
+    const cd = last ? diffDays(last.start, dateS)+1 : null
     setSexModal({ dateS, cycleDay:cd })
+  }
+
+  // Log period start from day tap
+  const handleLogPeriodStart = (dateS) => {
+    const entry = { id:Date.now(), start:dateS, end:null, symptoms:[] }
+    const updated = [entry,...cycles].sort((a,b)=>b.start.localeCompare(a.start)).slice(0,48)
+    setCycles(updated); persist(K.cycles, updated)
   }
 
   const symCats = lang==='sw' ? SYMS_SW : SYMS_EN
@@ -776,29 +913,40 @@ export default function NovaCycleTracker({ lang='en', user }) {
   const catLabels_sw = { flow:'Mtiririko',pain:'Maumivu',mood:'Hisia',body:'Mwili',other:'Nyingine' }
   const catColors    = { flow:'#ec4899', pain:'#ef4444', mood:'#8b5cf6', body:'#f59e0b', other:'#14a044' }
 
-  const sections = [
-    { key:'overview',  label:lang==='sw'?'🏠 Nyumbani' :'🏠 Overview' },
-    { key:'calendar',  label:lang==='sw'?'📅 Kalenda'  :'📅 Calendar' },
-    { key:'log',       label:lang==='sw'?'📝 Rekodi'   :'📝 Log' },
-    { key:'symptoms',  label:lang==='sw'?'💊 Dalili'   :'💊 Symptoms' },
-    { key:'fp',        label:lang==='sw'?'💉 Njia ya FP':'💉 My FP' },
-    { key:'insights',  label:lang==='sw'?'💡 Mwanga'   :'💡 Insights' },
-    { key:'history',   label:lang==='sw'?'📊 Historia' :'📊 History' },
+  // Compact 2-row tab grid — all visible, no scroll
+  const TABS = [
+    { key:'overview',  icon:'🏠', en:'Home',     sw:'Nyumbani' },
+    { key:'calendar',  icon:'📅', en:'Calendar', sw:'Kalenda'  },
+    { key:'log',       icon:'📝', en:'Log',      sw:'Rekodi'   },
+    { key:'symptoms',  icon:'💊', en:'Symptoms', sw:'Dalili'   },
+    { key:'fp',        icon:'💉', en:'My FP',    sw:'Njia FP'  },
+    { key:'insights',  icon:'💡', en:'Insights', sw:'Mwanga'   },
+    { key:'history',   icon:'📊', en:'History',  sw:'Historia' },
   ]
 
   return (
     <div className="space-y-4 pb-20">
-      {/* Section tabs */}
-      <div className="overflow-x-auto -mx-4 px-4">
-        <div className="flex gap-1.5 min-w-max pb-1">
-          {sections.map(s=>(
-            <button key={s.key} onClick={()=>setSection(s.key)}
-              className={`px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors ${section===s.key?'text-white':'bg-white text-gray-500 border border-gray-200'}`}
-              style={section===s.key?{background:'linear-gradient(135deg,#ec4899,#f59e0b)'}:{}}>
-              {s.label}
-            </button>
-          ))}
-        </div>
+      {/* Row 1: 4 tabs */}
+      <div className="grid grid-cols-4 gap-1.5">
+        {TABS.slice(0,4).map(t=>(
+          <button key={t.key} onClick={()=>setSection(t.key)}
+            className={`flex flex-col items-center justify-center py-2 rounded-xl border transition-all ${section===t.key?'text-white border-transparent shadow-sm':'bg-white text-gray-500 border-gray-200'}`}
+            style={section===t.key?{background:'linear-gradient(135deg,#ec4899,#f59e0b)'}:{}}>
+            <span className="text-base leading-tight">{t.icon}</span>
+            <span className="text-xs font-bold mt-0.5 leading-tight">{lang==='sw'?t.sw:t.en}</span>
+          </button>
+        ))}
+      </div>
+      {/* Row 2: 3 tabs */}
+      <div className="grid grid-cols-3 gap-1.5">
+        {TABS.slice(4).map(t=>(
+          <button key={t.key} onClick={()=>setSection(t.key)}
+            className={`flex flex-col items-center justify-center py-2 rounded-xl border transition-all ${section===t.key?'text-white border-transparent shadow-sm':'bg-white text-gray-500 border-gray-200'}`}
+            style={section===t.key?{background:'linear-gradient(135deg,#ec4899,#f59e0b)'}:{}}>
+            <span className="text-base leading-tight">{t.icon}</span>
+            <span className="text-xs font-bold mt-0.5 leading-tight">{lang==='sw'?t.sw:t.en}</span>
+          </button>
+        ))}
       </div>
 
       {/* ── OVERVIEW ── */}
@@ -1073,7 +1221,7 @@ export default function NovaCycleTracker({ lang='en', user }) {
       {/* ── MODALS ── */}
       {showFAQ    && <FAQModal lang={lang} cycleLen={cycleLength} cycleDay={cycleDay} onClose={()=>setShowFAQ(false)}/>}
       {showImport && <ImportModal lang={lang} onImport={importHistory} onClose={()=>setShowImport(false)}/>}
-      {sexModal   && <SexModal dateS={sexModal.dateS} cycleDay={sexModal.cycleDay} cycleLen={cycleLength} lang={lang} onSave={(d)=>saveSex(sexModal.dateS,d)} onClose={()=>setSexModal(null)}/>}
+      {sexModal   && <DayDetailModal dateS={sexModal.dateS} cycleDay={sexModal.cycleDay} cycleLen={cycleLength} lang={lang} cycles={cycles} onSaveSex={(d)=>saveSex(sexModal.dateS,d)} onLogPeriodStart={handleLogPeriodStart} onClose={()=>setSexModal(null)}/>}
     </div>
   )
 }
