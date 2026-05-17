@@ -455,8 +455,9 @@ function generateCode() { return Math.random().toString(36).substring(2,8).toUpp
 function PartnerShareModal({ lang, cycles, user, onClose, initialMode='menu' }) {
   const t = T[lang]
   const [config, setConfig]       = useState(()=>store.get(K.partnerShare))
-  const [mode, setMode]           = useState(initialMode) // menu | share | revoke_confirm
-  const [inputCode, setInputCode] = useState('')
+  const [mode, setMode]           = useState(initialMode)
+  // Pre-fill code if coming from deep link
+  const [inputCode, setInputCode] = useState(()=>{ const c=store.get('nova_pending_view_code'); if(c){store.del('nova_pending_view_code');return c} return '' })
   const [copied, setCopied]       = useState(false)
   const [codeErr, setCodeErr]     = useState('')
 
@@ -467,14 +468,15 @@ function PartnerShareModal({ lang, cycles, user, onClose, initialMode='menu' }) 
   }
 
   const APP_URL = 'https://jellyfish-app-7kmt9.ondigitalocean.app/chagua-afya'
+  const VIEW_URL = `${APP_URL}?action=view-partner&code=${config?.code||''}`
 
   const shareWhatsApp = () => {
-    const msg = `Hi! I'm sharing my Nova cycle calendar with you. 🌸\n\nMy share code is: *${config?.code}*\n\nTo view my calendar:\n1. Open Nova: ${APP_URL}\n2. Tap *"View Partner Calendar"* on the Home tab\n3. Enter the code above\n\n_Nova is a private health app — your personal data is never shared._`
+    const msg = `Hi! I'm sharing my Nova cycle calendar with you. 🌸\n\nTap this link to view my calendar directly:\n👉 ${VIEW_URL}\n\nOr open Nova manually:\n1. Go to: ${APP_URL}\n2. Tap *"View Partner Calendar"* on the Home tab\n3. Enter code: *${config?.code}*\n\n_Nova is a private health app — your personal data is never shared._`
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank')
   }
 
   const copyCode = () => {
-    const text = `Nova share code: ${config?.code}\n\nView my cycle calendar: ${APP_URL}\n(Home → "View Partner Calendar" → enter this code)`
+    const text = `Nova share code: ${config?.code}\n\nView my cycle calendar directly:\n${VIEW_URL}\n\nOr go to Home → "View Partner Calendar" → enter: ${config?.code}`
     navigator.clipboard.writeText(text).catch(()=>{})
     setCopied(true); setTimeout(()=>setCopied(false),2500)
   }
@@ -590,6 +592,47 @@ function PartnerShareModal({ lang, cycles, user, onClose, initialMode='menu' }) 
                 </p>
               </div>
             </>
+          )}
+
+          {mode==='view'&&(
+            <div className="space-y-4">
+              <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
+                <p className="text-sm text-purple-700 leading-relaxed">
+                  {lang==='sw'
+                    ?'Ingiza nambari uliyopewa na mpenzi wako. Utaweza kuona kalenda yake ya hedhi tu.'
+                    :"Enter the code your partner shared with you. You'll be able to view their cycle calendar only."}
+                </p>
+              </div>
+              <div className="bg-white border-2 border-purple-200 rounded-2xl p-5">
+                <label className="block text-sm font-bold text-gray-700 mb-3">
+                  {lang==='sw'?'🔑 Nambari ya Mpenzi Wako:':'🔑 Your Partner\'s Share Code:'}
+                </label>
+                <input
+                  className="w-full border-2 border-purple-300 rounded-xl px-4 py-3 text-center text-2xl font-black tracking-[0.3em] uppercase focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                  placeholder="ABC123"
+                  maxLength={6}
+                  value={inputCode}
+                  autoFocus
+                  onChange={e=>{setInputCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,''));setCodeErr('')}}
+                />
+                {codeErr&&<p className="text-xs text-red-500 mt-2 text-center">{codeErr}</p>}
+                <button
+                  onClick={viewPartner}
+                  disabled={inputCode.length<6}
+                  className="w-full mt-4 text-white font-bold py-3 rounded-xl disabled:bg-gray-300 transition-colors"
+                  style={{background:inputCode.length===6?'linear-gradient(135deg,#7c3aed,#ec4899)':undefined}}>
+                  {lang==='sw'?'Tazama Kalenda →':'View Calendar →'}
+                </button>
+              </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-start gap-2">
+                <Info size={14} className="text-blue-500 flex-shrink-0 mt-0.5"/>
+                <p className="text-xs text-blue-700">
+                  {lang==='sw'
+                    ?'Utaona rekodi za hedhi peke yake. Taarifa nyingine za kibinafsi hazitaonekana.'
+                    :'You will only see period records. No other personal data will be visible.'}
+                </p>
+              </div>
+            </div>
           )}
 
           {mode==='revoke_confirm'&&(
@@ -963,13 +1006,6 @@ export default function ChaguaAfya() {
   const [isGuest, setIsGuest] = useState(false)
   const [showLogin, setShowLogin] = useState(false)
 
-  // Quick Unlock
-  const [showUnlockSetup, setShowUnlockSetup]     = useState(false)
-  const [showUnlockScreen, setShowUnlockScreen]   = useState(()=>{
-    const u=store.get(K.user); const qu=store.get(K.quickUnlock)
-    return !!(u&&qu?.enabled)
-  })
-
   // Partner sharing
   const [showShareModal, setShowShareModal] = useState(false)
   const [shareModalMode, setShareModalMode] = useState('menu')
@@ -977,6 +1013,21 @@ export default function ChaguaAfya() {
 
   // Delete confirm
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+
+  // Handle deep link: ?action=view-partner&code=XXXXXX
+  useEffect(()=>{
+    const params = new URLSearchParams(window.location.search)
+    const action = params.get('action')
+    const code   = params.get('code')
+    if(action==='view-partner'){
+      setShareModalMode('view')
+      setShowShareModal(true)
+      // If code was in URL, we need to pass it — store temporarily
+      if(code) store.set('nova_pending_view_code', code.toUpperCase())
+      // Clean URL without reload
+      window.history.replaceState({},'',window.location.pathname)
+    }
+  },[])
 
   const t = T[lang]
   const PROTECTED = ['cycle']
@@ -988,7 +1039,6 @@ export default function ChaguaAfya() {
 
   const onLogin = (u, isNew=false) => {
     setUser(u); setShowLogin(false); setIsGuest(false); setActiveTab('cycle')
-    if(isNew&&!store.get(K.quickUnlock)) setTimeout(()=>setShowUnlockSetup(true),600)
   }
 
   const onGuest = () => { setIsGuest(true); setShowLogin(false); setActiveTab('home') }
@@ -1003,20 +1053,12 @@ export default function ChaguaAfya() {
 
   const stopViewingPartner = () => { store.del('nova_viewing_partner'); setViewingPartner(null) }
 
-  // Quick unlock screen
-  if(showUnlockScreen) {
-    const qu=store.get(K.quickUnlock)
-    if(!qu?.enabled){ setShowUnlockScreen(false) }
-    else return <QuickUnlockScreen onUnlock={()=>setShowUnlockScreen(false)} onFallback={()=>{store.del(K.quickUnlock);setShowUnlockScreen(false)}}/>
-  }
-
   if(showLogin&&!user) return <NovaLogin lang={lang} onLogin={onLogin} onGuest={onGuest}/>
 
   return (
     <div className="min-h-screen bg-gray-50">
 
       {/* Modals */}
-      {showUnlockSetup&&<QuickUnlockSetup lang={lang} onDone={()=>setShowUnlockSetup(false)} onSkip={()=>setShowUnlockSetup(false)}/>}
       {showShareModal&&user&&<PartnerShareModal lang={lang} cycles={store.get(K.cycles,[])} user={user} initialMode={shareModalMode} onClose={()=>{setShowShareModal(false);setShareModalMode('menu');setViewingPartner(store.get('nova_viewing_partner'))}}/>}
       {showDeleteConfirm&&<DeleteConfirmModal lang={lang} onConfirm={confirmDelete} onCancel={()=>setShowDeleteConfirm(false)}/>}
 
@@ -1178,23 +1220,6 @@ export default function ChaguaAfya() {
                     <ChevronRight size={16} className="text-gray-400"/>
                   </button>
                 )}
-
-                {/* Quick unlock */}
-                <button onClick={()=>setShowUnlockSetup(true)}
-                  className="w-full flex items-center gap-3 bg-white border border-gray-200 rounded-2xl p-4 hover:shadow-sm transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0">
-                    <Lock size={18} className="text-gray-600"/>
-                  </div>
-                  <div className="text-left flex-1">
-                    <p className="font-bold text-gray-800 text-sm">{t.unlockTitle}</p>
-                    <p className="text-xs text-gray-500">
-                      {store.get(K.quickUnlock)?.enabled
-                        ?(lang==='sw'?'Umewekwa — bonyeza kubadilisha':'Configured — tap to change')
-                        :(lang==='sw'?'Fungua haraka bila nenosiri kamili':'Quick access without full password')}
-                    </p>
-                  </div>
-                  {store.get(K.quickUnlock)?.enabled&&<span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">On</span>}
-                </button>
 
                 {/* Sign out + delete */}
                 <div className="flex gap-2 pt-1">
