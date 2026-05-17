@@ -883,6 +883,7 @@ export default function NovaCycleTracker({ lang='en', user }) {
   const [sexModal,    setSexModal]    = useState(null)
   const [confirmModal, setConfirmModal] = useState(null) // {type, data, message}
   const [hubOpen,     setHubOpen]     = useState(false)
+  const [logSaved,    setLogSaved]    = useState(false)
 
   // Log form
   const [startDate,    setStartDate]    = useState('')
@@ -1210,18 +1211,122 @@ export default function NovaCycleTracker({ lang='en', user }) {
       {section==='calendar' && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-xs text-gray-500">{lang==='sw'?'Bonyeza siku yoyote kurekodi ngono':'Tap any day to log sex activity'}</p>
+            <p className="text-xs text-gray-500">{lang==='sw'?'Bonyeza siku yoyote kuona maelezo':'Tap any day for details & to log'}</p>
             {cycles.length===0 && (
               <button onClick={()=>setShowImport(true)} className="text-xs text-pink-600 font-bold border border-pink-300 px-3 py-1.5 rounded-lg">📅 {lang==='sw'?'Ingiza':'Import'}</button>
             )}
           </div>
           <CycleCalendar cycles={cycles} cycleLen={cycleLength} sexLog={sexLog} lang={lang} onDayTap={handleDayTap}/>
+
+          {/* Recent sex log entries with undo */}
+          {sexLog.length > 0 && (
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
+                💜 {lang==='sw'?'Rekodi za Ngono za Hivi Karibuni':'Recent Sex Log'}
+              </p>
+              <div className="space-y-2">
+                {sexLog.slice(0,5).map((s,i)=>(
+                  <div key={i} className="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${s.protected?'bg-purple-400':'bg-red-400'}`}/>
+                      <span className="text-xs text-gray-700 font-medium">{fmtShort(s.date)}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.protected?'bg-purple-100 text-purple-700':'bg-red-100 text-red-700'}`}>
+                        {s.protected?(lang==='sw'?'Na kinga':'Protected'):(lang==='sw'?'Bila kinga':'Unprotected')}
+                      </span>
+                    </div>
+                    <button onClick={()=>setConfirmModal({
+                      type:'delete',
+                      message: lang==='sw'?`Futa rekodi ya ngono ya ${fmtShort(s.date)}?`:`Delete sex log entry for ${fmtShort(s.date)}?`,
+                      sub:'',
+                      onConfirm:()=>{
+                        const updated=sexLog.filter((_,j)=>j!==i)
+                        setSexLog(updated); persist(K.sexLog,updated); setConfirmModal(null)
+                      }
+                    })} className="text-gray-300 hover:text-red-400 transition-colors">
+                      <Trash2 size={12}/>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {/* ── LOG PERIOD ── */}
       {section==='log' && (
         <div className="space-y-4">
+
+          {/* ── ONGOING PERIOD — end it ── */}
+          {last && !last.end && (
+            <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🩸</span>
+                <div>
+                  <p className="font-bold text-red-700 text-sm">
+                    {lang==='sw'?'Hedhi Inayoendelea':'Ongoing Period'}
+                  </p>
+                  <p className="text-xs text-red-500">
+                    {lang==='sw'?`Ilianza: ${fmtShort(last.start)}`:`Started: ${fmtShort(last.start)}`}
+                    {' · '}{lang==='sw'?`Siku ${cycleDay} hadi sasa`:`Day ${cycleDay} so far`}
+                  </p>
+                </div>
+              </div>
+              <p className="text-xs text-red-600">
+                {lang==='sw'
+                  ?'Hedhi yako bado iko wazi. Ingiza tarehe ya mwisho au bonyeza "Iliisha Leo".'
+                  :'Your period is still open. Enter the end date or tap "Ended Today".'}
+              </p>
+              <div className="flex gap-2 items-center">
+                <div className="flex-1">
+                  <label className="block text-xs text-red-600 font-medium mb-1">
+                    {lang==='sw'?'Tarehe ya Mwisho:':'End Date:'}
+                  </label>
+                  <input type="date"
+                    className="w-full border-2 border-red-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
+                    defaultValue={today}
+                    id="ongoingEndDate"/>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={()=>{
+                  const input = document.getElementById('ongoingEndDate')
+                  const endVal = input?.value || today
+                  if (endVal < last.start) { alert(lang==='sw'?'Tarehe ya mwisho haiwezi kuwa kabla ya tarehe ya kuanza.':'End date cannot be before start date.'); return }
+                  setConfirmModal({
+                    type:'end_period',
+                    message: lang==='sw'?`Rekodi tarehe ya mwisho ya hedhi kama ${fmtShort(endVal)}?`:`Mark period end date as ${fmtShort(endVal)}?`,
+                    sub: lang==='sw'?`Ilianza: ${fmtShort(last.start)}`:`Started: ${fmtShort(last.start)}`,
+                    onConfirm:()=>{
+                      const updated=cycles.map((c,i)=>i===0?{...c,end:endVal}:c)
+                      setCycles(updated); persist(K.cycles,updated); setConfirmModal(null)
+                      setLogSaved(true); setTimeout(()=>setLogSaved(false),2000)
+                    }
+                  })
+                }}
+                  className="flex-1 text-white font-bold py-2.5 rounded-xl text-sm"
+                  style={{background:'#dc2626'}}>
+                  ✅ {lang==='sw'?'Hifadhi Tarehe ya Mwisho':'Save End Date'}
+                </button>
+                <button onClick={()=>{
+                  setConfirmModal({
+                    type:'end_period',
+                    message: lang==='sw'?`Rekodi leo (${fmtShort(today)}) kama siku ya mwisho ya hedhi?`:`Mark today (${fmtShort(today)}) as period end?`,
+                    sub:'',
+                    onConfirm:()=>{
+                      const updated=cycles.map((c,i)=>i===0?{...c,end:today}:c)
+                      setCycles(updated); persist(K.cycles,updated); setConfirmModal(null)
+                      setLogSaved(true); setTimeout(()=>setLogSaved(false),2000)
+                    }
+                  })
+                }}
+                  className="flex-1 border-2 border-red-400 text-red-600 font-bold py-2.5 rounded-xl text-sm bg-white hover:bg-red-50">
+                  📅 {lang==='sw'?'Iliisha Leo':'Ended Today'}
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-gray-800">🔴 {lang==='sw'?'Rekodi Hedhi Mpya':'Log New Period'}</h3>
@@ -1314,9 +1419,22 @@ export default function NovaCycleTracker({ lang='en', user }) {
               <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">{lang==='sw'?'Dalili za Hivi Karibuni':'Recent Symptoms'}</p>
               {symptomLog.slice(0,5).map((e,i)=>(
                 <div key={i} className="bg-white rounded-xl border border-gray-200 p-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs font-bold text-gray-700">{e.date}</p>
-                    {e.phase && <span className="text-xs text-gray-400">{lang==='sw'?'Siku':'Day'} {e.day}</span>}
+                  <div className="flex items-start justify-between mb-1">
+                    <div>
+                      <p className="text-xs font-bold text-gray-700">{e.date}</p>
+                      {e.phase && <span className="text-xs text-gray-400">{lang==='sw'?'Siku':'Day'} {e.day}</span>}
+                    </div>
+                    <button onClick={()=>setConfirmModal({
+                      type:'delete',
+                      message: lang==='sw'?`Futa rekodi ya dalili za ${e.date}?`:`Delete symptom log for ${e.date}?`,
+                      sub: lang==='sw'?'Hii haiwezi kutenduliwa.':'This cannot be undone.',
+                      onConfirm:()=>{
+                        const updated=symptomLog.filter((_,j)=>j!==i)
+                        setSymptomLog(updated); persist(K.symptoms,updated); setConfirmModal(null)
+                      }
+                    })} className="text-gray-300 hover:text-red-400 transition-colors ml-2 flex-shrink-0">
+                      <Trash2 size={13}/>
+                    </button>
                   </div>
                   {e.symptoms?.length>0 && <div className="flex flex-wrap gap-1">{e.symptoms.map(s=><span key={s} className="text-xs bg-pink-100 text-pink-700 px-2 py-0.5 rounded-full">{s}</span>)}</div>}
                   {e.note && <p className="text-xs text-gray-500 mt-1 italic">"{e.note}"</p>}
