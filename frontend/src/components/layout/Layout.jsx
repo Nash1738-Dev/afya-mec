@@ -141,7 +141,10 @@ export default function Layout() {
           >
             <button
               onClick={() => setAdminDropdownOpen(!adminDropdownOpen)}
-              className="flex items-center gap-2 px-3 h-full hover:bg-white hover:bg-opacity-10 transition-colors"
+              className="flex items-center gap-2 px-3 h-full transition-colors"
+              style={{ }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               aria-label="Admin menu"
               aria-expanded={adminDropdownOpen}
             >
@@ -217,9 +220,11 @@ export default function Layout() {
 
           {/* ── Brand — AfyaNova ── */}
           <div
-            className="flex items-center gap-2.5 cursor-pointer flex-shrink-0 px-3 h-full hover:bg-white hover:bg-opacity-10 transition-colors"
+            className="flex items-center gap-2.5 cursor-pointer flex-shrink-0 px-3 h-full transition-colors"
             style={{ borderRight: '1px solid rgba(255,255,255,0.18)' }}
             onClick={() => navigate('/')}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
             <div
               className="w-8 h-8 rounded-xl flex items-center justify-center text-base font-bold flex-shrink-0"
