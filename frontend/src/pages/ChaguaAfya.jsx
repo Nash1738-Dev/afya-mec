@@ -266,15 +266,25 @@ function QuickUnlockSetup({ lang, onDone, onSkip }) {
         <button onClick={()=>{setMethod(null);setPattern([]);setConfirmPattern([]);setStep(2)}} className="mb-4 text-gray-400"><ArrowLeft size={18}/></button>
         <h3 className="font-bold text-gray-800 mb-1">{step===2?'Draw Your Pattern':'Confirm Your Pattern'}</h3>
         <p className="text-xs text-gray-500 mb-4">{step===2?'Connect at least 4 dots in any order':'Draw the same pattern again'}</p>
-        <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-2xl mb-3">
+        <div className="grid grid-cols-3 gap-3 p-4 bg-gray-50 rounded-2xl mb-3">
           {GRID.map(n=>{
             const cur=step===2?pattern:confirmPattern; const idx=cur.indexOf(n); const active=idx>=0
-            return (<button key={n} onClick={()=>toggleDot(n)}
-              className={`aspect-square rounded-full flex items-center justify-center text-sm font-black border-2 transition-all ${active?'text-white border-purple-500 scale-110':'bg-white border-gray-300 text-gray-400'}`}
-              style={active?{background:'linear-gradient(135deg,#7c3aed,#ec4899)'}:{}}>{active?idx+1:'·'}</button>)
+            return (
+              <button key={n} onClick={()=>toggleDot(n)}
+                style={{
+                  width:'100%', paddingTop:'100%', position:'relative',
+                  ...(active?{background:'linear-gradient(135deg,#7c3aed,#ec4899)'}:{background:'#fff'})
+                }}
+                className={`rounded-full border-2 transition-all ${active?'border-purple-500':'border-gray-300'}`}>
+                <span style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center'}}
+                  className={`text-sm font-black ${active?'text-white':'text-gray-400'}`}>
+                  {active?idx+1:'·'}
+                </span>
+              </button>
+            )
           })}
         </div>
-        <p className="text-xs text-gray-400 text-center mb-2">{(step===2?pattern:confirmPattern).length} dots selected</p>
+        <p className="text-xs text-gray-400 text-center mb-2">{(step===2?pattern:confirmPattern).length} / 9 dots — min 4</p>
         {err&&<p className="text-xs text-red-500 text-center mb-2">{err}</p>}
         <div className="flex gap-2">
           <button onClick={()=>step===2?setPattern([]):setConfirmPattern([])} className="flex-1 border border-gray-300 text-gray-600 font-bold py-2.5 rounded-xl text-sm">Clear</button>
@@ -328,13 +338,19 @@ function QuickUnlockScreen({ onUnlock, onFallback }) {
           )}
           {config.method==='pattern'&&(
             <>
-              <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-2xl mb-3">
+              <div className="grid grid-cols-3 gap-3 p-4 bg-gray-50 rounded-2xl mb-3">
                 {GRID.map(n=>{const idx=pattern.indexOf(n);const active=idx>=0;return(
                   <button key={n} onClick={()=>{if(!active){setPattern(p=>[...p,n]);setErr('')}}}
-                    className={`aspect-square rounded-full flex items-center justify-center text-sm font-black border-2 transition-all ${active?'text-white border-pink-500':'bg-white border-gray-300 text-gray-400'}`}
-                    style={active?{background:'linear-gradient(135deg,#ec4899,#f59e0b)'}:{}}>{active?idx+1:'·'}</button>
+                    style={{width:'100%',paddingTop:'100%',position:'relative',...(active?{background:'linear-gradient(135deg,#ec4899,#f59e0b)'}:{background:'#fff'})}}
+                    className={`rounded-full border-2 transition-all ${active?'border-pink-500':'border-gray-300'}`}>
+                    <span style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center'}}
+                      className={`text-sm font-black ${active?'text-white':'text-gray-400'}`}>
+                      {active?idx+1:'·'}
+                    </span>
+                  </button>
                 )})}
               </div>
+              <p className="text-xs text-gray-400 text-center mb-2">{pattern.length} / 9 — min 4 to unlock</p>
               {err&&<p className="text-xs text-red-500 text-center mb-2">{err}</p>}
               <div className="flex gap-2">
                 <button onClick={()=>setPattern([])} className="flex-1 border border-gray-300 text-gray-600 font-bold py-2.5 rounded-xl text-sm">Clear</button>
@@ -436,10 +452,10 @@ function NovaLogin({ lang, onLogin, onGuest }) {
 // ══════════════════════════════════════════════════════════════════════════════
 function generateCode() { return Math.random().toString(36).substring(2,8).toUpperCase() }
 
-function PartnerShareModal({ lang, cycles, user, onClose }) {
+function PartnerShareModal({ lang, cycles, user, onClose, initialMode='menu' }) {
   const t = T[lang]
   const [config, setConfig]       = useState(()=>store.get(K.partnerShare))
-  const [mode, setMode]           = useState('menu') // menu | share | view | revoke_confirm
+  const [mode, setMode]           = useState(initialMode) // menu | share | revoke_confirm
   const [inputCode, setInputCode] = useState('')
   const [copied, setCopied]       = useState(false)
   const [codeErr, setCodeErr]     = useState('')
@@ -450,14 +466,17 @@ function PartnerShareModal({ lang, cycles, user, onClose }) {
     store.set(K.partnerShare, snapshot); setConfig(snapshot); setMode('share')
   }
 
-  const copyCode = () => {
-    navigator.clipboard.writeText(config?.code||'').catch(()=>{})
-    setCopied(true); setTimeout(()=>setCopied(false),2000)
-  }
+  const APP_URL = 'https://jellyfish-app-7kmt9.ondigitalocean.app/chagua-afya'
 
   const shareWhatsApp = () => {
-    const msg = `Hi! I'm sharing my Nova cycle calendar with you.\n\nMy share code is: *${config?.code}*\n\nOpen Nova → Home → "View Partner Calendar" → enter this code. 🌸\n\n*Nova is a private health app — your data is safe.*`
+    const msg = `Hi! I'm sharing my Nova cycle calendar with you. 🌸\n\nMy share code is: *${config?.code}*\n\nTo view my calendar:\n1. Open Nova: ${APP_URL}\n2. Tap *"View Partner Calendar"* on the Home tab\n3. Enter the code above\n\n_Nova is a private health app — your personal data is never shared._`
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank')
+  }
+
+  const copyCode = () => {
+    const text = `Nova share code: ${config?.code}\n\nView my cycle calendar: ${APP_URL}\n(Home → "View Partner Calendar" → enter this code)`
+    navigator.clipboard.writeText(text).catch(()=>{})
+    setCopied(true); setTimeout(()=>setCopied(false),2500)
   }
 
   const viewPartner = () => {
@@ -953,6 +972,7 @@ export default function ChaguaAfya() {
 
   // Partner sharing
   const [showShareModal, setShowShareModal] = useState(false)
+  const [shareModalMode, setShareModalMode] = useState('menu')
   const [viewingPartner, setViewingPartner] = useState(()=>store.get('nova_viewing_partner'))
 
   // Delete confirm
@@ -997,7 +1017,7 @@ export default function ChaguaAfya() {
 
       {/* Modals */}
       {showUnlockSetup&&<QuickUnlockSetup lang={lang} onDone={()=>setShowUnlockSetup(false)} onSkip={()=>setShowUnlockSetup(false)}/>}
-      {showShareModal&&user&&<PartnerShareModal lang={lang} cycles={store.get(K.cycles,[])} user={user} onClose={()=>{setShowShareModal(false);setViewingPartner(store.get('nova_viewing_partner'))}}/>}
+      {showShareModal&&user&&<PartnerShareModal lang={lang} cycles={store.get(K.cycles,[])} user={user} initialMode={shareModalMode} onClose={()=>{setShowShareModal(false);setShareModalMode('menu');setViewingPartner(store.get('nova_viewing_partner'))}}/>}
       {showDeleteConfirm&&<DeleteConfirmModal lang={lang} onConfirm={confirmDelete} onCancel={()=>setShowDeleteConfirm(false)}/>}
 
       {/* HEADER */}
@@ -1065,35 +1085,113 @@ export default function ChaguaAfya() {
               <p className="text-xs text-blue-700">{t.privacy}</p>
             </div>
 
-            {/* Viewing partner banner */}
-            {viewingPartner&&(
-              <div className="bg-purple-50 border-2 border-purple-300 rounded-2xl p-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Users size={16} className="text-purple-600"/>
-                  <div><p className="font-bold text-purple-700 text-sm">{t.viewingPartner}</p><p className="text-xs text-purple-500">{viewingPartner.owner}</p></div>
-                </div>
-                <button onClick={stopViewingPartner} className="text-xs border border-purple-300 text-purple-600 font-bold px-3 py-1.5 rounded-xl hover:bg-purple-50">{t.stopViewing}</button>
-              </div>
-            )}
-
-            {/* Logged-in user actions */}
+            {/* ── PARTNER SECTION (always visible when logged in) ── */}
             {user&&(
               <div className="space-y-2">
-                {/* Partner share */}
-                <button onClick={()=>setShowShareModal(true)}
-                  className="w-full flex items-center gap-3 bg-white border border-gray-200 rounded-2xl p-4 hover:shadow-sm transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0"><Share2 size={18} className="text-purple-600"/></div>
-                  <div className="text-left flex-1"><p className="font-bold text-gray-800 text-sm">{t.partnerShareLabel}</p><p className="text-xs text-gray-500">{t.partnerShareDesc}</p></div>
-                  {store.get(K.partnerShare)&&<span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Active</span>}
-                </button>
+
+                {/* Currently VIEWING partner — banner */}
+                {viewingPartner&&(
+                  <div className="bg-purple-50 border-2 border-purple-400 rounded-2xl p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-9 h-9 rounded-xl bg-purple-500 flex items-center justify-center text-white text-lg">👥</div>
+                        <div>
+                          <p className="font-bold text-purple-700 text-sm">{t.viewingPartner}</p>
+                          <p className="text-xs text-purple-500 font-semibold">{viewingPartner.owner}</p>
+                        </div>
+                      </div>
+                      <button onClick={stopViewingPartner}
+                        className="text-xs border-2 border-purple-400 text-purple-600 font-bold px-3 py-1.5 rounded-xl hover:bg-purple-100">
+                        {t.stopViewing}
+                      </button>
+                    </div>
+                    <button onClick={()=>goTab('cycle')}
+                      className="w-full text-white font-bold py-2 rounded-xl text-xs"
+                      style={{background:'linear-gradient(135deg,#7c3aed,#ec4899)'}}>
+                      📅 {lang==='sw'?'Tazama Kalenda ya Mpenzi':'View Partner Calendar'}
+                    </button>
+                  </div>
+                )}
+
+                {/* MY OWN SHARE — owner management card */}
+                {(()=>{ const myShare = store.get(K.partnerShare); return myShare ? (
+                  <div className="bg-green-50 border-2 border-green-300 rounded-2xl p-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <div className="w-9 h-9 rounded-xl bg-green-500 flex items-center justify-center text-white text-lg">🔗</div>
+                        <div>
+                          <p className="font-bold text-green-700 text-sm">{lang==='sw'?'Kalenda Yangu Inashirikiwa':'My Calendar is Shared'}</p>
+                          <p className="text-xs text-green-600">
+                            {lang==='sw'?'Nambari: ':'Code: '}
+                            <span className="font-black tracking-widest">{myShare.code}</span>
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded-full font-bold">
+                        {lang==='sw'?'Hai':'Active'}
+                      </span>
+                    </div>
+                    <div className="flex gap-2 mt-3">
+                      <button onClick={()=>setShowShareModal(true)}
+                        className="flex-1 text-white font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1"
+                        style={{background:'linear-gradient(135deg,#14a044,#0d7377)'}}>
+                        <Share2 size={12}/>{lang==='sw'?'Simamia':'Manage'}
+                      </button>
+                      <button onClick={()=>setShowShareModal(true)}
+                        className="flex-1 border border-green-300 text-green-700 font-bold py-2 rounded-xl text-xs">
+                        {lang==='sw'?'Tuma Tena':'Resend Code'}
+                      </button>
+                    </div>
+                  </div>
+                ) : null })()}
+
+                {/* PARTNER SHARING ENTRY — shown when no active share */}
+                {!store.get(K.partnerShare)&&(
+                  <button onClick={()=>setShowShareModal(true)}
+                    className="w-full flex items-center gap-3 bg-white border border-gray-200 rounded-2xl p-4 hover:shadow-sm transition-all">
+                    <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
+                      <Share2 size={18} className="text-purple-600"/>
+                    </div>
+                    <div className="text-left flex-1">
+                      <p className="font-bold text-gray-800 text-sm">{t.partnerShareLabel}</p>
+                      <p className="text-xs text-gray-500">{t.partnerShareDesc}</p>
+                    </div>
+                    <ChevronRight size={16} className="text-gray-400"/>
+                  </button>
+                )}
+
+                {/* VIEW PARTNER CALENDAR — enter code */}
+                {!viewingPartner&&(
+                  <button onClick={()=>{ setShareModalMode('view'); setShowShareModal(true) }}
+                    className="w-full flex items-center gap-3 bg-white border border-gray-200 rounded-2xl p-4 hover:shadow-sm transition-all">
+                    <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+                      <Users size={18} className="text-blue-600"/>
+                    </div>
+                    <div className="text-left flex-1">
+                      <p className="font-bold text-gray-800 text-sm">
+                        {lang==='sw'?'Ona Kalenda ya Mpenzi':'View Partner Calendar'}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {lang==='sw'?'Ingiza nambari ya kushiriki uliyopewa':'Enter a share code from your partner'}
+                      </p>
+                    </div>
+                    <ChevronRight size={16} className="text-gray-400"/>
+                  </button>
+                )}
 
                 {/* Quick unlock */}
                 <button onClick={()=>setShowUnlockSetup(true)}
                   className="w-full flex items-center gap-3 bg-white border border-gray-200 rounded-2xl p-4 hover:shadow-sm transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0"><Lock size={18} className="text-gray-600"/></div>
+                  <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0">
+                    <Lock size={18} className="text-gray-600"/>
+                  </div>
                   <div className="text-left flex-1">
                     <p className="font-bold text-gray-800 text-sm">{t.unlockTitle}</p>
-                    <p className="text-xs text-gray-500">{store.get(K.quickUnlock)?.enabled?(lang==='sw'?'Umewekwa — bonyeza kubadilisha':'Configured — tap to change'):(lang==='sw'?'Fungua haraka bila nenosiri kamili':'Quick access without full password')}</p>
+                    <p className="text-xs text-gray-500">
+                      {store.get(K.quickUnlock)?.enabled
+                        ?(lang==='sw'?'Umewekwa — bonyeza kubadilisha':'Configured — tap to change')
+                        :(lang==='sw'?'Fungua haraka bila nenosiri kamili':'Quick access without full password')}
+                    </p>
                   </div>
                   {store.get(K.quickUnlock)?.enabled&&<span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">On</span>}
                 </button>
