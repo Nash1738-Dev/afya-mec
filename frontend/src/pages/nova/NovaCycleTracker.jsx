@@ -91,9 +91,22 @@ const FAQS_EN = [
   { cat: 'Methods', q: 'Basal Body Temperature (BBT) Method', a: 'Take your temperature every morning before getting out of bed at the same time using a special BBT thermometer. After ovulation, temperature rises slightly (0.2-0.5°C) and stays raised. This CONFIRMS ovulation has happened — you are already past peak fertility by then. Combine with CMM for the Symptothermal Method.' },
   { cat: 'Methods', q: 'Symptothermal Method', a: 'The MOST effective natural method — combines BBT + cervical mucus + calendar. Start of fertile window: determined by calendar calculation or first sign of fertile-type mucus (whichever comes first). End of fertile window: 3 full days of high temperature AND 4 days past peak mucus. Requires training — ask your provider or see a certified FAM instructor.' },
   { cat: 'Methods', q: 'How accurate are natural methods compared to hormonal methods?', a: 'With perfect use: Symptothermal = 98-99%. Calendar alone = 75-87%. Cervical mucus alone = 76-97%. Compare with: DMPA-SC = 99%+, Implant = 99.9%, COC = 91-99%. Natural methods require daily tracking, consistent practice, and regular cycles. They do NOT protect against STIs/HIV.' },
+  { cat: 'PMS', q: 'What is PMS?', a: 'Premenstrual Syndrome (PMS) is a combination of physical, emotional, and behavioural symptoms that occur in the 1-2 weeks before your period and go away once your period starts. It affects up to 75% of women. Caused by hormonal fluctuations — specifically the drop in estrogen and progesterone.' },
+  { cat: 'PMS', q: 'What are the physical symptoms of PMS?', a: 'Physical PMS symptoms include: bloating and water retention (feeling puffy), breast tenderness or swelling, headaches or migraines, fatigue and low energy, acne breakouts, weight gain of 1-2kg (water weight), back or joint pain, constipation or diarrhea, and food cravings (especially sweet or salty foods). These typically peak 2-3 days before your period and resolve within 1-2 days of bleeding starting.' },
+  { cat: 'PMS', q: 'What are the emotional symptoms of PMS?', a: 'Emotional PMS symptoms include: mood swings (feeling fine one moment, tearful the next), irritability or anger, anxiety or feeling on edge, depression or low mood, difficulty concentrating ("brain fog"), feeling overwhelmed by small things, decreased confidence, and increased sensitivity to rejection or criticism. These are REAL hormonal effects — not weakness or drama.' },
+  { cat: 'PMS', q: 'What is PMDD and how is it different from PMS?', a: 'PMDD (Premenstrual Dysphoric Disorder) is a severe form of PMS that significantly disrupts daily life. Signs you may have PMDD rather than PMS: you cannot function at work or school, relationships are seriously affected, you feel hopeless or have thoughts of self-harm, symptoms cause significant distress for more than 5 cycles. PMDD requires medical treatment — please see a doctor.' },
+  { cat: 'PMS', q: 'How can I manage PMS symptoms?', a: 'Lifestyle: Regular exercise (especially in the 2 weeks before your period) significantly reduces PMS. Sleep 7-8 hours. Reduce salt, caffeine, alcohol, and sugar in the week before your period. Eat small frequent meals to stabilise blood sugar. Supplements that help: calcium (1200mg/day), magnesium (200-400mg/day), vitamin B6. Medical: ibuprofen or mefenamic acid for cramps. For severe PMS/PMDD — see a provider about hormonal treatments or antidepressants.' },
+  { cat: 'PMS', q: 'How do I know if it is PMS or something else?', a: 'True PMS: symptoms start 1-2 weeks before your period, get worse as period approaches, and DISAPPEAR within 1-2 days of bleeding starting. Not PMS: symptoms present throughout the whole cycle, symptoms do not improve after period starts, symptoms are getting progressively worse over months. If unsure, track your symptoms daily for 2-3 cycles in the Symptoms tab and share with your provider.' },
   { cat: 'FP', q: 'Is it normal to have no period on DMPA-SC?', a: 'Yes — very common and completely safe. Up to 70% of women stop having periods after 1 year on DMPA. Your blood is NOT building up inside. The uterine lining simply does not build up. This is a health benefit for many women. Does NOT mean the method is failing.' },
   { cat: 'FP', q: 'Can I track my cycle on the implant or IUD?', a: 'Yes! Log your implant/IUD insertion date as Day 1. The FP tab will track your return date. With implant and IUD, your periods may become irregular or stop — this is normal. Log whatever you experience. The tracker will note your FP method and adjust accordingly.' },
   { cat: 'FP', q: 'When can I start tracking again after stopping DMPA?', a: 'After stopping DMPA, it can take 6-18 months for regular periods to return. Start logging again from your very first period after stopping. Your early cycles may be irregular — this is normal. The tracker will start building predictions once you have 2+ logged cycles.' },
+  { cat: 'PMS', q: 'What is PMS? Am I imagining it?', a: 'PMS (Premenstrual Syndrome) is absolutely REAL — it is caused by hormonal changes in the second half of your cycle. Up to 75% of women experience it. It is NOT a weakness or imagination. Physical symptoms: bloating, breast tenderness, headaches, fatigue, cramps, acne, food cravings, sleep changes. Emotional symptoms: irritability, anxiety, sadness, mood swings, difficulty concentrating, crying easily. Symptoms start 1-2 weeks before your period and stop when your period starts.' },
+  { cat: 'PMS', q: 'What helps with PMS symptoms?', a: 'Evidence-based strategies that help: Regular exercise (even a 20-min walk reduces PMS significantly). Reduce salt (reduces bloating), caffeine (worsens anxiety/breast tenderness), and alcohol (worsens mood). Eat smaller, more frequent meals. Prioritise sleep. Calcium supplements (1200mg/day) — proven to reduce PMS symptoms. Ibuprofen or mefenamic acid for cramps and pain. Heat pad on abdomen. Magnesium supplements may help mood symptoms. Talk to a provider if symptoms significantly impact your daily life — PMDD (severe PMS) is treatable.' },
+  { cat: 'PMS', q: 'What is PMDD and how is it different from PMS?', a: 'PMDD (Premenstrual Dysphoric Disorder) is a severe form of PMS that significantly disrupts daily life. Signs it might be PMDD: symptoms are severe enough to affect work, relationships, or daily function. Feeling unable to cope or having thoughts of self-harm in the premenstrual week. The key difference: PMS is uncomfortable; PMDD is disabling. PMDD is a recognised medical condition and is very treatable — antidepressants (SSRIs), COC pills, or other hormonal treatments can provide significant relief. Please see a provider.' },
+  { cat: 'Factors', q: 'What factors affect my cycle?', a: 'Your menstrual cycle is sensitive to your overall health. Major factors: Stress (most common — raises cortisol which suppresses ovulation). Significant weight loss or gain (affects hormone production). Intense exercise or sudden increase in activity. Illness (especially fever). Sleep disruption or jet lag (affects melatonin and hormones). Nutrition — especially iron, zinc, and fat deficiency. Thyroid problems (both over- and under-active thyroid affect cycles). PCOS (polycystic ovary syndrome — most common hormonal disorder in reproductive-age women). Perimenopause (cycles become irregular from the mid-30s for some women). Contraception changes.' },
+  { cat: 'Factors', q: 'Can my weight affect my periods?', a: 'Yes — significantly. Underweight (BMI < 18.5): Fat cells produce estrogen. Too little body fat = too little estrogen = irregular or absent periods (amenorrhoea). The body suppresses reproduction to conserve energy. Overweight: Excess fat cells produce extra estrogen, which can cause irregular cycles, heavier periods, and increase risk of PCOS. Both extremes can affect fertility. A healthy, balanced diet and moderate exercise support regular cycles.' },
+  { cat: 'Factors', q: 'What is PCOS and how does it affect my cycle?', a: 'PCOS (Polycystic Ovary Syndrome) is the most common hormonal disorder affecting women of reproductive age — estimated 1 in 10 women. Signs: Irregular periods (less than 8 per year, or more than 35 days between periods). Excess hair growth (face, chest, abdomen). Acne. Weight gain especially around the waist. Difficulty losing weight. Thinning hair. PCOS cycles are unpredictable — calendar tracking alone is unreliable. See a provider for diagnosis. PCOS is very manageable with lifestyle changes and/or medication.' },
+  { cat: 'Factors', q: 'My cycles are very short (under 21 days) — is this dangerous?', a: 'Cycles under 21 days are called polymenorrhoea. Occasional short cycles are usually not serious. Consistent short cycles may indicate: Thyroid problems. Low progesterone (luteal phase defect). Perimenopause. Rarely, other hormonal conditions. Importantly: with short cycles, ovulation happens EARLIER — sometimes near the end of your period. The calendar marks this clearly. Period days are NOT safe days with short cycles. Please discuss with a provider if cycles are consistently under 21 days.' },
 ]
 
 const FAQS_SW = [
@@ -103,6 +116,10 @@ const FAQS_SW = [
   { cat: 'Uzazi', q: '"Siku salama" ni zipi?', a: 'Siku salama ni siku zenye uwezekano mdogo wa ujauzito — kawaida siku baada ya hedhi yako kuisha na wiki 1-2 kabla ya hedhi yako ijayo. LAKINI: hakuna siku salama kabisa bila uzazi wa mpango, hasa na mzunguko usio wa kawaida.' },
   { cat: 'Usio wa Kawaida', q: 'Hedhi yangu ilikuja mapema — inamaanisha nini?', a: 'Hedhi za mapema (kabla ya Siku 21) zinaweza kusababishwa na msongo wa mawazo, ugonjwa, mabadiliko ya uzito, mazoezi makali, au mabadiliko ya homoni. Ikiwa inatokea mara kwa mara, zungumza na mtoa huduma. Irekodi mara moja — mfumo utasasisha wastani wako na kuhesabu upya utabiri.' },
   { cat: 'Usio wa Kawaida', q: 'Hedhi yangu imechelewa — niwe na wasiwasi?', a: 'Hedhi zilizochelewa hadi siku 7 ni kawaida. Msongo, ugonjwa, safari, au mabadiliko ya uzazi wa mpango ni sababu za kawaida. Ikiwa ulikuwa na ngono bila kinga na hedhi imechelewa — fanya mtihani wa ujauzito.' },
+  { cat: 'PMS', q: 'PMS ni nini?', a: 'Ugonjwa wa Kabla ya Hedhi (PMS) ni mchanganyiko wa dalili za kimwili, kihisia, na tabia ambazo hutokea wiki 1-2 kabla ya hedhi yako na kutoweka mara hedhi yako inapoanza. Huathiri hadi 75% ya wanawake. Husababishwa na mabadiliko ya homoni — hasa kushuka kwa estrojeni na projestojeni.' },
+  { cat: 'PMS', q: 'Dalili za kimwili za PMS ni zipi?', a: 'Dalili za kimwili za PMS ni pamoja na: kuvimba na kuhifadhi maji, maumivu au uvimbe wa matiti, maumivu ya kichwa, uchovu, chunusi, kuongezeka uzito wa kilo 1-2 (maji), maumivu ya mgongo, na kutamani chakula (hasa tamu au chumvi). Kawaida huwa mbaya zaidi siku 2-3 kabla ya hedhi yako.' },
+  { cat: 'PMS', q: 'Dalili za kihisia za PMS ni zipi?', a: 'Dalili za kihisia za PMS ni pamoja na: mabadiliko ya hisia, kuwashwa au hasira, wasiwasi, huzuni, ugumu wa kuzingatia, kujisikia kuzidiwa na mambo madogo, na kuathiriwa zaidi na ukosoaji. Hizi ni athari za kweli za homoni — si udhaifu au kucheza mchezo.' },
+  { cat: 'PMS', q: 'Ninawezaje kudhibiti dalili za PMS?', a: 'Mazoezi ya kawaida (hasa wiki 2 kabla ya hedhi yako) hupunguza sana PMS. Lala masaa 7-8. Punguza chumvi, kafeini, pombe, na sukari kabla ya hedhi yako. Virutubisho vinavyosaidia: kalsiamu (1200mg/siku), magnesiamu (200-400mg/siku), vitamini B6. Kwa maumivu: ibuprofen au mefenamic acid. Kwa PMS/PMDD kali — ona mtoa huduma.' },
   { cat: 'Njia', q: 'Njia ya Kalenda (Rhythm Method)', a: 'Hesabu mzunguko wako wa mwisho 6-12. Toa 18 kutoka mzunguko wako mfupi zaidi (mwanzo wa dirisha la uzazi) na toa 11 kutoka mzunguko wako mrefu zaidi (mwisho wa dirisha la uzazi). Inafanya kazi tu ikiwa mzunguko wako ni wa kawaida sana. Nova kalenda inafanya hesabu hii moja kwa moja.' },
   { cat: 'Njia', q: 'Njia ya Kamasi ya Seviksi (CMM / Billings)', a: 'Fuatilia utokaji wako wa ukeni kila siku: Kavu au nzito = uzazi wa chini. Nyeupe/cream = uzazi unaongezeka. Wazi, yenye unyevu, inayonyoosheka kama nyeupe mbichi ya yai = KILELE cha uzazi. Rekodi uchunguzi wako wa kamasi katika sehemu ya Dalili.' },
   { cat: 'Njia', q: 'Njia ya Joto la Mwili la Msingi (BBT)', a: 'Pima joto lako kila asubuhi kabla ya kutoka kitandani kwa wakati mmoja. Baada ya ovulation, joto huinuka kidogo (0.2-0.5°C) na kukaa juu. Hii INATHIBITISHA ovulation imetokea. Unganisha na CMM kwa Njia ya Symptothermal.' },
@@ -637,7 +654,7 @@ function FPSetup({ lang, onSave, current }) {
 
 // ── DAY DETAIL MODAL ──────────────────────────────────────────────────────────
 // Shows phase info + pregnancy chance + log sex + log period start
-function DayDetailModal({ dateS, cycleDay, cycleLen, lang, cycles, onSaveSex, onLogPeriodStart, onClose }) {
+function DayDetailModal({ dateS, cycleDay, cycleLen, lang, cycles, fp, onSaveSex, onLogPeriodStart, onClose }) {
   const [prot, setProt] = useState(null)
   const [view, setView] = useState('info') // 'info' | 'sex'
 
@@ -675,7 +692,47 @@ function DayDetailModal({ dateS, cycleDay, cycleLen, lang, cycles, onSaveSex, on
 
         <div className="p-5 space-y-4">
 
-          {/* Phase card */}
+          {/* FP Method disclaimer — shown when user is on FP */}
+          {fp?.onFP && fp?.methodId && fp.methodId !== 'none' && (
+            <div className="bg-teal-50 border border-teal-300 rounded-xl p-3 flex items-start gap-2">
+              <span className="text-lg flex-shrink-0">💊</span>
+              <div>
+                <p className="text-xs font-bold text-teal-800">
+                  {lang==='sw'?'Uko kwenye uzazi wa mpango:':'You are using a FP method:'}
+                  {' '}{FP_METHODS.find(m=>m.id===fp.methodId)?.label}
+                </p>
+                <p className="text-xs text-teal-700 mt-0.5">
+                  {fp.methodId==='dmpa_sc'||fp.methodId==='dmpa_im'||fp.methodId==='net_en'
+                    ? (lang==='sw'
+                        ? 'Sindano za DMPA/NET-EN huathiri hedhi yako — ovulation inazuiwa. Awamu zilizoorodheshwa ni za MAELEZO TU. Hedhi inaweza kuwa isiyo ya kawaida au kutokuwa na hedhi kabisa.'
+                        : 'DMPA/NET-EN injectables suppress ovulation — phases shown are ILLUSTRATIVE ONLY. Your periods may be irregular or absent entirely on this method.')
+                    : fp.methodId==='implant'||fp.methodId==='jadelle'
+                    ? (lang==='sw'
+                        ? 'Kipandikizi hubadilisha mzunguko wako wa kawaida. Unaweza kukosa hedhi au kuona kutokwa damu isiyo ya kawaida. Awamu zinazoorodheshwa ni za maelezo tu.'
+                        : 'Implant alters your natural cycle. You may have no periods or irregular bleeding. Phases shown are illustrative only.')
+                    : fp.methodId==='cu_iud'
+                    ? (lang==='sw'
+                        ? 'IUD ya shaba HAIZUII ovulation — mzunguko wako wa asili unaendelea. Lakini hedhi inaweza kuwa nzito zaidi au na maumivu zaidi.'
+                        : 'Copper IUD does NOT suppress ovulation — your natural cycle continues. However, periods may be heavier or more painful.')
+                    : (lang==='sw'
+                        ? 'Unatumia njia ya uzazi wa mpango. Hii inakusaidia kuepuka mimba.'
+                        : 'You are using contraception which protects against pregnancy.')}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Short cycle warning */}
+          {cycleLen < 21 && (
+            <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 flex items-start gap-2">
+              <span className="text-lg flex-shrink-0">⚠️</span>
+              <p className="text-xs text-amber-800">
+                {lang==='sw'
+                  ? `Mzunguko wako ni mfupi (siku ${cycleLen}). Kwa mzunguko mfupi, ovulation inaweza kutokea karibu na mwisho wa hedhi yako. Siku za hedhi SIZO salama. Tumia njia yako ya FP kila wakati.`
+                  : `Your cycle is short (${cycleLen} days). With a short cycle, ovulation can occur near the end of your period. Period days are NOT safe. Always use your FP method.`}
+              </p>
+            </div>
+          )}
           {phase ? (
             <div className="rounded-2xl p-4 text-white" style={{background:`linear-gradient(135deg,${phase.color},${phase.color}bb)`}}>
               <div className="flex items-center gap-3 mb-2">
@@ -824,7 +881,8 @@ export default function NovaCycleTracker({ lang='en', user }) {
   const [showFAQ,     setShowFAQ]     = useState(false)
   const [showImport,  setShowImport]  = useState(false)
   const [sexModal,    setSexModal]    = useState(null)
-  const [logSaved,    setLogSaved]    = useState(false)
+  const [confirmModal, setConfirmModal] = useState(null) // {type, data, message}
+  const [hubOpen,     setHubOpen]     = useState(false)
 
   // Log form
   const [startDate,    setStartDate]    = useState('')
@@ -862,11 +920,20 @@ export default function NovaCycleTracker({ lang='en', user }) {
 
   const savePeriod = () => {
     if(!startDate) return
-    const entry = { id:Date.now(), start:startDate.slice(0,10), end:endDate?endDate.slice(0,10):null, symptoms:Object.values(selectedSyms).flat() }
-    const updated = [entry,...cycles].sort((a,b)=>b.start.localeCompare(a.start)).slice(0,48)
-    setCycles(updated); persist(K.cycles, updated)
-    setStartDate(''); setEndDate(''); setSelectedSyms({})
-    setLogSaved(true); setTimeout(()=>setLogSaved(false),2000)
+    setConfirmModal({
+      type: 'period',
+      message: lang==='sw'
+        ? `Rekodi ${fmtShort(startDate)} kama Siku 1 ya hedhi yako?${endDate?`\nIliisha: ${fmtShort(endDate)}`:''}` 
+        : `Log ${fmtShort(startDate)} as Period Day 1?${endDate?`\nEnded: ${fmtShort(endDate)}`:''}`,
+      onConfirm: () => {
+        const entry = { id:Date.now(), start:startDate.slice(0,10), end:endDate?endDate.slice(0,10):null, symptoms:Object.values(selectedSyms).flat() }
+        const updated = [entry,...cycles].sort((a,b)=>b.start.localeCompare(a.start)).slice(0,48)
+        setCycles(updated); persist(K.cycles, updated)
+        setStartDate(''); setEndDate(''); setSelectedSyms({})
+        setLogSaved(true); setTimeout(()=>setLogSaved(false),2000)
+        setConfirmModal(null)
+      }
+    })
   }
 
   const importHistory = (rows) => {
@@ -901,11 +968,36 @@ export default function NovaCycleTracker({ lang='en', user }) {
     setSexModal({ dateS, cycleDay:cd })
   }
 
-  // Log period start from day tap
   const handleLogPeriodStart = (dateS) => {
-    const entry = { id:Date.now(), start:dateS, end:null, symptoms:[] }
-    const updated = [entry,...cycles].sort((a,b)=>b.start.localeCompare(a.start)).slice(0,48)
-    setCycles(updated); persist(K.cycles, updated)
+    setConfirmModal({
+      type: 'period_day1',
+      message: lang==='sw'
+        ? `Rekodi ${fmtShort(dateS)} kama Siku 1 ya Hedhi?`
+        : `Log ${fmtShort(dateS)} as Period Day 1?`,
+      sub: lang==='sw'
+        ? 'Hii itaanza mzunguko mpya kutoka tarehe hii.'
+        : 'This will start a new cycle from this date.',
+      onConfirm: () => {
+        const entry = { id:Date.now(), start:dateS, end:null, symptoms:[] }
+        const updated = [entry,...cycles].sort((a,b)=>b.start.localeCompare(a.start)).slice(0,48)
+        setCycles(updated); persist(K.cycles, updated)
+        setConfirmModal(null)
+      }
+    })
+  }
+
+  const handleDeleteCycle = (id, startStr) => {
+    setConfirmModal({
+      type: 'delete',
+      message: lang==='sw'
+        ? `Futa rekodi ya hedhi ya ${fmtShort(startStr)}?`
+        : `Delete period record for ${fmtShort(startStr)}?`,
+      sub: lang==='sw' ? 'Hii haiwezi kutenduliwa.' : 'This cannot be undone.',
+      onConfirm: () => {
+        const u=cycles.filter(c=>c.id!==id); setCycles(u); persist(K.cycles,u)
+        setConfirmModal(null)
+      }
+    })
   }
 
   const symCats = lang==='sw' ? SYMS_SW : SYMS_EN
@@ -1000,7 +1092,7 @@ export default function NovaCycleTracker({ lang='en', user }) {
             <div className="grid grid-cols-3 gap-2">
               {[
                 { label:lang==='sw'?'Mzunguko':'Cycles', value:cycles.length },
-                { label:lang==='sw'?'Urefu wa Wastani':'Avg Length', value:`${cycleLength}${lang==='sw'?' siku':'d'}` },
+                { label:lang==='sw'?'Urefu wa Wastani':'Avg Length', value:cycles.length>=3?`${cycleLength}${lang==='sw'?' siku':'d'}`:'—' },
                 { label:lang==='sw'?'Hadi Ijayo':'Days to Next', value:daysToNext!==null?(daysToNext<0?(lang==='sw'?'Imepita':'Past'):daysToNext):'—' },
               ].map((s,i)=>(
                 <div key={i} className="bg-white rounded-xl border border-gray-200 p-3 text-center shadow-sm">
@@ -1010,6 +1102,107 @@ export default function NovaCycleTracker({ lang='en', user }) {
               ))}
             </div>
           )}
+          {/* Accuracy notice */}
+          {cycles.length > 0 && cycles.length < 3 && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-start gap-2">
+              <span className="text-base flex-shrink-0">📈</span>
+              <p className="text-xs text-blue-700">
+                {lang==='sw'
+                  ? `Umerekodia mzunguko ${cycles.length}. Rekodi angalau 3 (miezi 3) ili kupata utabiri sahihi wa awamu, wastani wa mzunguko, na mwelekeo wa ukawaida.`
+                  : `You've logged ${cycles.length} cycle${cycles.length===1?'':'s'}. Log at least 3 months to unlock accurate phase predictions, average cycle length, and regularity trends.`}
+              </p>
+            </div>
+          )}
+          {/* Currently on period — end it button */}
+          {last && !last.end && cycleDay && cycleDay <= 10 && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-bold text-red-700">🩸 {lang==='sw'?'Bado uko kwenye hedhi?':'Still on your period?'}</p>
+                <p className="text-xs text-red-500 mt-0.5">{lang==='sw'?`Ilianza ${fmtShort(last.start)}`:`Started ${fmtShort(last.start)}`}</p>
+              </div>
+              <button onClick={()=>{
+                const updated = cycles.map((c,i)=>i===0?{...c,end:today}:c)
+                setCycles(updated); persist(K.cycles,updated)
+              }}
+                className="bg-red-500 text-white text-xs font-bold px-3 py-2 rounded-xl hover:bg-red-600">
+                {lang==='sw'?'✅ Iliisha Leo':'✅ Ended Today'}
+              </button>
+            </div>
+          )}
+          {/* ── TREND ANALYSIS CARD ── */}
+          {cycles.length>=2 && (()=>{
+            const lens=[]
+            for(let i=0;i<cycles.length-1;i++){
+              const l=diffDays(cycles[i+1].start,cycles[i].start)
+              if(l>14&&l<70) lens.push(l)
+            }
+            if(lens.length<1) return null
+            const avg=Math.round(lens.reduce((a,b)=>a+b,0)/lens.length)
+            const mn=Math.min(...lens), mx=Math.max(...lens)
+            const variance=mx-mn
+            const isRegular=variance<=7
+            const trend=(()=>{
+              if(lens.length<3) return null
+              const recent=lens.slice(0,3)
+              const older=lens.slice(-3)
+              const rAvg=recent.reduce((a,b)=>a+b,0)/recent.length
+              const oAvg=older.reduce((a,b)=>a+b,0)/older.length
+              if(rAvg < oAvg-2) return 'shortening'
+              if(rAvg > oAvg+2) return 'lengthening'
+              return 'stable'
+            })()
+            return (
+              <div className={`rounded-2xl border p-4 ${isRegular?'bg-green-50 border-green-200':'bg-amber-50 border-amber-200'}`}>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-bold uppercase tracking-wide" style={{color:isRegular?'#15803d':'#d97706'}}>
+                    📊 {lang==='sw'?'Uchambuzi wa Mwenendo':'Cycle Trend Analysis'}
+                  </p>
+                  <span className={`text-xs font-bold px-3 py-1 rounded-full ${isRegular?'bg-green-200 text-green-800':'bg-amber-200 text-amber-800'}`}>
+                    {isRegular?(lang==='sw'?'✅ Wa Kawaida':'✅ Regular'):(lang==='sw'?'⚠️ Usio wa Kawaida':'⚠️ Irregular')}
+                  </span>
+                </div>
+                {/* Mini sparkline */}
+                <div className="flex items-end gap-1 h-10 mb-3">
+                  {lens.slice(-8).map((l,i)=>{
+                    const h=Math.max(20,((l-mn)/(mx-mn||1))*100)
+                    const isOff=Math.abs(l-avg)>3
+                    return <div key={i} className="flex-1 rounded-t" style={{height:`${h}%`,background:isOff?'#f97316':'#ec4899',minHeight:'4px'}}/>
+                  })}
+                </div>
+                <div className="grid grid-cols-3 gap-2 mb-2">
+                  {[
+                    {label:lang==='sw'?'Wastani':'Average', val:`${avg}d`, c:'#ec4899'},
+                    {label:lang==='sw'?'Mfupi':'Shortest',  val:`${mn}d`,  c:'#16a34a'},
+                    {label:lang==='sw'?'Mrefu':'Longest',   val:`${mx}d`,  c:'#dc2626'},
+                  ].map((x,i)=>(
+                    <div key={i} className="bg-white rounded-xl p-2 text-center">
+                      <p className="text-sm font-black" style={{color:x.c}}>{x.val}</p>
+                      <p className="text-xs text-gray-500">{x.label}</p>
+                    </div>
+                  ))}
+                </div>
+                {trend && (
+                  <p className="text-xs text-gray-600">
+                    {trend==='shortening'?(lang==='sw'?'📉 Mzunguko wako unaonekana kupungua — zingatia hii':
+                      '📉 Your cycles appear to be getting shorter — worth noting')
+                    :trend==='lengthening'?(lang==='sw'?'📈 Mzunguko wako unaonekana kuongezeka':
+                      '📈 Your cycles appear to be getting longer')
+                    :(lang==='sw'?'↔️ Mzunguko wako ni thabiti':'↔️ Your cycle length has been stable')}
+                  </p>
+                )}
+                {!isRegular && (
+                  <p className="text-xs text-amber-700 mt-1">
+                    ⚠️ {lang==='sw'
+                      ?`Tofauti ya siku ${variance} inafanya utabiri kuwa si wa uhakika. Njia za asili za FP zinahitaji mzunguko wa kawaida.`
+                      :`${variance}-day variation makes predictions less reliable. Natural FP methods need a regular cycle.`}
+                  </p>
+                )}
+                <button onClick={()=>setSection('insights')} className="mt-2 text-xs font-bold underline" style={{color:isRegular?'#15803d':'#d97706'}}>
+                  {lang==='sw'?'Ona mwongozo kamili →':'See full chart →'}
+                </button>
+              </div>
+            )
+          })()}
         </div>
       )}
 
@@ -1141,15 +1334,58 @@ export default function NovaCycleTracker({ lang='en', user }) {
       {section==='insights' && (
         <div className="space-y-4">
           <RegularityChart cycles={cycles} lang={lang}/>
-          {cycles.length>=2 && phase && (
+
+          {/* What your current phase means — richer */}
+          {phase && cycleDay && (
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
+              <h3 className="font-bold text-gray-800 mb-1">
+                {phase.emoji} {lang==='sw'?'Kuhusu Awamu Yako ya Sasa':'About Your Current Phase'}
+              </h3>
+              <p className="text-xs text-gray-500 mb-3">
+                {lang==='sw'?`Siku ${cycleDay} ya mzunguko wako wa siku ${cycleLength}`:`Day ${cycleDay} of your ${cycleLength}-day cycle`}
+              </p>
+              <div className="rounded-xl p-4 mb-3" style={{background:phase.color+'18',border:`1.5px solid ${phase.color}44`}}>
+                <p className="text-sm font-bold mb-2" style={{color:phase.color}}>{phase[lang==='sw'?'sw':'en']}</p>
+                <p className="text-sm text-gray-700 leading-relaxed">{phase.desc[lang==='sw'?'sw':'en']}</p>
+              </div>
+              {/* What's happening in the body */}
+              {[
+                { id:'menstrual', tip_en:'Your body is shedding the uterine lining. Prostaglandins cause cramping — ibuprofen helps. Iron-rich foods (beans, leafy greens, meat) help replace iron lost through bleeding. Heat on your lower abdomen eases cramps.', tip_sw:'Mwili wako unatolea ukuta wa mfuko wa uzazi. Prostaglandini husababisha maumivu — ibuprofen husaidia. Vyakula vyenye chuma (maharagwe, mboga za majani, nyama) husaidia kujaza chuma kilichopotea.' },
+                { id:'follicular', tip_en:'Estrogen is rising. Your brain is at its sharpest. Social energy is high. A good time to start new projects, have important conversations, or exercise intensely. Cervical mucus is starting to increase.', tip_sw:'Estrojeni inaongezeka. Akili yako iko kali zaidi. Nguvu za kijamii ni za juu. Wakati mzuri wa miradi mipya, mazungumzo muhimu, au mazoezi ya nguvu.' },
+                { id:'fertile', tip_en:'Approaching ovulation. Cervical mucus is becoming wet and stretchy — like raw egg white. This is your most fertile time. If you are trying to avoid pregnancy, use your FP method every single time without exception.', tip_sw:'Karibu na ovulation. Kamasi ya seviksi inakuwa na unyevu na inayonyoosheka. Hii ni wakati wako wa uzazi zaidi. Ikiwa unaepuka mimba, tumia njia yako ya FP kila wakati bila ubaguzi.' },
+                { id:'ovulation', tip_en:'Peak fertility — egg released today. Some women feel one-sided pelvic cramping (Mittelschmerz). Libido typically peaks. BBT will rise slightly tomorrow. Egg survives only 12-24 hours but sperm from the last 5 days can still fertilise it.', tip_sw:'Uzazi wa kilele — yai limetolewa leo. Wanawake wengine wanahisi maumivu ya upande mmoja wa tumbo. Joto la mwili litaongezeka kidogo kesho. Yai linaishi masaa 12-24 tu lakini manii ya siku 5 zilizopita bado inaweza kulitia mimba.' },
+                { id:'post_ov', tip_en:'Fertility dropping rapidly. If the egg was not fertilised, it will dissolve. Progesterone begins rising. You may notice mucus becoming thicker and white again.', tip_sw:'Uzazi unashuka haraka. Ikiwa yai halikutiwa mimba, litayeyuka. Projestojeni inaanza kuongezeka. Unaweza kuona kamasi inakuwa nzito na nyeupe tena.' },
+                { id:'luteal', tip_en:'Progesterone dominates. Body temperature stays elevated. If implantation occurred, pregnancy hormones will begin rising. If not, progesterone will drop ~day 25-26, triggering your period. PMS symptoms (bloating, mood changes, breast tenderness) are most common in the second half of this phase.', tip_sw:'Projestojeni inatawala. Joto la mwili linabaki juu. Ikiwa upandikizaji ulitokea, homoni za ujauzito zitaanza kuongezeka. Ikiwa la, projestojeni itashuka siku ~25-26, ikisababisha hedhi yako. Dalili za PMS ni za kawaida katika nusu ya pili ya awamu hii.' },
+                { id:'pre_period', tip_en:'Period approaching. Progesterone dropping. Common symptoms: bloating, irritability, food cravings, breast tenderness, fatigue. These are normal hormonal changes — not imaginary. Exercise, sleep, and reducing salt and caffeine help manage PMS. If severe, see a provider.', tip_sw:'Hedhi inakaribia. Projestojeni inashuka. Dalili za kawaida: kuvimba, kuwashwa, kutamani chakula, maumivu ya matiti, uchovu. Hizi ni mabadiliko ya kawaida ya homoni. Mazoezi, usingizi, na kupunguza chumvi na kafeini husaidia kudhibiti PMS.' },
+              ].find(t=>t.id===phase.id) && (
+                <div className="bg-blue-50 border border-blue-100 rounded-xl p-3">
+                  <p className="text-xs font-bold text-blue-700 mb-1">🔬 {lang==='sw'?'Kinachoendelea Mwilini Mwako:':'What\'s Happening in Your Body:'}</p>
+                  <p className="text-xs text-blue-800 leading-relaxed">
+                    {[
+                      { id:'menstrual', tip_en:'Your body is shedding the uterine lining. Prostaglandins cause cramping — ibuprofen helps. Iron-rich foods (beans, leafy greens, meat) help replace iron lost through bleeding. Heat on your lower abdomen eases cramps.', tip_sw:'Mwili wako unatolea ukuta wa mfuko wa uzazi. Prostaglandini husababisha maumivu — ibuprofen husaidia. Vyakula vyenye chuma (maharagwe, mboga za majani, nyama) husaidia kujaza chuma kilichopotea.' },
+                      { id:'follicular', tip_en:'Estrogen is rising. Your brain is at its sharpest. Social energy is high. A good time to start new projects, have important conversations, or exercise intensely. Cervical mucus is starting to increase.', tip_sw:'Estrojeni inaongezeka. Akili yako iko kali zaidi. Nguvu za kijamii ni za juu. Wakati mzuri wa miradi mipya, mazungumzo muhimu, au mazoezi ya nguvu.' },
+                      { id:'fertile', tip_en:'Approaching ovulation. Cervical mucus is becoming wet and stretchy — like raw egg white. This is your most fertile time. If you are trying to avoid pregnancy, use your FP method every single time without exception.', tip_sw:'Karibu na ovulation. Kamasi ya seviksi inakuwa na unyevu na inayonyoosheka. Hii ni wakati wako wa uzazi zaidi. Ikiwa unaepuka mimba, tumia njia yako ya FP kila wakati bila ubaguzi.' },
+                      { id:'ovulation', tip_en:'Peak fertility — egg released today. Some women feel one-sided pelvic cramping (Mittelschmerz). Libido typically peaks. BBT will rise slightly tomorrow. Egg survives only 12-24 hours but sperm from the last 5 days can still fertilise it.', tip_sw:'Uzazi wa kilele — yai limetolewa leo. Wanawake wengine wanahisi maumivu ya upande mmoja wa tumbo. Joto la mwili litaongezeka kidogo kesho. Yai linaishi masaa 12-24 tu lakini manii ya siku 5 zilizopita bado inaweza kulitia mimba.' },
+                      { id:'post_ov', tip_en:'Fertility dropping rapidly. If the egg was not fertilised, it will dissolve. Progesterone begins rising. You may notice mucus becoming thicker and white again.', tip_sw:'Uzazi unashuka haraka. Ikiwa yai halikutiwa mimba, litayeyuka. Projestojeni inaanza kuongezeka. Unaweza kuona kamasi inakuwa nzito na nyeupe tena.' },
+                      { id:'luteal', tip_en:'Progesterone dominates. Body temperature stays elevated. If implantation occurred, pregnancy hormones will begin rising. If not, progesterone will drop around day 25-26, triggering your period. PMS symptoms are most common in the second half of this phase.', tip_sw:'Projestojeni inatawala. Joto la mwili linabaki juu. Ikiwa upandikizaji ulitokea, homoni za ujauzito zitaanza kuongezeka. Dalili za PMS ni za kawaida katika nusu ya pili ya awamu hii.' },
+                      { id:'pre_period', tip_en:'Period approaching. Progesterone dropping. Common symptoms: bloating, irritability, food cravings, breast tenderness, fatigue. These are normal hormonal changes. Exercise, sleep, and reducing salt and caffeine help manage PMS. If symptoms are severe, see a provider.', tip_sw:'Hedhi inakaribia. Projestojeni inashuka. Dalili za kawaida: kuvimba, kuwashwa, kutamani chakula, maumivu ya matiti, uchovu. Hizi ni mabadiliko ya kawaida ya homoni. Mazoezi, usingizi, na kupunguza chumvi na kafeini husaidia kudhibiti PMS.' },
+                    ].find(t=>t.id===phase.id)?.[lang==='sw'?'tip_sw':'tip_en']}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Full cycle phase guide */}
+          {cycles.length>=1 && (
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
               <h3 className="font-bold text-gray-800 mb-3">📋 {lang==='sw'?'Mwongozo wa Awamu za Mzunguko':'Cycle Phase Guide'}</h3>
               <div className="space-y-2">
                 {[
-                  {id:'menstrual',day:1},{id:'follicular',day:8},{id:'fertile',day:12},{id:'ovulation',day:14},{id:'luteal',day:18},{id:'pre_period',day:26}
+                  {id:'menstrual',day:1},{id:'follicular',day:8},{id:'fertile',day:12},{id:'ovulation',day:14},{id:'post_ov',day:16},{id:'luteal',day:18},{id:'pre_period',day:26}
                 ].map(({id,day})=>{
                   const p=getPhase(day,28)
-                  const isActive=p.id===phase.id
+                  const isActive=p.id===phase?.id
                   return (
                     <div key={id} className={`rounded-xl p-3 border-2 ${isActive?'border-pink-300':'border-gray-100'}`} style={isActive?{background:p.color+'18'}:{}}>
                       <div className="flex items-center gap-2 mb-1">
@@ -1162,6 +1398,12 @@ export default function NovaCycleTracker({ lang='en', user }) {
                   )
                 })}
               </div>
+            </div>
+          )}
+
+          {cycles.length<1 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
+              <p className="text-sm text-amber-700">{lang==='sw'?'Rekodi hedhi yako kwanza kupata mwanga.':'Log your first period to see insights.'}</p>
             </div>
           )}
         </div>
@@ -1195,6 +1437,21 @@ export default function NovaCycleTracker({ lang='en', user }) {
                     </div>
                     <div className="flex gap-3 mt-1 text-xs text-gray-500">
                       {dur && <span>🩸 {lang==='sw'?`Siku ${dur}`:`${dur} days`}</span>}
+                      {!c.end && cycleDay && cycleDay<=10 && i===0 && (
+                        <button onClick={()=>{
+                          setConfirmModal({
+                            type:'end_period',
+                            message: lang==='sw'?`Rekodi leo (${fmtShort(today)}) kama siku ya mwisho ya hedhi?`:`Mark today (${fmtShort(today)}) as period end date?`,
+                            sub:'',
+                            onConfirm:()=>{
+                              const updated=cycles.map((cx,ii)=>ii===0?{...cx,end:today}:cx)
+                              setCycles(updated); persist(K.cycles,updated); setConfirmModal(null)
+                            }
+                          })
+                        }} className="text-red-500 font-bold bg-red-50 px-2 py-0.5 rounded-full hover:bg-red-100">
+                          🩸 {lang==='sw'?'Iliisha Leo':'End Today'}
+                        </button>
+                      )}
                       {cycLen&&cycLen>15&&cycLen<60 && <span>🔄 {lang==='sw'?`Mzunguko: siku ${cycLen}`:`Cycle: ${cycLen}d`}</span>}
                     </div>
                     {c.symptoms?.length>0 && (
@@ -1203,7 +1460,7 @@ export default function NovaCycleTracker({ lang='en', user }) {
                       </div>
                     )}
                   </div>
-                  <button onClick={()=>deleteCycle(c.id)} className="text-gray-300 hover:text-red-400 ml-2"><Trash2 size={14}/></button>
+                  <button onClick={()=>handleDeleteCycle(c.id, c.start)} className="text-gray-300 hover:text-red-400 ml-2"><Trash2 size={14}/></button>
                 </div>
               </div>
             )
@@ -1211,17 +1468,55 @@ export default function NovaCycleTracker({ lang='en', user }) {
         </div>
       )}
 
-      {/* ── FLOATING FAQ ── */}
-      <button onClick={()=>setShowFAQ(true)}
-        className="fixed bottom-24 right-4 w-12 h-12 rounded-full shadow-xl flex items-center justify-center text-white text-lg z-30 hover:scale-105 transition-transform"
-        style={{background:'linear-gradient(135deg,#ec4899,#f59e0b)'}}>
-        ❓
-      </button>
+      {/* ── FLOATING ACTION HUB ── */}
+      <div className="fixed bottom-6 right-4 z-40 flex flex-col items-end gap-2">
+        {hubOpen && [
+          { icon:'❓', label:lang==='sw'?'FAQs':'FAQs', color:'#ec4899', onClick:()=>{ setShowFAQ(true); setHubOpen(false) } },
+          { icon:'👩‍⚕️', label:lang==='sw'?'Piga Simu HC':'Talk to HC', color:'#0d7377', onClick:()=>window.open('https://wa.me/254725622786?text=Hello%2C+I+have+a+question+about+family+planning','_blank') },
+          { icon:'👥', label:'Z Effect', color:'#7c3aed', onClick:()=>window.open('https://chat.whatsapp.com/Im9mluV66rKFJGwhgeybdH','_blank') },
+          { icon:'🏥', label:'MOH Helpline', color:'#15803d', onClick:()=>window.open('tel:0800723253','_self') },
+        ].map((a,i)=>(
+          <div key={i} className="flex items-center gap-2">
+            <span className="bg-white text-gray-700 text-xs font-bold px-2.5 py-1 rounded-full shadow border border-gray-100 whitespace-nowrap">{a.label}</span>
+            <button onClick={a.onClick}
+              className="w-11 h-11 rounded-full shadow-lg flex items-center justify-center text-white text-lg hover:scale-105 transition-transform"
+              style={{background:a.color}}>
+              {a.icon}
+            </button>
+          </div>
+        ))}
+        <button onClick={()=>setHubOpen(o=>!o)}
+          className="rounded-full shadow-xl flex items-center justify-center text-white text-xl hover:scale-105 transition-all"
+          style={{background:'linear-gradient(135deg,#ec4899,#f59e0b)', width:'52px', height:'52px'}}>
+          {hubOpen ? '✕' : '💬'}
+        </button>
+      </div>
 
       {/* ── MODALS ── */}
       {showFAQ    && <FAQModal lang={lang} cycleLen={cycleLength} cycleDay={cycleDay} onClose={()=>setShowFAQ(false)}/>}
       {showImport && <ImportModal lang={lang} onImport={importHistory} onClose={()=>setShowImport(false)}/>}
-      {sexModal   && <DayDetailModal dateS={sexModal.dateS} cycleDay={sexModal.cycleDay} cycleLen={cycleLength} lang={lang} cycles={cycles} onSaveSex={(d)=>saveSex(sexModal.dateS,d)} onLogPeriodStart={handleLogPeriodStart} onClose={()=>setSexModal(null)}/>}
+      {sexModal   && <DayDetailModal dateS={sexModal.dateS} cycleDay={sexModal.cycleDay} cycleLen={cycleLength} lang={lang} cycles={cycles} fp={fp} onSaveSex={(d)=>saveSex(sexModal.dateS,d)} onLogPeriodStart={handleLogPeriodStart} onClose={()=>setSexModal(null)}/>}
+
+      {/* ── CONFIRM MODAL ── */}
+      {confirmModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-xs w-full p-6">
+            <p className="font-bold text-gray-800 text-base mb-1">{confirmModal.message}</p>
+            {confirmModal.sub && <p className="text-sm text-gray-500 mb-4">{confirmModal.sub}</p>}
+            <div className="flex gap-2 mt-4">
+              <button onClick={()=>setConfirmModal(null)}
+                className="flex-1 border border-gray-300 text-gray-600 font-semibold py-2.5 rounded-xl text-sm">
+                {lang==='sw'?'Ghairi':'Cancel'}
+              </button>
+              <button onClick={confirmModal.onConfirm}
+                className={`flex-1 text-white font-bold py-2.5 rounded-xl text-sm ${confirmModal.type==='delete'?'bg-red-500 hover:bg-red-600':''}`}
+                style={confirmModal.type!=='delete'?{background:'linear-gradient(135deg,#ec4899,#f59e0b)'}:{}}>
+                {confirmModal.type==='delete'?(lang==='sw'?'Futa':'Delete'):(lang==='sw'?'Thibitisha':'Confirm')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
