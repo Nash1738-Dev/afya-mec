@@ -1,6 +1,6 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useState, useRef } from 'react'
-import { Activity, Home, Settings, BarChart3, Menu, X, Users, LogOut, BookOpen, GraduationCap, Shield } from 'lucide-react'
+import { Activity, Home, Settings, BarChart3, Menu, X, Users, LogOut, BookOpen, GraduationCap, Shield, ChevronDown, User, Bell } from 'lucide-react'
 import { syncPendingSessions } from '../../utils/api.js'
 import { getPendingCount } from '../../utils/offlineQueue.js'
 import { logout, getCurrentUser } from '../../utils/auth.js'
@@ -23,10 +23,11 @@ export default function Layout() {
   const currentStep = steps.findIndex(s => s.path === location.pathname) + 1
   const [pendingCount, setPendingCount] = useState(0)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [adminDropdownOpen, setAdminDropdownOpen] = useState(false)
+  const adminRef = useRef(null)
   const currentUser = getCurrentUser()
 
   const facilitySettings = getFacilitySettings()
-  // Use the universal environment variable instead of individual settings
   const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY || ''
 
   const [showTimeoutWarning, setShowTimeoutWarning] = useState(false)
@@ -37,11 +38,9 @@ export default function Layout() {
     clearTimeout(warningTimer.current)
     clearTimeout(logoutTimer.current)
     setShowTimeoutWarning(false)
-    // Show warning at 25 minutes
     warningTimer.current = setTimeout(() => {
       setShowTimeoutWarning(true)
     }, 25 * 60 * 1000)
-    // Logout at 30 minutes
     logoutTimer.current = setTimeout(() => {
       logout()
       window.location.href = '/login?reason=timeout'
@@ -57,6 +56,17 @@ export default function Layout() {
       clearTimeout(logoutTimer.current)
       events.forEach(e => window.removeEventListener(e, resetTimers))
     }
+  }, [])
+
+  // Close admin dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (adminRef.current && !adminRef.current.contains(e.target)) {
+        setAdminDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
   useEffect(() => {
@@ -85,62 +95,172 @@ export default function Layout() {
   }, [])
 
   const handleLogout = () => {
-    if (confirm('Log out?')) {
+    setAdminDropdownOpen(false)
+    if (confirm('Log out of AfyaNova?')) {
       logout()
       window.location.href = '/login'
     }
   }
 
+  // Nav items — Admin removed (now lives in top-left dropdown)
   const navItems = [
-    { icon: <Home size={18}/>, label: 'Dashboard', path: '/' },
-    ...(currentUser?.role === 'admin' ? [{ icon: <Shield size={18}/>, label: 'Admin', path: '/admin' }] : []),
-    { icon: <Users size={18}/>, label: 'Clients', path: '/clients' },
-    { icon: <BookOpen size={18}/>, label: 'Methods', path: '/methods' },
-    { icon: <BarChart3 size={18}/>, label: 'Reports', path: '/reports' },
-    { icon: <BookOpen size={18}/>, label: 'Resources', path: '/resources' },
-    { icon: <GraduationCap size={18}/>, label: 'Mentor', path: '/mentor' },
-    { icon: <Settings size={18}/>, label: 'Settings', path: '/settings' },
+    { icon: <Home size={16}/>, label: 'Dashboard', path: '/' },
+    { icon: <Users size={16}/>, label: 'Clients', path: '/clients' },
+    { icon: <BookOpen size={16}/>, label: 'Methods', path: '/methods' },
+    { icon: <BarChart3 size={16}/>, label: 'Reports', path: '/reports' },
+    { icon: <BookOpen size={16}/>, label: 'Resources', path: '/resources' },
+    { icon: <GraduationCap size={16}/>, label: 'Mentor', path: '/mentor' },
+    { icon: <Settings size={16}/>, label: 'Settings', path: '/settings' },
   ]
+
+  // Initials from name
+  const initials = currentUser?.name
+    ? currentUser.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
+    : 'AD'
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Skip to main content — accessibility/Sightsavers WCAG 2.1 */}
+      {/* Skip link */}
       <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
-      
+
       {/* Top Nav */}
-      <header className="text-white shadow-lg sticky top-0 z-50" role="banner" style={{background: 'linear-gradient(135deg, #0d7377 0%, #0f766e 100%)'}}>
-        <div className="max-w-5xl mx-auto px-3 py-2.5 flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center gap-2.5 cursor-pointer flex-shrink-0"
-            onClick={() => navigate('/')}>
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg font-bold"
-              style={{background: 'rgba(255,255,255,0.2)'}}>
+      <header
+        className="text-white shadow-lg sticky top-0 z-50"
+        role="banner"
+        style={{ background: 'linear-gradient(135deg, #0d7377 0%, #0f766e 100%)' }}
+      >
+        <div className="w-full px-0 flex items-center h-13" style={{ height: '52px' }}>
+
+          {/* ── Admin block — top left ── */}
+          <div
+            ref={adminRef}
+            className="relative flex items-center h-full flex-shrink-0"
+            style={{ borderRight: '1px solid rgba(255,255,255,0.18)' }}
+          >
+            <button
+              onClick={() => setAdminDropdownOpen(!adminDropdownOpen)}
+              className="flex items-center gap-2 px-3 h-full hover:bg-white hover:bg-opacity-10 transition-colors"
+              aria-label="Admin menu"
+              aria-expanded={adminDropdownOpen}
+            >
+              {/* Avatar circle */}
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                style={{ background: 'rgba(255,255,255,0.22)', border: '1.5px solid rgba(255,255,255,0.35)' }}
+              >
+                {initials}
+              </div>
+              {/* Name + role — hidden on small screens */}
+              <div className="hidden md:flex flex-col items-start leading-tight">
+                <span className="text-white font-semibold text-xs">{currentUser?.name || 'Admin'}</span>
+                <span className="text-xs capitalize" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                  {currentUser?.role || 'admin'}
+                </span>
+              </div>
+              <ChevronDown
+                size={13}
+                className="hidden md:block transition-transform"
+                style={{
+                  color: 'rgba(255,255,255,0.6)',
+                  transform: adminDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)'
+                }}
+              />
+            </button>
+
+            {/* Admin dropdown */}
+            {adminDropdownOpen && (
+              <div
+                className="absolute top-full left-0 bg-white rounded-b-xl shadow-xl overflow-hidden z-50"
+                style={{ minWidth: '210px', border: '0.5px solid #e0e0e0' }}
+              >
+                {/* Dropdown header */}
+                <div className="px-4 py-3" style={{ background: '#f8faf9', borderBottom: '1px solid #f0f0f0' }}>
+                  <p className="font-semibold text-sm" style={{ color: '#0d7377' }}>{currentUser?.name || 'Administrator'}</p>
+                  <p className="text-xs text-gray-500 capitalize">{currentUser?.role || 'Facility Admin'}</p>
+                </div>
+
+                {/* Admin panel — only for admin role */}
+                {currentUser?.role === 'admin' && (
+                  <button
+                    onClick={() => { navigate('/admin'); setAdminDropdownOpen(false) }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-teal-50 transition-colors"
+                  >
+                    <Shield size={15} style={{ color: '#0d7377' }} />
+                    Admin panel
+                  </button>
+                )}
+
+                <button
+                  onClick={() => { navigate('/settings'); setAdminDropdownOpen(false) }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-teal-50 transition-colors"
+                >
+                  <Settings size={15} style={{ color: '#0d7377' }} />
+                  Settings
+                </button>
+
+                {/* Log out — red, separated */}
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
+                  style={{ color: '#c0392b', borderTop: '1px solid #f0f0f0' }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#fff5f5'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <LogOut size={15} style={{ color: '#c0392b' }} />
+                  Log out
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* ── Brand — AfyaNova ── */}
+          <div
+            className="flex items-center gap-2.5 cursor-pointer flex-shrink-0 px-3 h-full hover:bg-white hover:bg-opacity-10 transition-colors"
+            style={{ borderRight: '1px solid rgba(255,255,255,0.18)' }}
+            onClick={() => navigate('/')}
+          >
+            <div
+              className="w-8 h-8 rounded-xl flex items-center justify-center text-base font-bold flex-shrink-0"
+              style={{ background: 'rgba(255,255,255,0.2)' }}
+            >
               🌿
             </div>
-            <div>
-              <div className="font-bold text-base leading-tight tracking-wide">AfyaMEC</div>
-              <div className="text-xs opacity-75 hidden sm:block">Informed Choice · Better Health</div>
+            <div className="hidden sm:flex flex-col leading-tight">
+              <span className="font-bold text-sm tracking-wide text-white">AfyaNova</span>
+              <span className="text-xs" style={{ color: 'rgba(255,255,255,0.65)' }}>Informed Choice · Better Health</span>
             </div>
           </div>
 
-          {/* Desktop Nav */}
-          <div className="hidden sm:flex items-center gap-1">
+          {/* ── Desktop Nav links ── */}
+          <nav className="hidden sm:flex items-center flex-1 h-full px-1 overflow-x-auto" aria-label="Main navigation">
             {navItems.map(item => (
-              <button key={item.path}
+              <button
+                key={item.path}
                 onClick={() => navigate(item.path)}
-                className={`flex items-center gap-1 px-3 py-1.5 text-sm transition-colors
-                  ${location.pathname === item.path
-                    ? 'border-b-2 border-white text-white font-bold'
-                    : 'text-teal-100 hover:text-white'}`}>
-                {item.icon} {item.label}
+                className="flex items-center gap-1.5 px-2.5 h-full text-xs font-medium whitespace-nowrap transition-colors relative flex-shrink-0"
+                style={{
+                  color: location.pathname === item.path ? '#fff' : 'rgba(255,255,255,0.72)',
+                  fontWeight: location.pathname === item.path ? '700' : '500',
+                }}
+              >
+                {item.icon}
+                {item.label}
+                {/* Active underline */}
+                {location.pathname === item.path && (
+                  <span
+                    className="absolute bottom-0 left-0 right-0 rounded-t"
+                    style={{ height: '3px', background: '#5de0b5' }}
+                  />
+                )}
               </button>
             ))}
-          </div>
+          </nav>
 
-          {/* Right side */}
-          <div className="flex items-center gap-2">
+          {/* ── Right side ── */}
+          <div className="flex items-center gap-2 px-3 ml-auto flex-shrink-0" style={{ borderLeft: '1px solid rgba(255,255,255,0.18)' }}>
+            {/* Offline badge */}
             {pendingCount > 0 && (
               <button
                 onClick={async () => {
@@ -150,7 +270,8 @@ export default function Layout() {
                     alert(`✅ ${synced} synced!`)
                   }
                 }}
-                className="flex items-center gap-1 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-full">
+                className="flex items-center gap-1 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-full"
+              >
                 📱 {pendingCount}
               </button>
             )}
@@ -158,58 +279,73 @@ export default function Layout() {
             {/* New Session button */}
             <button
               onClick={() => { window.location.href = '/session/registration' }}
-              className="bg-white text-blue-700 px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-blue-50 hidden sm:block">
+              className="hidden sm:flex items-center gap-1 font-bold text-xs px-3 py-1.5 rounded-lg transition-colors"
+              style={{ background: '#5de0b5', color: '#0d4a3e' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#3dcca0'}
+              onMouseLeave={e => e.currentTarget.style.background = '#5de0b5'}
+            >
               + New Session
             </button>
 
-            {/* Mobile menu button */}
+            {/* Mobile hamburger */}
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="sm:hidden p-1.5 rounded-lg hover:bg-blue-600">
+              className="sm:hidden p-1.5 rounded-lg hover:bg-white hover:bg-opacity-10"
+              aria-label="Toggle menu"
+            >
               {menuOpen ? <X size={22}/> : <Menu size={22}/>}
             </button>
-
-            {/* Desktop logout */}
-            <div className="hidden sm:flex items-center gap-2 border-l border-blue-600 pl-3">
-              <span className="text-xs text-blue-200">{currentUser?.name}</span>
-              <button onClick={handleLogout}
-                className="text-xs text-blue-200 hover:text-white border border-blue-500 px-2 py-1 rounded">
-                <LogOut size={14}/>
-              </button>
-            </div>
           </div>
         </div>
 
-        {/* Mobile Menu Dropdown */}
+        {/* ── Mobile Menu ── */}
         {menuOpen && (
-          <div className="sm:hidden bg-blue-800 border-t border-blue-600 px-3 py-3 space-y-1">
+          <div className="sm:hidden border-t px-3 py-3 space-y-1" style={{ background: '#0a5c60', borderColor: 'rgba(255,255,255,0.15)' }}>
             {navItems.map(item => (
-              <button key={item.path}
+              <button
+                key={item.path}
                 onClick={() => { navigate(item.path); setMenuOpen(false) }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors
-                  ${location.pathname === item.path
-                    ? 'bg-white bg-opacity-20 text-white font-bold'
-                    : 'text-teal-100 hover:bg-blue-700 hover:text-white'}`}>
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors"
+                style={{
+                  background: location.pathname === item.path ? 'rgba(255,255,255,0.18)' : 'transparent',
+                  color: location.pathname === item.path ? '#fff' : 'rgba(255,255,255,0.8)',
+                  fontWeight: location.pathname === item.path ? '700' : '400',
+                }}
+              >
                 {item.icon} {item.label}
               </button>
             ))}
+            {currentUser?.role === 'admin' && (
+              <button
+                onClick={() => { navigate('/admin'); setMenuOpen(false) }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm"
+                style={{ color: 'rgba(255,255,255,0.8)' }}
+              >
+                <Shield size={16}/> Admin panel
+              </button>
+            )}
             <button
               onClick={() => { window.location.href = '/session/registration'; setMenuOpen(false) }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm bg-white text-blue-700 font-bold mt-2">
+              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-bold mt-2"
+              style={{ background: '#5de0b5', color: '#0d4a3e' }}
+            >
               + New Session
             </button>
-            <div className="border-t border-blue-600 pt-2 mt-2 flex items-center justify-between px-3">
-              <span className="text-xs text-blue-300">{currentUser?.name}</span>
-              <button onClick={handleLogout}
-                className="flex items-center gap-1 text-xs text-blue-300 hover:text-white">
-                <LogOut size={14}/> Logout
+            <div className="pt-2 mt-1 flex items-center justify-between px-1" style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}>
+              <span className="text-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>{currentUser?.name}</span>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-1.5 text-xs px-2 py-1 rounded"
+                style={{ color: '#f87171', border: '1px solid rgba(248,113,113,0.4)' }}
+              >
+                <LogOut size={13}/> Log out
               </button>
             </div>
           </div>
         )}
       </header>
 
-      {/* Progress Steps — mobile optimized */}
+      {/* ── Progress Steps (session flow) ── */}
       {isSession && (
         <div className="bg-white border-b border-gray-200 shadow-sm overflow-x-auto">
           <div className="min-w-max mx-auto px-4 py-2">
@@ -222,12 +358,14 @@ export default function Layout() {
                     <div className="flex flex-col items-center">
                       <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors
                         ${done ? 'bg-green-500 border-green-500 text-white' :
-                          active ? 'bg-blue-600 border-blue-600 text-white' :
-                          'bg-white border-gray-300 text-gray-400'}`}>
+                          active ? 'border-teal-600 text-white' :
+                          'bg-white border-gray-300 text-gray-400'}`}
+                        style={active ? { background: '#0d7377' } : {}}
+                      >
                         {done ? '✓' : step.step}
                       </div>
                       <span className={`text-xs mt-0.5 font-medium whitespace-nowrap
-                        ${active ? 'text-blue-600' : done ? 'text-green-600' : 'text-gray-400'}`}>
+                        ${active ? 'text-teal-700' : done ? 'text-green-600' : 'text-gray-400'}`}>
                         {step.label}
                       </span>
                     </div>
@@ -243,29 +381,34 @@ export default function Layout() {
         </div>
       )}
 
-      {/* Page Content */}
+      {/* ── Page Content ── */}
       <main id="main-content" className="flex-1 max-w-5xl mx-auto w-full px-3 sm:px-4 py-4 sm:py-6">
         <Outlet />
       </main>
 
-      {/* Mobile Bottom Nav */}
-      <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40 overflow-x-auto whitespace-nowrap" aria-label="Mobile navigation">
+      {/* ── Mobile Bottom Nav ── */}
+      <nav
+        className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40 overflow-x-auto whitespace-nowrap"
+        aria-label="Mobile navigation"
+      >
         <div className="flex w-max">
           {navItems.map(item => (
-            <button key={item.path}
+            <button
+              key={item.path}
               onClick={() => navigate(item.path)}
-              className={`px-4 flex flex-col items-center gap-0.5 py-2 text-xs transition-colors
-                ${location.pathname === item.path
-                  ? 'text-blue-600 font-bold'
-                  : 'text-gray-400 hover:text-gray-600'}`}>
+              className="px-4 flex flex-col items-center gap-0.5 py-2 text-xs transition-colors"
+              style={{ color: location.pathname === item.path ? '#0d7377' : '#9ca3af', fontWeight: location.pathname === item.path ? '700' : '400' }}
+            >
               {item.icon}
               <span>{item.label}</span>
             </button>
           ))}
           <button
             onClick={() => { window.location.href = '/session/registration' }}
-            className="px-4 flex flex-col items-center gap-0.5 py-2 text-xs text-blue-600 font-bold sticky right-0 bg-white shadow-[-10px_0_10px_-10px_rgba(0,0,0,0.1)]">
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center -mt-4 shadow-lg">
+            className="px-4 flex flex-col items-center gap-0.5 py-2 text-xs font-bold sticky right-0 bg-white"
+            style={{ color: '#0d7377', boxShadow: '-10px 0 10px -10px rgba(0,0,0,0.1)' }}
+          >
+            <div className="w-8 h-8 rounded-full flex items-center justify-center -mt-4 shadow-lg" style={{ background: '#0d7377' }}>
               <span className="text-white text-lg font-bold">+</span>
             </div>
             <span className="mt-0.5">New</span>
@@ -276,12 +419,12 @@ export default function Layout() {
       {/* Bottom padding for mobile nav */}
       <div className="sm:hidden h-16"/>
 
-      {/* Footer - desktop only */}
+      {/* Footer */}
       <footer className="hidden sm:block bg-gray-800 text-gray-400 text-center text-xs py-3">
-        AfyaMEC Platform — Kenya MOH | WHO MEC 6th Edition (2025) | BCS+ Protocol
+        AfyaNova Platform — Kenya MOH | WHO MEC 6th Edition (2025) | BCS+ Protocol
       </footer>
 
-      {/* Session Timeout Warning */}
+      {/* ── Session Timeout Warning ── */}
       {showTimeoutWarning && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full text-center">
@@ -293,14 +436,15 @@ export default function Layout() {
             <button
               onClick={() => { resetTimers(); setShowTimeoutWarning(false) }}
               className="w-full text-white font-bold py-3 rounded-xl transition-colors"
-              style={{background: '#0d7377'}}>
+              style={{ background: '#0d7377' }}
+            >
               I'm still here — Continue Session
             </button>
           </div>
         </div>
       )}
 
-      {/* Floating Action Buttons */}
+      {/* Floating Actions */}
       <FloatingActions geminiApiKey={geminiApiKey}/>
     </div>
   )
