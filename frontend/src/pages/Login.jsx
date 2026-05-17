@@ -98,7 +98,7 @@ export default function Login() {
               🌿
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-white">AfyaMEC</h1>
+          <h1 className="text-3xl font-bold text-white">AfyaNova</h1>
           <p className="text-teal-200 text-sm mt-1">Informed Choice · Better Health</p>
           <p className="text-teal-300 text-xs mt-0.5">Kenya Family Planning Platform</p>
           {facility.facility_name && (
@@ -159,7 +159,7 @@ export default function Login() {
             </button>
 
             <p className="text-center text-teal-300 text-xs mt-2 opacity-70">
-              🔒 AfyaMEC — Kenya MOH Digital Family Planning Platform
+              🔒 AfyaNova — Kenya MOH Digital Family Planning Platform
             </p>
           </div>
         )}
