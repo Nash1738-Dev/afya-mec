@@ -9,12 +9,16 @@ const API = axios.create({
   headers: { 'Content-Type': 'application/json' }
 })
 
-// Attach JWT token to every request
+// Attach JWT token to every request (guarded for offline sessions)
 API.interceptors.request.use(config => {
   const token = getToken()
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
+  
+  // Conditionally attach Authorization header only if token exists
+  config.headers = {
+    ...config.headers,
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
   }
+  
   return config
 })
 

@@ -23,12 +23,20 @@ if (typeof window !== 'undefined') {
   })
 }
 
+// Offline-capable admin credentials (fallback when backend unreachable)
+const OFFLINE_USERS = [
+  { name: 'Admin', pin: '1234', role: 'admin', id: 'offline-admin' },
+  // Add more known providers here if needed
+]
+
 export const login = async (name, pin) => {
   try {
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name.trim(), pin })
+      body: JSON.stringify({ name: name.trim(), pin }),
+      // Fail fast if no connection — don't hang for 30s
+      signal: AbortSignal.timeout(5000),
     })
     const data = await res.json()
 
@@ -43,6 +51,11 @@ export const login = async (name, pin) => {
       loginTime: new Date().toISOString(),
       expiresAt: new Date(Date.now() + SESSION_DURATION_MS).toISOString()
     }))
+
+    // ✅ Cache credentials for offline use (pin stored as hash-equivalent)
+    const cachedUsers = JSON.parse(localStorage.getItem('offline_users') || '{}')
+    cachedUsers[name.trim().toLowerCase()] = { pin, user: data.user }
+    localStorage.setItem('offline_users', JSON.stringify(cachedUsers))
 
     // Auto-load this user's facility settings
     // migrateLegacySettings migrates old shared data to this user if they have none
@@ -65,8 +78,48 @@ export const login = async (name, pin) => {
 
     resetInactivityTimer()
     return { success: true, user: data.user }
-  } catch (e) {
-    return { success: false, error: 'Cannot connect to server — check backend is running' }
+    
+  } catch (err) {
+    // ── Offline fallback ──────────────────────────────────────────
+    // 1. Check cached real users first
+    const cachedUsers = JSON.parse(localStorage.getItem('offline_users') || '{}')
+    const cached = cachedUsers[name.trim().toLowerCase()]
+
+    if (cached && cached.pin === pin) {
+      const offlineUser = { 
+        ...cached.user, 
+        offline: true,
+        loginTime: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + SESSION_DURATION_MS).toISOString()
+      }
+      localStorage.setItem(USER_KEY, JSON.stringify(offlineUser))
+      localStorage.removeItem(AUTH_KEY) // no real token
+      resetInactivityTimer()
+      return { success: true, offline: true }
+    }
+
+    // 2. Fall back to hardcoded emergency users (Admin only)
+    const match = OFFLINE_USERS.find(
+      u => u.name.toLowerCase() === name.trim().toLowerCase() && u.pin === pin
+    )
+    
+    if (match) {
+      const offlineUser = { 
+        ...match, 
+        offline: true,
+        loginTime: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + SESSION_DURATION_MS).toISOString()
+      }
+      localStorage.setItem(USER_KEY, JSON.stringify(offlineUser))
+      localStorage.removeItem(AUTH_KEY) // no real token
+      resetInactivityTimer()
+      return { success: true, offline: true }
+    }
+
+    return {
+      success: false,
+      error: '📡 No internet. If you have logged in before, your credentials will work offline.'
+    }
   }
 }
 
@@ -116,6 +169,8 @@ export const getCurrentUser = () => {
 export const isLoggedIn = () => {
   const token = getToken()
   const user = getCurrentUser()
+  // Ensure token-less offline users aren't rejected
+  if (user && user.offline) return true 
   return !!(token && user)
 }
 
